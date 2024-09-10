@@ -1,9 +1,8 @@
-
-build/
-
+# Exclude build directories and system-specific files
 **/build/
 **/.vs/
 
+# Exclude CMake-generated files
 CMakeCache.txt
 CMakeFiles/
 cmake_install.cmake
@@ -17,30 +16,24 @@ ZERO_CHECK*
 ALL_BUILD*
 INSTALL*
 
+# Exclude IDE/editor-specific directories
 .idea/
 .vscode/
 .vs/
 
-*.exe
-*.dll
-*.so
-*.lib
-*.a
+# Exclude temporary and backup files
 *.out
-
 *.log
 *.tmp
 *.bak
 *.swp
 *.swo
 
-docs/
-doxydocs/
-
+# Exclude output binaries and debug directories
 out/
-lib/
 Debug/
 x64/
 
+# Exclude OS-specific system files
 Thumbs.db
 .DS_Store
