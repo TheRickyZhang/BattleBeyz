@@ -1,0 +1,46 @@
+------Ordinary value ranges for all relevant variables (SI Units)--------
+-----------Great for sanity checks during development!-----------
+
+BeybladeBody. Contains all of the physical properties of a beyblade. accelaration and angularAccelaration should be 0.
+For angular velocity, clockwise = negative y, counterclockwise = positive y
+
+layerRadius:            0.02 - 0.03          m
+discRadius:             0.015 - 0.03         m 
+driverRadius:           0.0005 - 0.0025      m         // Not largest radius, but contact radius
+
+layerHeight:            0.008 - 0.012        m
+discHeight:             0.005 - 0.012        m 
+driverHeight:           0.01 - 0.02          m 
+
+COR (restitution):      0.1 - 0.6            _
+COF (friction):         0 - 0.5              _
+dragCoefficient:        0.3 - 1.1            _
+    layer:    0.5 - 1.5
+    disc:     0.3 - 0.8
+    driver:   0.1 - 0.4
+mass:                   0.03 - 0.09          kg
+    layer:    0.015 - 0.035
+    disc:     0.020 - 0.045
+    driver:   0.003 - 0.010
+momentOfInertia:        5.3e-6 - 3.6e-5      kg*m^2
+    layer:    3e-6 - 1.6e-5
+    disc:     2.3e-6 - 2.025e-5
+    driver:   7.5e-9 - 2e-8
+    
+velocity (mag):         0 - 1.2              m/s       // Accumulated velocity and accelaration*deltaTime
+angularVelocity (mag):  30 - 1000            rad/s     // should not exceed these magnitudes
+
+recoilDistribution (mean, std dev):          _         TO BE EXPERIMENTALLY TESTED
+
+
+StadiumBody. Contains all of the physical properties of a Stadium.
+
+radius:                 0.15 - 1.0           m
+curvature:              0.0 - 1.0            _         // flat to approximately 45 degrees of tilt
+scaledCurvature:        0.0 - 6.5            1/m       // inversely proportional to radius
+COF (friction):         0.0 to 0.5           _
+ 
+
+// TODO More physics calculation checks
+
+log(x) - x/500:  TO BE EXPERIMENTALLY TESTED
