@@ -12,8 +12,8 @@
 * @param body               [in] A BeybladeBody object
 */
 
-void PhysicsWorld::addBeybladeBody(BeybladeBody* body) {
-    beybladeBodies.push_back(body);
+void PhysicsWorld::addBeyblade(Beyblade* body) {
+    beyblades.push_back(body);
 }
 
 /**
@@ -22,20 +22,22 @@ void PhysicsWorld::addBeybladeBody(BeybladeBody* body) {
 * @param body               [in] A StadiumBody object
 */
 
-void PhysicsWorld::addStadiumBody(StadiumBody* body) {
-    stadiumBodies.push_back(body);
+void PhysicsWorld::addStadium(Stadium* body) {
+    stadiums.push_back(body);
 }
 
-void PhysicsWorld::removeBeybladeBody(BeybladeBody* body) {
-    beybladeBodies.erase(std::remove(beybladeBodies.begin(), beybladeBodies.end(), body), beybladeBodies.end());
+
+
+void PhysicsWorld::removeBeyblade(Beyblade* body) {
+    beyblades.erase(std::remove(beyblades.begin(), beyblades.end(), body), beyblades.end());
 }
 
-void PhysicsWorld::removeStadiumBody(StadiumBody* body) {
-    stadiumBodies.erase(std::remove(stadiumBodies.begin(), stadiumBodies.end(), body), stadiumBodies.end());
+void PhysicsWorld::removeStadium(Stadium* body) {
+    stadiums.erase(std::remove(stadiums.begin(), stadiums.end(), body), stadiums.end());
 }
 
 /**
-* Update beyblade physics state.
+* Update beyblade physics state in main physics loop.
 *
 * @param deltaTime              [in] Time increment in seconds.
 */
@@ -44,7 +46,8 @@ void PhysicsWorld::update(float deltaTime) {
     /**
     * Resolve bey-stadium collisions
     */
-    for (BeybladeBody* beybladeBody : beybladeBodies) {
+    for (Beyblade* beyblade : beyblades) {
+        BeybladeBody* beybladeBody = beyblade->getRigidBody();
         // TODO: If bey is below minimum spin threshold, end the match. Some default animation could be used.
         if (glm::length(beybladeBody->getAngularVelocity()) < SPIN_THRESHOLD) {
             std::cerr << "Beyblade ran out of spin" << std::endl;
@@ -55,7 +58,8 @@ void PhysicsWorld::update(float deltaTime) {
         glm::vec3 beyBottom = beybladeBody->getBottomPosition();
 
         // Should usually only be one stadium, but may need to scale to more
-        for (StadiumBody* stadiumBody : stadiumBodies) {
+        for (Stadium* stadium : stadiums) {
+            StadiumBody* stadiumBody = stadium->getRigidBody();
             if(!stadiumBody->isInside(beyBottom.x, beyBottom.z)) {
                 // Game is over since beyblade is out of bounds, implement behavior in future
                 std::cerr << "Beyblade out of bounds" << std::endl;
@@ -81,10 +85,10 @@ void PhysicsWorld::update(float deltaTime) {
     /**
     * Resolve bey-bey collisions
     */
-    for (size_t i = 0; i < beybladeBodies.size(); ++i) {
-        for (size_t j = i + 1; j < beybladeBodies.size(); ++j) {
-            BeybladeBody* bey1 = beybladeBodies[i];
-            BeybladeBody* bey2 = beybladeBodies[j];
+    for (size_t i = 0; i < beyblades.size(); ++i) {
+        for (size_t j = i + 1; j < beyblades.size(); ++j) {
+            BeybladeBody* bey1 = beyblades[i]->getRigidBody();
+            BeybladeBody* bey2 = beyblades[j]->getRigidBody();
             std::optional<double> contactDistance = BeybladeBody::distanceOverlap(bey1, bey2);
 
             // Skip beys with no contact
@@ -102,10 +106,12 @@ void PhysicsWorld::update(float deltaTime) {
     * Apply forces simultaneously by storing them, rather than sequentially which can cause consistency issues
     * Then, apply all at once to change velocities, then update positions with new velocities.
     */
-    for (BeybladeBody* beybladeBody : beybladeBodies) {
+    for (Beyblade* beyblade : beyblades) {
+        BeybladeBody* beybladeBody = beyblade->getRigidBody();
         beybladeBody->applyAccumulatedChanges(deltaTime);
         beybladeBody->update(deltaTime);
-        for (StadiumBody* stadiumBody : stadiumBodies) {
+        for (Stadium* stadium : stadiums) {
+            StadiumBody* stadiumBody = stadium->getRigidBody();
             // Prevent beyblade from ever clipping into the stadium during rendering
             Physics::preventStadiumClipping(beybladeBody, stadiumBody);
         }
@@ -124,12 +130,14 @@ void PhysicsWorld::update(float deltaTime) {
 // TOFIX if not working?
 void PhysicsWorld::renderDebug(ShaderProgram& shader) const {
     // Render all bounding boxes
-    for (BeybladeBody* beybladeBody : beybladeBodies) {
+    for (Beyblade* beyblade : beyblades) {
+        BeybladeBody* beybladeBody = beyblade->getRigidBody();
         for (int i = 0; i < beybladeBody->boundingBoxes.size() /*&& i < 100*/; i++) {
             beybladeBody->boundingBoxes[i]->renderDebug(shader, beybladeBody->getCenter());
         }
     }
-    for (StadiumBody* stadiumBody : stadiumBodies) {
+    for (Stadium* stadium : stadiums) {
+        StadiumBody* stadiumBody = stadium->getRigidBody();
         for (int i = 0; i < stadiumBody->boundingBoxes.size() /*&& i < 100*/; i++) {
             stadiumBody->boundingBoxes[i]->renderDebug(shader, stadiumBody->getCenter());
         }

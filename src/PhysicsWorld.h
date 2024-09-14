@@ -6,8 +6,8 @@
 #pragma once
 
 #include "Physics.h"
-#include "RigidBodies/StadiumBody.h"
-#include "RigidBodies/BeybladeBody.h"
+#include "Beyblade.h"
+#include "Stadium.h"
 
 #include <vector>
 #include <glm/glm.hpp>
@@ -22,19 +22,19 @@ public:
     // TODO: Move airDensityValue to Physics.h
     PhysicsWorld(double airDensityValue = 0.8, double spinThreshold = 30) : airDensity(airDensityValue), SPIN_THRESHOLD(spinThreshold) {}
 
-    void addBeybladeBody(BeybladeBody* body);
-    void addStadiumBody(StadiumBody* body);
-    void removeBeybladeBody(BeybladeBody* body);
-    void removeStadiumBody(StadiumBody* body);
+    void addBeyblade(Beyblade* body);
+    void addStadium(Stadium* body);
+    void removeBeyblade(Beyblade* body);
+    void removeStadium(Stadium* body);
 
     void update(float deltaTime);
     void renderDebug(ShaderProgram &shader) const;
-    std::vector<BeybladeBody*> getBeybladeBodies() const { return beybladeBodies; }
-    std::vector<StadiumBody*> getStadiumBodies() const { return stadiumBodies; }
+    std::vector<Beyblade*> getBeyblades() const { return beyblades; }
+    std::vector<Stadium*> getStadiums() const { return stadiums; }
 
 private:
     double airDensity;
-    std::vector<BeybladeBody*> beybladeBodies;
-    std::vector<StadiumBody*> stadiumBodies;
+    std::vector<Beyblade*> beyblades;
+    std::vector<Stadium*> stadiums;
     const double SPIN_THRESHOLD = 30;
 };

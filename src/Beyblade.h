@@ -11,6 +11,7 @@
 #include "GameObject.h"
 #include "RigidBody.h"
 #include "RigidBodies/BeybladeBody.h"
+#include "MeshObjects/BeybladeMesh.h"
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <iostream>
@@ -22,27 +23,25 @@
 #include <memory>
 #include <iomanip>
 
-class Beyblade : public GameObject {
+class Beyblade {
+    friend class BeybladeMesh;
+    friend class BeybladeBody;
 public:
-    Beyblade(std::string modelPath, uint32_t vao, uint32_t vbo, uint32_t ebo,
-        BeybladeBody* rigidBody, std::string name);
+    Beyblade::Beyblade(BeybladeBody* rigidBody, BeybladeMesh* mesh, std::string name);
     ~Beyblade();
 
-    void initializeMesh() override;
-    void render(ShaderProgram& shader, const glm::vec3& lightColor, const glm::vec3& lightPos) override;
+    void Beyblade::render(ShaderProgram& shader);
+
     BeybladeBody* getRigidBody() { return rigidBody; }
+    BeybladeMesh* getMesh() { return mesh; }
 
     std::string getName() const { return name; }
     void setName(const std::string& name) { Beyblade::name = name; }
 protected:
 
 private:
-    std::unordered_map<std::string, glm::vec3> materialColors;
     BeybladeBody* rigidBody;
-    std::string modelPath;
-    Texture* texture{};
-    std::string name;
+    BeybladeMesh* mesh;
 
-    void loadModel(const std::string& path);
-    void printDebugInfo();
+    std::string name;
 };

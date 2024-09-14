@@ -6,29 +6,64 @@
 #include "Stadium.h"
 
 /**
-* Constructor.
-*/
-
-Stadium::Stadium(unsigned int vao, unsigned int vbo, unsigned int ebo, const glm::vec3& pos, const glm::vec3& col,
-    const glm::vec3& ringColor, const glm::vec3& crossColor, float radius, float curvature, float coefficientOfFriction, int numRings,
-    int verticesPerRing, Texture* texture, float textureScale)
-    : GameObject(vao, vbo, ebo, col),
-    ringColor(ringColor),
-    crossColor(crossColor),
-    numRings(numRings),
-    verticesPerRing(verticesPerRing),
-    texture(texture),
-    textureScale(textureScale)
-{
-    rigidBody = new StadiumBody(pos, radius, curvature, coefficientOfFriction);
-    Stadium::initializeMesh();
-}
-
-/**
 * Internal routine to create mesh.
 */
 
-void Stadium::generateMeshData() {
+/**
+* Intrenal routine to initialize mesh.
+*/
+
+/**
+* Stadium renderer
+*
+* Does not need to take in lightColor and lightPos, as these should be same for all objects.
+*/
+
+void Stadium::render(ShaderProgram& shader) {
+    shader.use();
+
+    // Activate texture unit and bind texture
+    if (mesh->texture) {
+        glActiveTexture(GL_TEXTURE0);
+        mesh->texture->use();
+        shader.setInt("texture1", 0);
+    }
+
+    // Bind appropriate uniforms (model, view, projection matrices)
+    glm::mat4 model = glm::translate(glm::mat4(1.0f), rigidBody->getCenter());
+    shader.setUniformMat4("model", model);
+
+    //    shader.setUniformVec3("viewPos", viewPos);
+    shader.setUniformVec3("lightColor", glm::vec3(1.0f));
+    shader.setUniformVec3("lightPos", glm::vec3(1.0f, 1e6, 1.0f));
+
+    glBindVertexArray(mesh->VAO);
+    glDrawElements(GL_TRIANGLES, (GLsizei)mesh->indices.size(), GL_UNSIGNED_INT, nullptr);
+    glBindVertexArray(0);
+
+    GLenum err;
+    while ((err = glGetError()) != GL_NO_ERROR) {
+        std::cerr << "OpenGL error: " << err << std::endl;
+    }
+}
+
+
+void Stadium::initializeMesh() {
+    auto m = mesh;
+    // Get reference to edit directly
+    auto& vertices = m->vertices;
+    auto& normals = m->normals;
+    auto& texCoords = m->texCoords;
+    auto& indices = m->indices;
+    auto& tangents = m->tangents;
+    auto& colors = m->colors;
+    auto& vertexData = m->vertexData;
+    auto& crossColor = m->crossColor;
+    auto& ringColor = m->ringColor;
+    auto& color = m->color;
+    auto& verticesPerRing = m->verticesPerRing;
+    auto& numRings = m->numRings;
+    auto& textureScale = m->textureScale;
 
     // Clear existing data
     vertices.clear();
@@ -205,13 +240,9 @@ void Stadium::generateMeshData() {
         // Add the bounding box to the immovable rigid body
         rigidBody->boundingBoxes.push_back(bbox);
     }
-}
 
-/**
-* Intrenal routine to initialize mesh.
-*/
-void Stadium::initializeMesh() {
-    generateMeshData();
+    /*******************************************************************/
+
     if (vertices.size() != normals.size() || vertices.size() != texCoords.size()) {
         std::cerr << "Mesh data is inconsistent" << std::endl;
         std::cout << "Vertices: " << vertices.size() << ", Normals: " << normals.size() << ", TexCoords: "
@@ -238,40 +269,6 @@ void Stadium::initializeMesh() {
         vertexData.push_back(colors[i].y);
         vertexData.push_back(colors[i].z);
     }
-    ::setupBuffers(VAO, VBO, EBO, vertexData.data(), vertexData.size() * sizeof(float), indices.data(),
+    setupBuffers(m->VAO, m->VBO, m->EBO, vertexData.data(), vertexData.size() * sizeof(float), indices.data(),
         indices.size() * sizeof(unsigned int));
-}
-
-/**
-* Stadium renderer
-*
-* Does not need to take in lightColor and lightPos, as these should be same for all objects.
-*/
-
-void Stadium::render(ShaderProgram& shader, const glm::vec3& lightColor, const glm::vec3& lightPos) {
-    shader.use();
-
-    // Activate texture unit and bind texture
-    if (texture) {
-        glActiveTexture(GL_TEXTURE0);
-        texture->use();
-        shader.setInt("texture1", 0);
-    }
-
-    // Bind appropriate uniforms (model, view, projection matrices)
-    glm::mat4 model = glm::translate(glm::mat4(1.0f), rigidBody->getCenter());
-    shader.setUniformMat4("model", model);
-
-    //    shader.setUniformVec3("viewPos", viewPos);
-    shader.setUniformVec3("lightColor", lightColor);
-    shader.setUniformVec3("lightPos", lightPos);
-
-    glBindVertexArray(VAO);
-    glDrawElements(GL_TRIANGLES, (GLsizei)indices.size(), GL_UNSIGNED_INT, nullptr);
-    glBindVertexArray(0);
-
-    GLenum err;
-    while ((err = glGetError()) != GL_NO_ERROR) {
-        std::cerr << "OpenGL error: " << err << std::endl;
-    }
 }

@@ -33,6 +33,8 @@
 #include "RigidBodies/BeybladeParts.h"
 #include "RigidBodies/BeybladeBody.h"
 #include "RigidBodies/StadiumBody.h"
+#include "MeshObjects/BeybladeMesh.h"
+#include "MeshObjects/StadiumMesh.h"
 
 #include <iomanip>
 #include <algorithm>
@@ -152,7 +154,7 @@ glm::vec3 initialCameraPos(5.0f, 2.4f, 0.0f);
 
 
     // Time variables
-    float lastFrame = 0.0f;
+    float prevTime = 0.0f;
 
     //static float imguiColor[3] = {1.0f, 0.0f, 0.0f}; // Red
     static float imguiColor[3] = { 0.8f, 0.8f, 0.8f }; // Very Light Gray
@@ -231,23 +233,8 @@ glm::vec3 initialCameraPos(5.0f, 2.4f, 0.0f);
 
     /* ----------------------OBJECT SETUP-------------------------- */
 
-    GLuint tetrahedronVAO, tetrahedronVBO, tetrahedronEBO;
-    float tetrahedronVertices[] = {
-        // Positions 0-2                // Normals 3-5                      // TexCoords  6-7          // Colors 8-10
-        0.0f,  1.0f,  0.0f,  0.0f,  0.5773f,  0.0f,  0.5f, 1.0f,  1.0f, 0.0f, 0.0f, // Top vertex (Red)
-        0.0f,  0.0f, -1.0f,  0.0f,  0.5773f, -0.8165f, 0.5f, 0.0f,  0.0f, 1.0f, 0.0f, // Front vertex (Green)
-        -1.0f,  0.0f,  1.0f, -0.8165f,  0.5773f,  0.0f,  0.0f, 0.0f,  0.0f, 0.0f, 1.0f, // Left vertex (Blue)
-        1.0f,  0.0f,  1.0f,  0.8165f,  0.5773f,  0.0f,  1.0f, 0.0f,  1.0f, 1.0f, 0.0f  // Right vertex (Yellow)
-    };
-
-    unsigned int tetrahedronIndices[] = {
-            0, 1, 2, // Front face
-            0, 1, 3, // Right face
-            0, 2, 3, // Left face
-            1, 2, 3  // Bottom face
-    };
-    setupBuffers(tetrahedronVAO, tetrahedronVBO, tetrahedronEBO, tetrahedronVertices,
-        sizeof(tetrahedronVertices), tetrahedronIndices, sizeof(tetrahedronIndices));
+    //setupBuffers(tetrahedronVAO, tetrahedronVBO, tetrahedronEBO, tetrahedronVertices,
+    //    sizeof(tetrahedronVertices), tetrahedronIndices, sizeof(tetrahedronIndices));
 
     // Initialize VAO, VBO, and EBO for the floor
     GLuint floorVAO, floorVBO, floorEBO;
@@ -270,10 +257,9 @@ glm::vec3 initialCameraPos(5.0f, 2.4f, 0.0f);
 
     // Create the Stadium object
 
-    auto stadiumPosition = glm::vec3(0.0f, 1.0f, 0.0f);
-    //glm::vec3 stadiumColor = glm::vec3(0.2f, 0.2f, 0.2f);
-    glm::vec3 stadiumColor = glm::vec3(0.5f, 0.5f, 0.5f);
-    glm::vec3 ringColor = glm::vec3(1.0f, 1.0f, 0.0f);
+    glm::vec3 stadiumPosition = glm::vec3(0.0f, 1.0f, 0.0f);
+    glm::vec3 stadiumColor = glm::vec3(0.2f, 0.2f, 0.2f);
+    glm::vec3 ringColor = glm::vec3(1.0f, 0.0f, 0.0f);
     glm::vec3 crossColor = glm::vec3(0.0f, 0.0f, 1.0f);
     float stadiumRadius = 1.2f;
     float stadiumCurvature = 0.10f;
@@ -282,35 +268,38 @@ glm::vec3 initialCameraPos(5.0f, 2.4f, 0.0f);
     int sectionsPerRing = 64;
     float stadiumTextureScale = 1.5f;
 
-    Stadium stadium(stadiumVAO, stadiumVBO, stadiumEBO, stadiumPosition, stadiumColor, ringColor, crossColor,
-        stadiumRadius, stadiumCurvature, stadiumCoefficientOfFriction, numRings, sectionsPerRing, stadiumTexture,
-        stadiumTextureScale);
+    StadiumBody* rigidBody = new StadiumBody(stadiumPosition, stadiumRadius, stadiumCurvature, stadiumCoefficientOfFriction);
+    StadiumMesh* stadiumMesh = new StadiumMesh(stadiumTexture, stadiumRadius, sectionsPerRing, numRings, ringColor, crossColor, stadiumColor, stadiumTextureScale);
+
+    Stadium* stadium = new Stadium(rigidBody, stadiumMesh, "Stadium 1");
+    physicsWorld->addStadium(stadium);
+
 
     // Use default constructors for now
-    GLuint Bey1VAO = 0, Bey1VBO = 0, Bey1EBO = 0;
     Layer layer1;
     Disc disc1; 
     Driver driver1;
     auto rigidBey1 = new BeybladeBody(layer1, disc1, driver1);
+
+    GLuint Bey1VAO = 0, Bey1VBO = 0, Bey1EBO = 0;
     std::string beyblade1Path = "./assets/images/TestBlade3.obj";
-    auto bey1Position = glm::vec3(0.0f, 2.0f, 0.6f);
-    Beyblade beyblade1(beyblade1Path, Bey1VAO, Bey1VBO, Bey1EBO, rigidBey1, "Beyblade 1");
+    auto meshBey1 = new BeybladeMesh(beyblade1Path, Bey1VAO, Bey1VBO, Bey1EBO, glm::vec3(1.0f, 1.0f, 1.0f));
+    Beyblade* beyblade1 = new Beyblade(rigidBey1, meshBey1, "Beyblade 1");
 
 
-    GLuint Bey2VAO = 0, Bey2VBO = 0, Bey2EBO = 0;
     Layer layer2;
     Disc disc2;
     Driver driver2;
     auto rigidBey2 = new BeybladeBody(layer2, disc2, driver2);
+
+    GLuint Bey2VAO = 0, Bey2VBO = 0, Bey2EBO = 0;
     std::string beyblade2Path = "./assets/images/TestBlade3.obj";
-    auto bey2Position = glm::vec3(0.0f, 2.0f, -0.6f);
-    Beyblade beyblade2(beyblade2Path, Bey2VAO, Bey2VBO, Bey2EBO, rigidBey2, "Beyblade 2");
+    auto meshBey2 = new BeybladeMesh(beyblade2Path, Bey2VAO, Bey2VBO, Bey2EBO, glm::vec3(1.0f, 1.0f, 1.0f));
+    Beyblade* beyblade2 = new Beyblade(rigidBey2, meshBey2, "Beyblade 2");
 
     // Add beys
-    physicsWorld->addBeybladeBody(beyblade1.getRigidBody());
-    physicsWorld->addBeybladeBody(beyblade2.getRigidBody());
-
-    physicsWorld->addStadiumBody(stadium.getRigidBody());
+    physicsWorld->addBeyblade(beyblade1);
+    physicsWorld->addBeyblade(beyblade2);
 
     glm::vec3 initialPosition1 = glm::vec3(0.0f, 2.0f, 0.5f);
     glm::vec initialPosition2 = glm::vec3(0.0f, 2.0f, -0.5f);
@@ -318,18 +307,17 @@ glm::vec3 initialCameraPos(5.0f, 2.4f, 0.0f);
     glm::vec3 initialVelocity2 = glm::vec3(0.2f, 0.0f, 0.1f);
     glm::vec3 initialAngularVelocity = glm::vec3(0.0f, -450.0f, 0.0f);
 
-    beyblade1.getRigidBody()->setInitialLaunch(initialPosition1, initialVelocity1, initialAngularVelocity);
-    beyblade2.getRigidBody()->setInitialLaunch(initialPosition2, initialVelocity2, initialAngularVelocity);
+    beyblade1->getRigidBody()->setInitialLaunch(initialPosition1, initialVelocity1, initialAngularVelocity);
+    beyblade2->getRigidBody()->setInitialLaunch(initialPosition2, initialVelocity2, initialAngularVelocity);
 
     /* ----------------------MAIN RENDERING LOOP-------------------------- */
 
     while (!glfwWindowShouldClose(window)) {
-        // Measure time
-        auto currentFrame = static_cast<float>(glfwGetTime());
-        // deltaTime was moved to the callback data so the keyboard handler can use it.
+        // Measure delta time for physics
+        auto currentTime = static_cast<float>(glfwGetTime());
 #if 1
-        gameControl.deltaTime = currentFrame - lastFrame;  // xxxFrame: bad name!  Should be xxxtime!
-        lastFrame = currentFrame;
+        gameControl.deltaTime = currentTime - prevTime;
+        prevTime = currentTime;
 #else
         gameControl.deltaTime = 0.03; 
 #endif
@@ -352,6 +340,7 @@ glm::vec3 initialCameraPos(5.0f, 2.4f, 0.0f);
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
+        // TODO: Add function to reset game state, so that when going back to home screen, the game is reset
 
         if (gameControl.currentState == ProgramState::LOADING) {
             showLoadingScreen(window, backgroundTexture);
@@ -374,7 +363,10 @@ glm::vec3 initialCameraPos(5.0f, 2.4f, 0.0f);
         else {
             glEnable(GL_DEPTH_TEST);
 
-            physicsWorld->update(gameControl.deltaTime);
+            // Only update if the game is active
+            if (!gameControl.showOptionsScreen && gameControl.currentState == ProgramState::ACTIVE) {
+                physicsWorld->update(gameControl.deltaTime);
+            }
 
             if (gameControl.showInfoScreen) {
                 showInfoScreen(window, &imguiColor);
@@ -399,24 +391,13 @@ glm::vec3 initialCameraPos(5.0f, 2.4f, 0.0f);
             glBindVertexArray(floorVAO);
             glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
 
-            // Render the tetrahedron
-
-            objectShader->setUniformMat4("model", identity4);
-            glActiveTexture(GL_TEXTURE0);
-            hexagonPattern.use();
-            objectShader->setInt("texture1", 0);
-            glBindVertexArray(tetrahedronVAO);
-            glDrawElements(GL_TRIANGLES, 12, GL_UNSIGNED_INT, nullptr);
-
-            // Does not need to take in lightColor and lightPos, as these should be same for all objects
-
             // Update and render the stadium (uses this texture)
-            stadium.render(*objectShader, glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1e6f, 0.0f)); // render(shader, light color=white, light position)
+            stadium->render(*objectShader);  // render(shader, light color=white, light position)
 
             // Update and render the Beyblade
             // TODO: This should be handled renderAll or something! Maybe physicsWorld should hold the objects and not their rigidBodies to allow for this
-            beyblade1.render(*objectShader, glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(0.0f, 1e6f, 0.0f));
-            beyblade2.render(*objectShader, glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(0.0f, 1e6f, 0.0f));
+            beyblade1->render(*objectShader);
+            beyblade2->render(*objectShader);
 
             // Render bounding boxes for debugging
 
@@ -426,8 +407,7 @@ glm::vec3 initialCameraPos(5.0f, 2.4f, 0.0f);
                 //stadium.body->renderDebug(*objectShader, cameraState->camera->Position);
             }
 
-            // Render text overlay
-
+            // TODO: Move this into info screen
             std::stringstream ss;
             ss << std::fixed << std::setprecision(1);
             ss << "X: " << cameraState->camera->Position.x << " "
@@ -448,6 +428,11 @@ glm::vec3 initialCameraPos(5.0f, 2.4f, 0.0f);
             textRenderer.RenderText(cameraPosStr, 25.0f, windowHeight - 50.0f, 0.6f, glm::vec3(0.5f, 0.8f, 0.2f));
         }
 
+        // Render options screen last
+        if (gameControl.showOptionsScreen) {
+            showOptionsScreen(window);
+        }
+
         // Render ImGui on top of the 3D scene
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -459,9 +444,6 @@ glm::vec3 initialCameraPos(5.0f, 2.4f, 0.0f);
     /* ----------------------CLEANUP-------------------------- */
 
     // Variables cleanup
-    glDeleteVertexArrays(1, &tetrahedronVAO);
-    glDeleteBuffers(1, &tetrahedronVBO);
-    glDeleteBuffers(1, &tetrahedronEBO);
     glDeleteVertexArrays(1, &floorVAO);
     glDeleteBuffers(1, &floorVBO);
     glDeleteBuffers(1, &floorEBO);

@@ -36,6 +36,9 @@ struct GameControl {
     float deltaTime;
     PhysicsWorld* physicsWorld;
 
+    int selectedBeyblade = -1;
+    bool showOptionsScreen = false;
+
     GameControl(int *width, int *height, float ratio, glm::mat4 *proj, ShaderProgram *sh, ShaderProgram* background,
                  CameraState *camState, QuadRenderer *quadRend, bool showHome, bool showInfo,
                  bool showCustomize, bool showAbout, ImFont* defaultF, ImFont* titleF, ImFont* attackF,
@@ -60,6 +63,6 @@ struct GameControl {
               debugMode(_debugMode),
               physicsWorld(physicsWorld)
 {
-        deltaTime = 0.0f;  // This is updated in the main loop.
+        deltaTime = 0.0f;
 }
 };

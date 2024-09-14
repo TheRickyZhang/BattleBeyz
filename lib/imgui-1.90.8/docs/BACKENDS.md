@@ -25,7 +25,9 @@ For example, the [example_win32_directx11](https://github.com/ocornut/imgui/tree
 Dear ImGui is highly portable and only requires a few things to run and render, typically:
 
  - Required: providing mouse/keyboard inputs (fed into the `ImGuiIO` structure).
- - Required: uploading the font atlas texture into graphics memory.
+ - Required: uploading the 
+ 
+ - atlas texture into graphics memory.
  - Required: rendering indexed textured triangles with a clipping rectangle.
 
  Extra features are opt-in, our backends try to support as many as possible:

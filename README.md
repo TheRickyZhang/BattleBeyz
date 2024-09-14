@@ -27,6 +27,9 @@ The Visual Studio solution and project files are generated with CMake (I use CMa
 - Select the build variant (Debug, Release, etc.), and then run Build Solution from the Build menu.
 - Debug or run the application from the Debug menu or using menu shortcut (F5 to debug, Ctrl+F5 to run without debugging).
 
+#### Issues
+- If you encounter issues with glew32s, make sure that read-only is turned off for the glew32.lib file. If the issue still persists, ensure that you are opening the solution for BattleBeyz/build, and not some other directory.
+
 ### Libraries
 
 #### GLFW, GLEW, GLM, FreeType, Assimp, Imgui, stb_image
