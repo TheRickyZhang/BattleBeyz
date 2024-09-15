@@ -32,7 +32,9 @@ void printVec3(const std::string& label, const glm::vec3& v);
 enum ProgramState {
     LOADING,
     RENDERING,
-    ACTIVE
+    ACTIVE,
+    PAUSED, 
+    // TODO: More states based on game logic needs
 };
 
 /**

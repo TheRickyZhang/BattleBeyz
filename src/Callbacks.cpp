@@ -50,6 +50,9 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
 * 
 */
 
+// Track if ESC was pressed
+static bool escPressed = false;
+
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
     ImGui_ImplGlfw_KeyCallback(window, key, scancode, action, mods);
     auto* data = static_cast<GameControl*>(glfwGetWindowUserPointer(window));
@@ -57,30 +60,41 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 
     if (action == GLFW_PRESS || action == GLFW_REPEAT) {
         switch (key) {
-            case GLFW_KEY_TAB:  // Toggle display of the "Info Screen".
-                data->showInfoScreen = !data->showInfoScreen;
+        case GLFW_KEY_TAB:  // Toggle display of the "Info Screen".
+            data->showInfoScreen = !data->showInfoScreen;
+            break;
+        case GLFW_KEY_D:
+            if ((mods & GLFW_MOD_CONTROL)) {  // CTRL-D: toggle debug mode.
+                data->debugMode = !data->debugMode;
+                std::cout << "Debug mode is " << (data->debugMode ? "On" : "Off") << std::endl;
                 break;
-            case GLFW_KEY_D:
-                if ((mods & GLFW_MOD_CONTROL)) {  // CTRL-D: toggle debug mode.
-                    data->debugMode = !data->debugMode;
-                    std::cout << "Debug mode is " << (data->debugMode ? "On" : "Off") << std::endl;
-                    break;
-                }  // Else fall into code below
-            case GLFW_KEY_A:
-            case GLFW_KEY_E:
-            case GLFW_KEY_S:
-            case GLFW_KEY_Q:
-            case GLFW_KEY_W:
-            case GLFW_KEY_ESCAPE:
-                data->cameraState->camera->processKeyboard(key, data->deltaTime, data->boundCamera);
-                break;
-            case GLFW_KEY_UNKNOWN:  // We don't use this key.
-                break;
+            }  // Else fall into code below
+        case GLFW_KEY_A:
+        case GLFW_KEY_E:
+        case GLFW_KEY_S:
+        case GLFW_KEY_Q:
+        case GLFW_KEY_W:
+            data->cameraState->camera->processKeyboard(key, data->deltaTime, data->boundCamera);
+            break;
+        case GLFW_KEY_ESCAPE:
+            // Toggle Options screen when ESC is pressed, but ensure it only happens on one press
+            if (!escPressed) {
+                data->showOptionsScreen = !data->showOptionsScreen;
+                escPressed = true;
+            }
+            break;
+        case GLFW_KEY_UNKNOWN:  // We don't use this key.
+            break;
+        }
+    }
 
+    // Handle key release to reset the escPressed flag
+    if (action == GLFW_RELEASE) {
+        if (key == GLFW_KEY_ESCAPE) {
+            escPressed = false;
         }
     }
 }
-
 /**
 * Mouse button handler.
 */

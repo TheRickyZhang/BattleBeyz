@@ -19,34 +19,27 @@
 #include "Utils.h"
 #include "Buffers.h"
 #include "BoundingBox.h"
-#include "PhysicsWorld.h"
 #include "RigidBodies/StadiumBody.h"
+#include "MeshObjects/StadiumMesh.h"
 
 // Stadium with parabolic shape
-class Stadium : public GameObject {
+class Stadium {
 public:
-    Stadium(unsigned int vao, unsigned int vbo, unsigned int ebo, const glm::vec3& pos, const glm::vec3& col,
-        const glm::vec3& ringColor, const glm::vec3& crossColor, float radius, float curvature, float coefficientOfFriction, int numRings,
-        int verticesPerRing, Texture* texture, float textureScale);
+    Stadium::Stadium(StadiumBody* stadiumBody, StadiumMesh* stadiumMesh, std::string name) :
+        rigidBody(stadiumBody), mesh(stadiumMesh), name(std::move(name)) {
+        initializeMesh();
+    }
 
-    void update() {}
-    void initializeMesh() override;
-    void render(ShaderProgram& shader, const glm::vec3& lightColor, const glm::vec3& lightPos) override;
+    void initializeMesh();
+
+    void render(ShaderProgram& shader);
     StadiumBody* getRigidBody() { return rigidBody; }
-
-protected:
-    void generateMeshData();
+    StadiumMesh* getMesh() { return mesh; }
 
 private:
-    Texture* texture;
-    PhysicsWorld* physicsWorld;
     StadiumBody* rigidBody;
-    int verticesPerRing;
-    int numRings;
-    glm::vec3 ringColor;
-    glm::vec3 crossColor;
+    StadiumMesh* mesh;
+    std::string name;
 
     std::vector<std::unique_ptr<BoundingBox>> triangleBoundingBoxes;
-
-    float textureScale = 1.0f;
 };

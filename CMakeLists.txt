@@ -95,7 +95,7 @@ add_executable(BattleBeyz ${SOURCES}
         src/RigidBody.h
         src/PhysicsWorld.cpp
         src/PhysicsWorld.h
- "src/RigidBodies/BeybladeParts.h" "src/RigidBodies/RandomDistribution.h" "src/RigidBodies/StadiumBody.h" "src/RigidBodies/BeybladeBody.cpp")
+ "src/RigidBodies/BeybladeParts.h" "src/RigidBodies/RandomDistribution.h" "src/RigidBodies/StadiumBody.h" "src/RigidBodies/BeybladeBody.cpp" "src/MeshObjects/BeybladeMesh.h" "src/MeshObjects/BeybladeMesh.cpp" "src/MeshObjects/StadiumMesh.h" "src/MeshObjects/StadiumMesh.cpp")
 
 # Default runtime folder for debugging in Visual Studio:
 set_property(TARGET BattleBeyz PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}")

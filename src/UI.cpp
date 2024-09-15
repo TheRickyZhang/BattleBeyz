@@ -50,6 +50,22 @@ inline void TextWithLink(const char* text, const char* url) {
     }
 }
 
+// Render a red "Exit" button
+inline bool RenderExitButton(GLFWwindow* window, const ImVec4& buttonColor = ImVec4(0.8f, 0.0f, 0.0f, 1.0f),
+    const ImVec4& buttonHovered = ImVec4(1.0f, 0.0f, 0.0f, 1.0f),
+    const ImVec4& buttonActive = ImVec4(0.6f, 0.0f, 0.0f, 1.0f)) {
+    ImGui::PushStyleColor(ImGuiCol_Button, buttonColor);
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, buttonHovered);
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive, buttonActive);
+    bool exitPressed = ImGui::Button("Exit");
+    if (exitPressed) {
+        glfwSetWindowShouldClose(window, GLFW_TRUE);
+    }
+    ImGui::PopStyleColor(3);
+    return exitPressed;
+}
+
+
 void setupBackground(GLFWwindow *window, Texture &backgroundTexture) {
     auto *data = static_cast<GameControl *>(glfwGetWindowUserPointer(window));
     auto windowWidth = *data->windowWidth;
@@ -147,44 +163,109 @@ void showHomeScreen(GLFWwindow *window, Texture &homeScreenTexture, Texture &bac
     ImGui::End();
 }
 
+void showOptionsScreen(GLFWwindow* window) {
+    auto* data = static_cast<GameControl*>(glfwGetWindowUserPointer(window));
+
+    int windowWidth, windowHeight;
+    glfwGetWindowSize(window, &windowWidth, &windowHeight);
+
+    // Set the window size (e.g., 300x200) and calculate its centered position
+    ImVec2 optionsWindowSize = ImVec2(300, 200);
+    ImVec2 optionsWindowPos = ImVec2((windowWidth - optionsWindowSize.x) / 2, (windowHeight - optionsWindowSize.y) / 2);
+
+    // Set window position and size, and disable moving
+    ImGui::SetNextWindowPos(optionsWindowPos, ImGuiCond_Always);
+    ImGui::SetNextWindowSize(optionsWindowSize);
+
+    ImGui::Begin("Options", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
+
+    ImVec2 windowCenter = ImGui::GetWindowSize();
+    float windowCenterX = windowCenter.x / 2.0f;
+
+    if (CenterButton(windowCenterX, "Settings")) {
+        // TODO: Add settings functionality
+    }
+
+    if (CenterButton(windowCenterX, "Home")) {
+        data->showHomeScreen = true;
+        data->showOptionsScreen = false;
+    }
+
+    // Reuse RenderExitButton without color options
+    RenderExitButton(window);
+
+    ImGui::End();
+}
+
+
 
 void showInfoScreen(GLFWwindow *window, float (*imguiColor)[3]) {
-    auto *data = static_cast<GameControl *>(glfwGetWindowUserPointer(window));
+    auto* data = static_cast<GameControl*>(glfwGetWindowUserPointer(window));
 
     ImGui::SetNextWindowSize(ImVec2(500, 400), ImGuiCond_FirstUseEver);
-    ImGui::Begin("BattleBeyz", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+    ImGui::Begin("Settings and Launch Menu", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
 
-    ImGui::Text("Settings and Launch Menu");
-
-    std::vector<BeybladeBody*> beybladeBodies = data->physicsWorld->getBeybladeBodies();
-    for (int i = 0; i < (int)beybladeBodies.size(); ++i) {
-        ImGui::PushID(i);
-        // TODO: Add beyblade names instead of placeholder here. Selecting a byeblade should open new windows with options for each one (ex. launch, select)
-        if (ImGui::Button("Placeholder")) {
-            std::cout << "Button " << i << " pressed" << std::endl;
-        }
-        ImGui::PopID();
-    }
-
-    static float f = 0.0f;
-    ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
-    static int counter = 0;
-    if (ImGui::Button("Launch")) {
-        counter++;
-    }
+    // Pause button
     ImGui::SameLine();
-    ImGui::Text("counter = %d", counter);
+    if (ImGui::Button(data->currentState == ProgramState::PAUSED ? "Resume" : "Pause")) {
+        data->currentState = (data->currentState == ProgramState::PAUSED) ? ProgramState::ACTIVE : ProgramState::PAUSED;
+    }
+
+    // Exit button
+    ImGui::SameLine();
+    RenderExitButton(window);
+
+    // Home Button
+    ImGui::SameLine();
+    if (ImGui::Button("Home")) {
+        data->showHomeScreen = true;
+        data->showInfoScreen = false;
+    }
+
+    ImGui::Separator();
+
+    std::vector<Beyblade*> beyblades = data->physicsWorld->getBeyblades();
+
+    for (int i = 0; i < beyblades.size(); ++i) {
+        BeybladeBody* beybladeBody = beyblades[i]->getRigidBody();
+
+        // Each Beyblade has its own collapsible header that can be expanded/collapsed independently
+        if (ImGui::CollapsingHeader(beyblades[i]->getName().data())) {
+            ImGui::Text("Initial Velocity");
+            glm::vec3 initialVelocity = beybladeBody->getVelocity();
+            ImGui::SliderFloat("Velocity X", &initialVelocity.x, -100.0f, 100.0f);
+            ImGui::SliderFloat("Velocity Y", &initialVelocity.y, -100.0f, 100.0f);
+            ImGui::SliderFloat("Velocity Z", &initialVelocity.z, -100.0f, 100.0f);
+
+            ImGui::Text("Initial Center");
+            glm::vec3 initialCenter = beybladeBody->getCenter();
+            ImGui::SliderFloat("Center X", &initialCenter.x, -100.0f, 100.0f);
+            ImGui::SliderFloat("Center Y", &initialCenter.y, -100.0f, 100.0f);
+            ImGui::SliderFloat("Center Z", &initialCenter.z, -100.0f, 100.0f);
+
+            ImGui::Text("Initial Angular Velocity");
+            glm::vec3 initialAngularVelocity = beybladeBody->getAngularVelocity();
+            ImGui::SliderFloat("Angular Velocity X", &initialAngularVelocity.x, -100.0f, 100.0f);
+            ImGui::SliderFloat("Angular Velocity Y", &initialAngularVelocity.y, -100.0f, 100.0f);
+            ImGui::SliderFloat("Angular Velocity Z", &initialAngularVelocity.z, -100.0f, 100.0f);
+
+            if (ImGui::Button("Apply Launch Settings")) {
+                beybladeBody->setInitialLaunch(initialCenter, initialVelocity, initialAngularVelocity);
+            }
+        }
+    }
+
+
+
+    if (ImGui::Button("Launch")) {
+        
+    }
 
     // Color editor
     ImGui::ColorEdit3("background color", *imguiColor);
 
     // Checkbox to toggle showCamera
     ImGui::Checkbox("Bound Camera", &data->boundCamera);
-
-    if (ImGui::Button("Menu")) {
-        data->showHomeScreen = true;
-        data->showInfoScreen = false;
-    }
 
     ImGui::End();
 }
