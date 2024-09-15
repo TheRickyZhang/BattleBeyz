@@ -5,30 +5,55 @@ BattleBeyz is a 3D game that uses OpenGL for rendering graphics. My goal is to c
 Any collaboration or feedback is welcome!
 
 ## Features (So far!)
-
+- Custom working physics and collision detection
+- Game logic in a finite state machine
 - 3D rendering with OpenGL
 - Font rendering with FreeType
-- Basic Camera control
-- Lighting and Shading
-- Basic Textures
-- Dynamic Meshes
+- Camera control, lighting and shading
+- Textures and dynamic meshes
 - UI Elements/Navigation
-- Scrolling Backgrounds
+
 
 ## Building with Visual Studio 2022
-The Visual Studio solution and project files are generated with CMake (I use CMake 3.30.2):
 
-- Open a command prompt, and change to the project folder, for example, cd D:\BattleBeyz-dev
-- Remove any existing build folder.  Windows command prompt: rd /S /Q build, or in PowerShell: Remove-Item -Recurse -Force build
-- Run CMake:  cmake -S . -B build
-  Read the output carefully, and make sure cmake ran withut errors and that it found the correct version of Visual C++.
-- Close the command prompt if you no longer need it for other activities.
-- Run Visual Studio and open the solution file, for example, from File -> Open -> Project/Solution, select D:\BattelBeyz-dev\build\BattleBeyz.sln.
-- Select the build variant (Debug, Release, etc.), and then run Build Solution from the Build menu.
-- Debug or run the application from the Debug menu or using menu shortcut (F5 to debug, Ctrl+F5 to run without debugging).
+The Visual Studio solution and project files are generated using **CMake** (I use **CMake 3.30.2**, but any recent versions should be fine):
+
+1. **Open a command prompt** and navigate to the desired location.
+
+2. **Clone the repository** to your local machine:
+   ```bash
+   git clone https://github.com/TheRickyZhang/BattleBeyz
+   ```
+
+3. **Navigate into the `BattleBeyz` directory**:
+   ```bash
+   cd BattleBeyz
+   ```
+
+4. **Generate the Visual Studio solution** by running CMake:
+   ```bash
+   cmake -S . -B build
+   ```
+   - Ensure there are no errors and that the correct version of **Visual C++** is found.
+
+5. **Open the solution** in **Visual Studio 2022**:
+   - Either double-click `...BattleBeyz\build\BattleBeyz.sln` or open it manually by going to:
+     ```
+     File -> Open -> Project/Solution
+     ```
+
+6. **Select the build configuration** (e.g., **Debug**, **Release**, etc.) in Visual Studio.
+
+7. **Build the solution** by pressing **Ctrl+Shift+B**.
+
+8. **Run or debug the application**:
+   - Press **F5** to debug.
+   - Press **Ctrl+F5** to run without debugging.
 
 #### Issues
-- If you encounter issues with glew32s, make sure that read-only is turned off for the glew32.lib file. If the issue still persists, ensure that you are opening the solution for BattleBeyz/build, and not some other directory.
+- Ensure you have git and cmake installed and added to your PATH for the above commands.
+- If you encounter issues with glew32s, make sure that read-only is turned off for the glew32.lib file and that it is in the x64 folder, not Win32.
+- If you have an existing build folder, make sure to remove it with rd /S /Q build (command prompt) or Remove-Item -Recurse -Force build (powershell)
 
 ### Libraries
 
