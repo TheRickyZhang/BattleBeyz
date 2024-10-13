@@ -29,8 +29,13 @@ public:
 
     void update(float deltaTime);
     void renderDebug(ShaderProgram &shader) const;
+#if 0
     std::vector<Beyblade*> getBeyblades() const { return beyblades; }
     std::vector<Stadium*> getStadiums() const { return stadiums; }
+#else  // NEWUI
+    std::vector<Beyblade*>& getBeyblades() { return beyblades; }
+    std::vector<Stadium*>& getStadiums() { return stadiums; }
+#endif
 
 private:
     double airDensity;

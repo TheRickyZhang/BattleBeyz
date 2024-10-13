@@ -55,47 +55,28 @@ link_directories(${FREETYPE_DIR}/static/vs2015-2022/win64)
 # Add external libraries
 set(LIBS glfw glew32s ${OPENGL_LIBRARIES} freetype glu32 opengl32)
 
-# Add assets directory to be copied to the build directory
+# Add assets directory to be copied to the build directory.  We don't need this in the build
+# output, but assets must be a subfolder of the working directory at runtime.  Later we will
+# create an installer that will set up assets properly.
 #### file(COPY ${PROJECT_SOURCE_DIR}/assets DESTINATION ${CMAKE_BINARY_DIR})
 
-# Add executable
-add_executable(BattleBeyz ${SOURCES}
-        src/ShaderProgram.cpp
-        src/ShaderProgram.h
-        src/Buffers.cpp
-        src/Buffers.h
-        src/Initialize.cpp
-        src/Initialize.h
-        src/TextRenderer.cpp
-        src/TextRenderer.h
-        src/ShaderPath.h
-        src/Utils.cpp
-        src/Utils.h
-        src/GameObject.h
-        src/Stadium.cpp
-        src/Stadium.h
-        src/Texture.cpp
-        src/Texture.h
-        src/Camera.cpp
-        src/Camera.h
-        src/Callbacks.cpp
-        src/Callbacks.h
-        src/GameControl.h
-        src/UI.cpp
-        src/UI.h
-        src/QuadRenderer.cpp
-        src/QuadRenderer.h
-        src/Beyblade.cpp
-        src/Beyblade.h
-        src/BoundingBox.cpp
-        src/BoundingBox.h
-        src/Physics.cpp
-        src/Physics.h
-        src/RigidBody.cpp
-        src/RigidBody.h
-        src/PhysicsWorld.cpp
-        src/PhysicsWorld.h
- "src/RigidBodies/BeybladeParts.h" "src/RigidBodies/RandomDistribution.h" "src/RigidBodies/StadiumBody.h" "src/RigidBodies/BeybladeBody.cpp" "src/MeshObjects/BeybladeMesh.h" "src/MeshObjects/BeybladeMesh.cpp" "src/MeshObjects/StadiumMesh.h" "src/MeshObjects/StadiumMesh.cpp")
+# Add our own sources
+file(GLOB_RECURSE MAIN_SOURCES src/*.cpp src/*.h)
+
+# Combine sources
+set(SOURCES ${MAIN_SOURCES} ${IMGUI_SOURCES})
+
+# Create source groups to appear in our Visual Studio project.
+foreach(_source IN ITEMS ${SOURCES})
+    get_filename_component(_source_path "${_source}" PATH)
+    file(RELATIVE_PATH _source_path_rel "${PROJECT_SOURCE_DIR}" "${_source_path}")
+    string(REPLACE "/" "\\" _group_path "${_source_path_rel}")
+    source_group("${_group_path}" FILES "${_source}")
+endforeach()
+
+
+# Add executable or library targets
+add_executable(BattleBeyz ${SOURCES} "src/Timer.h")
 
 # Default runtime folder for debugging in Visual Studio:
 set_property(TARGET BattleBeyz PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}")

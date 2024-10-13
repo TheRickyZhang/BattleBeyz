@@ -105,7 +105,7 @@ void TextRenderer::initRenderData() {
 * @param color                  [in] Color.
 */
 
-void TextRenderer::RenderText(const std::string& text, float x, float y, float scale, const glm::vec3& color) {
+void TextRenderer::renderText(const std::string& text, float x, float y, float scale, const glm::vec3& color) {
     shaderProgram->use();
     glUniform3f(glGetUniformLocation(shaderProgram->ID, "textColor"), color.x, color.y, color.z);
     glActiveTexture(GL_TEXTURE0);
@@ -163,7 +163,7 @@ void TextRenderer::RenderText(const std::string& text, float x, float y, float s
 * @param height                 [in] New height.
 */
 
-void TextRenderer::Resize(int width, int height) {
+void TextRenderer::resize(int width, int height) {
     glm::mat4 projection = glm::ortho(0.0f, static_cast<float>(width), 0.0f, static_cast<float>(height));
     shaderProgram->use();
     shaderProgram->setUniformMat4("projection", projection);

@@ -1,6 +1,7 @@
 # Exclude build directories and system-specific files
 **/build/
 **/.vs/
+**/src-old/
 
 # Exclude CMake-generated files
 CMakeCache.txt

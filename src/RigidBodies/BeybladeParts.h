@@ -19,17 +19,40 @@
  */
 struct Layer {
     Layer(double radius, double height,
-          RandomDistribution* recoilDistribution, double coefficientOfRestitution, double rotationalDragCoefficient,
-          double mass, glm::vec3 velocity, glm::vec3 acceleration, double momentOfInertia) :
-        radius(radius), height(height), recoilDistribution(recoilDistribution), coefficientOfRestitution(coefficientOfRestitution),
-        rotationalDragCoefficient(rotationalDragCoefficient), mass(mass), momentOfInertia(momentOfInertia) {}
+        RandomDistribution* recoilDistribution,
+        double coefficientOfRestitution,
+        double rotationalDragCoefficient,
+        double mass,
+        glm::vec3 velocity,
+        glm::vec3 acceleration,
+        double momentOfInertia) :
+        radius(radius),
+        height(height),
+        recoilDistribution(recoilDistribution),
+        coefficientOfRestitution(coefficientOfRestitution),
+        rotationalDragCoefficient(rotationalDragCoefficient),
+        mass(mass),
+        momentOfInertia(momentOfInertia) {}
     Layer() : 
-        radius(0.025), height(0.01), recoilDistribution(new RandomDistribution(1, 0.1)), coefficientOfRestitution(0.8),
-        rotationalDragCoefficient(0.7*0.005), mass(0.03), momentOfInertia(0.5 * 0.03 * 0.025 * 0.025) {}
+        radius(0.025),
+        height(0.01),
+        coefficientOfRestitution(0.8),
+        rotationalDragCoefficient(0.7*0.005),
+        mass(0.03),
+        momentOfInertia(0.5 * 0.03 * 0.025 * 0.025)
+{
+        // TODO: defines recoilDistribution twice! Alter constructor to take in the mean and stddev
+        recoilDistributionMean = 1.0;
+        recoileDistributionStdDev = 0.1;
+        recoilDistribution = new RandomDistribution(recoilDistributionMean, recoileDistributionStdDev);
+}
+
     double radius;
     double height;
     double mass;
     double momentOfInertia;
+    double recoilDistributionMean;
+    double recoileDistributionStdDev;
     double rotationalDragCoefficient;
     RandomDistribution* recoilDistribution;
     double coefficientOfRestitution;
@@ -42,7 +65,11 @@ struct Disc {
     Disc(double radius, double height, double mass, double momentOfInertia, double rotationalDragCoefficient)
         : radius(radius), height(height), mass(mass), momentOfInertia(momentOfInertia), rotationalDragCoefficient(rotationalDragCoefficient) {}
     Disc()
-        : radius(0.018), height(0.01), mass(0.025), momentOfInertia(0.7 * 0.025 * 0.018 * 0.018), rotationalDragCoefficient(0.1*0.005) {}
+        : radius(0.018),
+        height(0.01),
+        mass(0.025),
+        momentOfInertia(0.7 * 0.025 * 0.018 * 0.018),
+        rotationalDragCoefficient(0.1*0.005) {}
     double radius;
     double height;
     double mass;
@@ -58,8 +85,13 @@ struct Driver {
         : radius(radius), height(height), mass(mass), momentOfInertia(momentOfInertia),
         rotationalDragCoefficient(rotationalDragCoefficient), coefficientOfFriction(coefficientOfFriction) {}
     Driver()
-        : radius(0.002), height(0.015), mass(0.005), momentOfInertia(0.5 * 0.005 * 0.002 * 0.0015), rotationalDragCoefficient(0.1*0.005),
-        coefficientOfFriction(0.22) {}
+        : radius(0.002),
+        height(0.015),
+        mass(0.005),
+        momentOfInertia(0.5 * 0.005 * 0.002 * 0.0015),
+        rotationalDragCoefficient(0.1*0.005),
+        coefficientOfFriction(0.22)
+{}
     double radius;
     double height;
     double mass;

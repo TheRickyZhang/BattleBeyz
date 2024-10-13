@@ -53,7 +53,7 @@ protected:
 
     float textureScale = 1.0f;
 
-    unsigned int VAO, VBO, EBO;
+    unsigned int VAO{}, VBO{}, EBO{};
     glm::vec3 color;
 
 };

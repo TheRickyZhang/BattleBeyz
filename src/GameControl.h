@@ -12,17 +12,20 @@
 #include "imgui.h"
 #include "Utils.h"
 
+#define MINI_CASE_SENSITIVE
+#include "mini/ini.h"
+
 
 // All data needed to be passed to the callback functions
 struct GameControl {
-    int *windowWidth;
-    int *windowHeight;
+    int* windowWidth;
+    int* windowHeight;
     float aspectRatio;
-    glm::mat4 *projection;
-    ShaderProgram *shader;
+    glm::mat4* projection;
+    ShaderProgram* shader;
     ShaderProgram* backgroundShader;
-    CameraState *cameraState;
-    QuadRenderer *quadRenderer;
+    CameraState* cameraState;
+    QuadRenderer* quadRenderer;
     bool showHomeScreen;
     bool showInfoScreen;
     bool showCustomizeScreen;
@@ -39,30 +42,46 @@ struct GameControl {
     int selectedBeyblade = -1;
     bool showOptionsScreen = false;
 
-    GameControl(int *width, int *height, float ratio, glm::mat4 *proj, ShaderProgram *sh, ShaderProgram* background,
-                 CameraState *camState, QuadRenderer *quadRend, bool showHome, bool showInfo,
-                 bool showCustomize, bool showAbout, ImFont* defaultF, ImFont* titleF, ImFont* attackF,
-                 bool boundCam, ProgramState programState, bool _debugMode, PhysicsWorld* physicsWorld)
-            : windowWidth(width),
-              windowHeight(height),
-              aspectRatio(ratio),
-              projection(proj),
-              shader(sh),
-              backgroundShader(background),
-              cameraState(camState),
-              quadRenderer(quadRend),
-              showHomeScreen(showHome),
-              showInfoScreen(showInfo),
-              showCustomizeScreen(showCustomize),
-              showAboutScreen(showAbout),
-              defaultFont(defaultF),
-              titleFont(titleF),
-              attackFont(attackF),
-              boundCamera(false),
-              currentState(programState),
-              debugMode(_debugMode),
-              physicsWorld(physicsWorld)
-{
+    // NEWUI
+    // For ini file handling
+
+    mINI::INIFile* iniFile;
+    mINI::INIStructure* iniData;
+
+    GameControl(int* width, int* height, float ratio, glm::mat4* proj, ShaderProgram* sh, ShaderProgram* background,
+        CameraState* camState, QuadRenderer* quadRend, bool showHome, bool showInfo,
+        bool showCustomize, bool showAbout, ImFont* defaultF, ImFont* titleF, ImFont* attackF,
+        bool boundCam, ProgramState programState, bool _debugMode, PhysicsWorld* physicsWorld)
+        : windowWidth(width),
+        windowHeight(height),
+        aspectRatio(ratio),
+        projection(proj),
+        shader(sh),
+        backgroundShader(background),
+        cameraState(camState),
+        quadRenderer(quadRend),
+        showHomeScreen(showHome),
+        showInfoScreen(showInfo),
+        showCustomizeScreen(showCustomize),
+        showAboutScreen(showAbout),
+        defaultFont(defaultF),
+        titleFont(titleF),
+        attackFont(attackF),
+        boundCamera(false),
+        currentState(programState),
+        debugMode(_debugMode),
+        physicsWorld(physicsWorld)
+    {
         deltaTime = 0.0f;
-}
+
+        // These will be allocated in the customization code on first use.
+
+        iniFile = nullptr;
+        iniData = nullptr;
+    }
+
+    ~GameControl() {
+        delete iniData;
+        delete iniFile;
+    }
 };

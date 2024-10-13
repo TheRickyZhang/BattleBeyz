@@ -43,6 +43,8 @@ void PhysicsWorld::removeStadium(Stadium* body) {
 */
 
 void PhysicsWorld::update(float deltaTime) {
+    extern void UISetRunState(bool isError, const std::string & msg);  // Defined in UI.h
+
     /**
     * Resolve bey-stadium collisions
     */
@@ -50,7 +52,8 @@ void PhysicsWorld::update(float deltaTime) {
         BeybladeBody* beybladeBody = beyblade->getRigidBody();
         // TODO: If bey is below minimum spin threshold, end the match. Some default animation could be used.
         if (glm::length(beybladeBody->getAngularVelocity()) < SPIN_THRESHOLD) {
-            std::cerr << "Beyblade ran out of spin" << std::endl;
+            //std::cerr << "Beyblade ran out of spin" << std::endl;
+            UISetRunState(true, "Beyblade run out of spin");
             return;
         }
 
@@ -62,7 +65,8 @@ void PhysicsWorld::update(float deltaTime) {
             StadiumBody* stadiumBody = stadium->getRigidBody();
             if(!stadiumBody->isInside(beyBottom.x, beyBottom.z)) {
                 // Game is over since beyblade is out of bounds, implement behavior in future
-                std::cerr << "Beyblade out of bounds" << std::endl;
+                //std::cerr << "Beyblade out of bounds" << std::endl;
+                UISetRunState(true, "Beyblade out of bounds");
                 return;
             }
 

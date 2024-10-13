@@ -10,8 +10,10 @@
 */
 
 Beyblade::Beyblade(BeybladeBody* rigidBody, BeybladeMesh* mesh, std::string name)
-        : rigidBody(rigidBody), mesh(mesh), name(name) {
-    mesh->initializeMesh();
+        : rigidBody(rigidBody), mesh(mesh), name(name)
+{
+    // NEWMESH: NOW DONE IN MAIN CODE:
+    // mesh->initializeMesh();
 }
 
 /**

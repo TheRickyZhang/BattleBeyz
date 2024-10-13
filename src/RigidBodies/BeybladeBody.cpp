@@ -1,27 +1,42 @@
 #include "BeybladeBody.h"
 
-BeybladeBody::BeybladeBody(Layer layer, Disc disc, Driver driver) :
-	layerRadius(layer.radius), layerHeight(layer.height), discRadius(disc.radius), discHeight(disc.height),
-	driverRadius(driver.radius), driverHeight(driver.height), recoilDistribution(layer.recoilDistribution),
-	coefficientOfRestitution(0.8), coefficientOfFriction(0.2),
-	mass(layer.mass + disc.mass + driver.mass), velocity(glm::vec3(0.0)), acceleration(glm::vec3(0.0)),
-	momentOfInertia(layer.momentOfInertia + disc.momentOfInertia + driver.momentOfInertia)
+// NEWMESH: Added mesh argument.
+BeybladeBody::BeybladeBody(BeybladeMesh* mesh, Layer _layer, Disc _disc, Driver _driver) :
+    layer(_layer),
+    disc(_disc),
+    driver(_driver)
 {    
+    // NEWUI Copy default layer, etc., and most initialzation below -- too many initializers are gross.
+    // The saved structures are useful for the customization UI.
+    //
+    // NEWUI: TODO.  There are redundant COF and COR in the layer and driver.
+
+    acceleration = glm::vec3(0.0);
+    // NEWUI coefficientOfFriction = 0.2; Now taken from the driver structure.
+    // NEWUI coefficientOfRestitution = 0.8; Now taken from the layer structure.
+    mass = layer.mass + disc.mass + driver.mass;
+    momentOfInertia = layer.momentOfInertia + disc.momentOfInertia + driver.momentOfInertia;
+    velocity = glm::vec3(0.0);
+
+
+    // NEWMESH:  Use radii and heights from the mesh.  TODO: Remove radii and heights from Layer, etc.
+
     // Sum 0.5 * Cd * A for each part
     // Use 0.9 for now using cylindrical approximation
-    double linearLayerCA = 0.9 * 2 * layerHeight * layerRadius;
-    double linearDiscCA = 0.9 * 2 * discHeight * discRadius;
-    double linearDriverCA = 0.9 * driverHeight * driverRadius;
+
+    double linearLayerCA = 0.9 * 2 * mesh->heightLayer * mesh->radiusLayer;
+    double linearDiscCA = 0.9 * 2 * mesh->heightDisc * mesh->radiusDisc;
+    double linearDriverCA = 0.9 * mesh->heightDriver * mesh->heightDriver;
     linearDragTerm = 0.5*(linearLayerCA + linearDiscCA + linearDriverCA);
 
     // Sum 0.5 * Cd*A * r^2 for each part (rotationalDragCoefficient*layerHeight is C * avg distance extending outwards)
-    double angularLayerCAr2 = layer.rotationalDragCoefficient * layerHeight * layerRadius * layerRadius;
-    double angularDiscCAr2 = disc.rotationalDragCoefficient * discHeight * discRadius * discRadius;
-    double angularDriverCAr2 = driver.rotationalDragCoefficient * driverHeight * driverRadius * driverRadius;
+    double angularLayerCAr2 = layer.rotationalDragCoefficient * mesh->heightLayer * mesh->radiusLayer * mesh->radiusLayer;
+    double angularDiscCAr2 = disc.rotationalDragCoefficient * mesh->heightDisc * mesh->radiusDisc * mesh->radiusDisc;
+    double angularDriverCAr2 = driver.rotationalDragCoefficient * mesh->heightDriver * mesh->radiusDriver * mesh->radiusDriver;
     angularDragTerm = 0.5*(angularLayerCAr2 + angularDiscCAr2 + angularDriverCAr2);
 }
 
-BeybladeBody::BeybladeBody() : BeybladeBody(Layer(), Disc(), Driver()) {}
+//NEWMESH: NO BeybladeBody::BeybladeBody() : BeybladeBody(Layer(), Disc(), Driver()) {}
 
 /*--------------------------------------------Specialized Getters--------------------------------------------*/
 glm::vec3 BeybladeBody::getNormal() const {
@@ -35,7 +50,7 @@ glm::vec3 BeybladeBody::getNormal() const {
 
 glm::vec3 BeybladeBody::getBottomPosition() const {
     glm::vec3 unitDown = angularVelocity.y < 0 ? glm::normalize(angularVelocity) : -glm::normalize(angularVelocity);
-    glm::vec3 tiltedDisplacement = dv3(discHeight + driverHeight) * unitDown;
+    glm::vec3 tiltedDisplacement = dv3(disc.height + driver.height) * unitDown;
     glm::vec3 bottomPosition = baseCenter + tiltedDisplacement;
     return bottomPosition;
 }
@@ -49,8 +64,9 @@ void BeybladeBody::setInitialLaunch(glm::vec3 initialCenter, glm::vec3 initialVe
 
 /*--------------------------------------------Collision Calculations--------------------------------------------*/
 
-double BeybladeBody::sampleRecoil() {
-    return recoilDistribution->sample();
+double BeybladeBody::sampleRecoil()
+{
+    return layer.recoilDistribution->sample();
 }
 
 std::optional<double> BeybladeBody::distanceOverlap(BeybladeBody* a, BeybladeBody* b) {

@@ -107,14 +107,15 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
         double xpos, ypos;
         glfwGetCursorPos(window, &xpos, &ypos);
 
-        auto* data = static_cast<GameControl*>(glfwGetWindowUserPointer(window));
-        if (!data) return;
+        // TODO: Refactor, as GameControl is no longer valid
+        //auto* data = static_cast<GameControl*>(glfwGetWindowUserPointer(window));
+        //if (!data) return;
 
-        glm::vec3 ray_world = screenToWorldCoordinates(window, xpos, ypos, data->cameraState->camera->getViewMatrix(), *data->projection);
+        //glm::vec3 ray_world = screenToWorldCoordinates(window, xpos, ypos, data->cameraState->camera->getViewMatrix(), *data->projection);
 
-        // Assuming you have a function that checks intersection with objects in your scene
-        std::string clickedObject = checkIntersection(ray_world);
-        std::cout << "Left mouse button clicked! Ray: " << ray_world[0] << ", " << ray_world[1] << ", " << ray_world[2] << " Object: " << clickedObject << std::endl;
+        //// Assuming you have a function that checks intersection with objects in your scene
+        //std::string clickedObject = checkIntersection(ray_world);
+        //std::cout << "Left mouse button clicked! Ray: " << ray_world[0] << ", " << ray_world[1] << ", " << ray_world[2] << " Object: " << clickedObject << std::endl;
     }
 }
 

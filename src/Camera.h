@@ -15,6 +15,10 @@
 
 class Camera {
 public:
+    // Default constructor
+    Camera() : Position(glm::vec3(0.0f, 0.0f, 0.0f)), Front(glm::vec3(0.0f, 0.0f, -1.0f)), Up(glm::vec3(0.0f, 1.0f, 0.0f)), Right(glm::vec3(1.0f, 0.0f, 0.0f)), WorldUp(glm::vec3(0.0f, 1.0f, 0.0f)), Yaw(-90.0f), Pitch(0.0f), Roll(0.0f), MovementSpeed(2.5f), MouseSensitivity(0.1f), Zoom(45.0f), physicsWorld(nullptr) {
+        updateCameraVectors();
+    }
     explicit Camera(const glm::vec3& position, float yaw = -90.0f, float pitch = 0.0f, float roll = 0.0f, PhysicsWorld* world = nullptr);
 
     // Camera Attributes

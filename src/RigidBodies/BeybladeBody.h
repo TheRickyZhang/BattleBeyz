@@ -5,12 +5,13 @@
 
 #pragma once
 
-#include "BeybladeParts.h"
-#include "../BoundingBox.h"
-
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/glm.hpp>
 #include <optional>
+
+#include "BeybladeParts.h"
+#include "../BoundingBox.h"
+#include "../MeshObjects/BeybladeMesh.h"  // NEWMESH Added this, changed constructor definitions.
 #include "../Utils.h"
 
 /**
@@ -20,26 +21,37 @@
  */
 class BeybladeBody {
 public:
-	BeybladeBody::BeybladeBody(Layer layer, Disc disc, Driver driver);
-	BeybladeBody::BeybladeBody();
+	BeybladeBody::BeybladeBody(BeybladeMesh* mesh, Layer layer, Disc disc, Driver driver);
+	//NEWMESH: NO BeybladeBody::BeybladeBody();
 
-	// Simple getters
-	glm::vec3 BeybladeBody::getCenter() const { return baseCenter; }
-	glm::vec3 BeybladeBody::getVelocity() const { return velocity; }
-	glm::vec3 BeybladeBody::getAngularVelocity() const { return angularVelocity; }
-	double BeybladeBody::getLayerHeight() const { return layerHeight; }
-	double BeybladeBody::getMass() const { return mass; }
-	double BeybladeBody::getMomentOfInertia() const { return momentOfInertia; }
-	double BeybladeBody::getDriverCOF() const { return coefficientOfFriction; }
-	double BeybladeBody::getDriverRadius() const { return driverRadius; }
-	double BeybladeBody::getLayerCOR() const { return coefficientOfRestitution; }
-	double BeybladeBody::getLayerRadius() const { return layerRadius; }
-	double BeybladeBody::getDiscRadius() const { return discRadius; }
-	double BeybladeBody::getDiscHeight() const { return discHeight; }
-	double BeybladeBody::getDriverHeight() const { return driverHeight; }
+	// Simple getters.
+	// RZ:  Theoretically good style, but there are too many!  Just make the variables public!
+	// ALSO, these class qualifiers are overkill.
 
-	double BeybladeBody::getLinearDragTerm() const { return linearDragTerm; }
 	double BeybladeBody::getAngularDragTerm() const { return angularDragTerm; }
+	glm::vec3 BeybladeBody::getAngularVelocity() const { return angularVelocity; }
+	glm::vec3 BeybladeBody::getCenter() const { return baseCenter; }
+	double BeybladeBody::getDiscHeight() const { return disc.height; }
+	double BeybladeBody::getDiscMass() const { return disc.mass;  };
+	double BeybladeBody::getDiscMomentOfInertia() const { return disc.momentOfInertia; }
+	double BeybladeBody::getDiscRadius() const { return disc.radius; }
+	double BeybladeBody::getDriverCOF() const { return driver.coefficientOfFriction; }
+	double BeybladeBody::getDriverHeight() const { return driver.height; }
+	double BeybladeBody::getDriverMass() const { return driver.mass; };
+	double BeybladeBody::getDriverMomentOfInertia() const { return driver.momentOfInertia; }
+	double BeybladeBody::getDriverRadius() const { return driver.radius; }
+	double BeybladeBody::getLayerCOR() const { return layer.coefficientOfRestitution; }
+	double BeybladeBody::getLayerHeight() const { return driver.height; }
+	double BeybladeBody::getLayerMass() const { return layer.mass; };
+	double BeybladeBody::getLayerMomentOfInertia() const { return layer.momentOfInertia; }
+	double BeybladeBody::getLayerRadius() const { return layer.radius; }
+	double BeybladeBody::getLayerRecoilDistributionMean() { return layer.recoilDistributionMean; }
+	double BeybladeBody::getLayerRecoilDistributionStdDev() { return layer.recoileDistributionStdDev; }
+	double BeybladeBody::getLinearDragTerm() const { return linearDragTerm; }
+	double BeybladeBody::getMass() const { return mass; } // Total mass
+	double BeybladeBody::getMomentOfInertia() const { return momentOfInertia; }
+	glm::vec3 BeybladeBody::getVelocity() const { return velocity; }
+
 
 	// TODO: Need to distinguish between the top and bottom of the driver, or driverRadiusTop and driverRadiusBottom
 	double BeybladeBody::getDriverTopRadius() const { return 0.012; }
@@ -51,8 +63,24 @@ public:
 	glm::vec3 BeybladeBody::getNormal() const;
 	glm::vec3 BeybladeBody::getBottomPosition() const;
 
-	// Setters
+	// Setters  // NEWUI adds several members.
 	void BeybladeBody::setInitialLaunch(glm::vec3 initialCenter, glm::vec3 initialVelocity, glm::vec3 initialAngularVelocity);
+	void BeybladeBody::setDiscMass(double _mass) { disc.mass = _mass; }
+	void BeybladeBody::setDiscMomentOfInertia(double _moi) { disc.momentOfInertia = _moi; }
+	void BeybladeBody::setDriverCOF(double _cof) { driver.coefficientOfFriction = _cof;  }
+	void BeybladeBody::setDriverMass(double _mass) { driver.mass = _mass; }
+	void BeybladeBody::setDriverMomentOfInertia(double _moi) { driver.momentOfInertia = _moi; }
+	void BeybladeBody::setLayerCoefficientOfRestitution(double _cor) { layer.coefficientOfRestitution = _cor; }
+	void BeybladeBody::setLayerMass(double _mass) { layer.mass = _mass; }
+	void BeybladeBody::setLayerMomentOfInertia(double _moi) { layer.momentOfInertia = _moi; }
+	void BeybladeBody::setLayerRecoilDistribution(double mean, double stddev) {
+		layer.recoilDistributionMean = mean;
+		layer.recoileDistributionStdDev = stddev;
+		delete layer.recoilDistribution;
+		layer.recoilDistribution = new RandomDistribution(mean, stddev);
+	}
+	void BeybladeBody::setMass(double _mass) { mass = _mass; }  // Total mass
+	void BeybladeBody::setMomentOfInertia(double _totalMOI) { momentOfInertia = _totalMOI; }
 
 	// Adjustors
 	void BeybladeBody::addCenterY(double addY) { baseCenter.y += static_cast<float>(addY); }
@@ -83,18 +111,16 @@ private:
 	// Global Position
 	glm::vec3 baseCenter{};
 
-	// Measurements
-	double layerRadius;
-	double layerHeight;
-	double discRadius;
-	double discHeight;
-	double driverRadius;
-	double driverHeight;
+	Disc disc;
+	Driver driver;
+	Layer layer;
 
 	// Contact Properties
+	/* NEWU: REMOVED THESE:
 	RandomDistribution* recoilDistribution;
 	double coefficientOfRestitution;
 	double coefficientOfFriction;
+	*/
 
 	// Linear Physics
 	double mass;
@@ -102,7 +128,7 @@ private:
 	glm::vec3 acceleration{};
 
 	// Rotational Physics
-	double momentOfInertia;
+	double momentOfInertia;  // This is the total for all parts
 	glm::vec3 angularVelocity{ 0.0, 1.0, 0.0 };
 	glm::vec3 angularAcceleration{};
 	double linearDragTerm; // Sum of Cd*A for parts 

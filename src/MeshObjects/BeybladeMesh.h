@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////////
-// GameObject,h -- Common game object properties -- rz -- 2024-08-08
+// BeybladMesh.h -- Common game object properties -- rz -- 2024-08-08
 // Copyright (c) 2024, Ricky Zhang.
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -35,9 +35,15 @@ public:
     void printDebugInfo();
 
     Texture* getTexture() { return texture; }
-    unsigned int getVAO() { return VAO; }
+    unsigned int getVAO() const { return VAO; }
     int getIndicesSize() { return static_cast<int>(indices.size()); }
     std::unordered_map<std::string, glm::vec3>& getMaterialColors() { return materialColors; }
+
+public:  // NEWMESH
+    BoundingBox boundingBox{};                // Mesh bounding box.
+    float heightDisc{}, heightLayer{}, heightDriver{};  // Heights of subparts
+    float radiusDisc{}, radiusLayer{}, radiusDriver{};  // Radii of subparts
+
 protected:
     // TODO: This is never used
     Texture* texture{};
@@ -55,7 +61,7 @@ protected:
     std::vector<glm::vec3> colors;
     std::vector<float> vertexData;
 
-    unsigned int VAO, VBO, EBO;
+    unsigned int VAO{}, VBO{}, EBO{};
     glm::vec3 color;
 
 };

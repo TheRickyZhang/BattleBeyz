@@ -5,9 +5,22 @@
 #include "../tiny_obj_loader.h"
 
 /**
-* Load the model files.
+* NEWMESH Load the model files.
 *
 * A model consists of a Wavefront .obj model and a corresponding .mtl (material) mtl file.
+* 
+* The model will always be centered and the based moved to a y-offset of 0.
+* 
+* If the model consists of exactly three parts we calculate the radius and height of
+* each part, assuming that the input order is disc, layer, and driver.
+* 
+* If there are not three parts, the radii and heights are estimated, and from a physics
+* standpoint you will be dealing with a cylinder.
+* 
+* This does not do any scaling.  The expected sizes are documented in Units.txt.
+* 
+* Once the model is loaded, the radii and heights can be copied to the Beyblade object
+* so they can be more conveniently be accessed by the physics code.
 */
 
 void BeybladeMesh::loadModel(const std::string& path) {
@@ -82,7 +95,11 @@ void BeybladeMesh::loadModel(const std::string& path) {
 
     // Extract indices and assemble vertex data
 
+    std::vector<BoundingBox> shapeBounds;  // min and max bounds for each shape
+
     for (const auto& shape : shapes) {
+        BoundingBox bb;
+
         for (size_t faceIndex = 0; faceIndex < shape.mesh.indices.size() / 3; ++faceIndex) {
             int materialIndex = shape.mesh.material_ids[faceIndex];
             glm::vec3 color = materialIndexToDiffuseColor.count(materialIndex) ? materialIndexToDiffuseColor[materialIndex] : glm::vec3(1.0f, 1.0f, 1.0f);
@@ -93,6 +110,26 @@ void BeybladeMesh::loadModel(const std::string& path) {
                 glm::vec3 normal = normalMap.count(index.normal_index) ? normalMap[index.normal_index] : glm::vec3(0.0f, 0.0f, 0.0f);
                 glm::vec2 texCoord = texCoordMap.count(index.texcoord_index) ? texCoordMap[index.texcoord_index] : glm::vec2(0.0f, 0.0f);
 
+                // Update bounding box for overall mesh.
+
+                if (vertex.x < boundingBox.min.x) boundingBox.min.x = vertex.x;
+                if (vertex.y < boundingBox.min.y) boundingBox.min.y = vertex.y;
+                if (vertex.z < boundingBox.min.z) boundingBox.min.z = vertex.z;
+
+                if (vertex.x > boundingBox.max.x) boundingBox.max.x = vertex.x;
+                if (vertex.y > boundingBox.max.y) boundingBox.max.y = vertex.y;
+                if (vertex.z > boundingBox.max.z) boundingBox.max.z = vertex.z;
+
+                // Update bounding box for this subpart.
+
+                if (vertex.x < bb.min.x) bb.min.x = vertex.x;
+                if (vertex.y < bb.min.y) bb.min.y = vertex.y;
+                if (vertex.z < bb.min.z) bb.min.z = vertex.z;
+
+                if (vertex.x > bb.max.x) bb.max.x = vertex.x;
+                if (vertex.y > bb.max.y) bb.max.y = vertex.y;
+                if (vertex.z > bb.max.z) bb.max.z = vertex.z;
+
                 vertices.push_back(vertex);
                 normals.push_back(normal);
                 texCoords.push_back(texCoord);
@@ -100,6 +137,42 @@ void BeybladeMesh::loadModel(const std::string& path) {
                 colors.push_back(color);
             }
         }
+        shapeBounds.push_back(bb);
+    }
+
+    // Center the mesh in the x and z planes, and move vertically so the base is at zero.
+
+    float centerX = (boundingBox.min.x + boundingBox.max.x) * 0.5f;
+    float centerZ = (boundingBox.min.z + boundingBox.max.z) * 0.5f;
+
+    for (auto& v : vertices) {
+        v.x -= centerX;
+        v.y -= boundingBox.min.y;
+        v.z -= centerZ;
+
+    }
+    boundingBox.max.y -= boundingBox.min.y;
+    boundingBox.min.y = 0.0f;
+
+    std::cout << "Model bounds (" << boundingBox.min.x << ", " << boundingBox.min.y << ", " << boundingBox.min.z << ") to (" << boundingBox.max.x << ", " << boundingBox.max.y << ", " << boundingBox.max.z << ")." << std::endl;
+
+    // If we have three parts, we want to know the radii for the disc, layer, and driver components.
+    // These different radii are used for the various physics calculations such as air resistance, etc.
+    //
+    // Otherwise, use the maximum radius for each component.  In this case, the treatment in the
+    // physics code will be the same as if the blade is a cylinder.
+
+    if (shapes.size() != 3) {
+        radiusDisc = radiusDriver = radiusLayer = (boundingBox.max.x - boundingBox.min.x) * 0.5f;
+        heightDisc = heightDriver = heightLayer = (boundingBox.max.y - boundingBox.min.y) / 3.0f;  // Of course min should be 0 by now
+    }
+    else {
+        radiusDisc = (shapeBounds[0].max.x - shapeBounds[0].min.x) * 0.5f;
+        heightDisc = shapeBounds[0].max.y - shapeBounds[0].min.y;
+        radiusLayer = (shapeBounds[1].max.x - shapeBounds[1].min.x) * 0.5f;
+        heightLayer = shapeBounds[1].max.y - shapeBounds[1].min.y;
+        radiusDriver = (shapeBounds[2].max.x - shapeBounds[2].min.x) * 0.5f;
+        heightDriver = shapeBounds[2].max.y - shapeBounds[2].min.y;
     }
 
     std::cout << "Model loaded successfully with " << vertices.size() << " vertices and " << indices.size() << " indices." << std::endl;

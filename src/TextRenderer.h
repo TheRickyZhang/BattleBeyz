@@ -20,10 +20,10 @@ public:
     TextRenderer(const char* fontPath, unsigned int VAO, unsigned int VBO);
     ~TextRenderer();
 
-    void RenderText(const std::string& text, float x, float y, float scale, const glm::vec3& color);
+    void renderText(const std::string& text, float x, float y, float scale, const glm::vec3& color);
     ShaderProgram* getShaderProgram();
 
-    void Resize(int width, int height);
+    void resize(int width, int height);
 
 private:
     FT_Library ft{};   // Must load FreeType library
