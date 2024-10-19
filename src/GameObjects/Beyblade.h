@@ -27,6 +27,8 @@ class Beyblade {
     friend class BeybladeMesh;
     friend class BeybladeBody;
 public:
+    // Temp: introduce a default constructor for testing purposes
+    Beyblade::Beyblade(const std::string& name) : rigidBody(new BeybladeBody()), mesh(new BeybladeMesh()), name(name) {}
     Beyblade::Beyblade(BeybladeBody* rigidBody, BeybladeMesh* mesh, std::string name);
     ~Beyblade();
 

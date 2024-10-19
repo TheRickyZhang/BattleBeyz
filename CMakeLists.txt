@@ -22,6 +22,19 @@ include_directories(${PROJECT_SOURCE_DIR}/lib/stb)
 include_directories(${PROJECT_SOURCE_DIR}/lib/imgui-1.90.8)
 include_directories(${PROJECT_SOURCE_DIR}/lib/imgui-1.90.8/backends)
 
+# Include the src/ directory and all its subdirectories
+include_directories(${PROJECT_SOURCE_DIR}/src)
+include_directories(${PROJECT_SOURCE_DIR}/src/GameObjects)
+include_directories(${PROJECT_SOURCE_DIR}/src/MeshObjects)
+include_directories(${PROJECT_SOURCE_DIR}/src/mini)
+include_directories(${PROJECT_SOURCE_DIR}/src/Physics)
+include_directories(${PROJECT_SOURCE_DIR}/src/Rendering)
+include_directories(${PROJECT_SOURCE_DIR}/src/RigidBodies)
+include_directories(${PROJECT_SOURCE_DIR}/src/States)
+
+
+
+
 # Specify ImGui source files
 set(IMGUI_SOURCES
         ${PROJECT_SOURCE_DIR}/lib/imgui-1.90.8/imgui.cpp
@@ -74,9 +87,8 @@ foreach(_source IN ITEMS ${SOURCES})
     source_group("${_group_path}" FILES "${_source}")
 endforeach()
 
-
 # Add executable or library targets
-add_executable(BattleBeyz ${SOURCES} "src/Timer.h")
+add_executable(BattleBeyz ${SOURCES})
 
 # Default runtime folder for debugging in Visual Studio:
 set_property(TARGET BattleBeyz PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}")

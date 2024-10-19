@@ -153,6 +153,17 @@ void centerColoredText(float windowCenterX, const ImVec4& color, const char* tex
     ImGui::TextColored(color, "%s", text);
 }
 
+float getMaxWidth(const std::vector<std::string>& text) {
+    float maxWidth = 0.0f;
+    for (int i = 0; i < text.size(); i++) {
+        ImVec2 textSize = ImGui::CalcTextSize(text[i].c_str());
+        if (textSize.x > maxWidth) {
+            maxWidth = textSize.x;
+        }
+    }
+    return maxWidth + 20.0f;  // Padding
+}
+
 
 void setupBackground(GLFWwindow *window, Texture &backgroundTexture) {
     auto *data = static_cast<GameControl *>(glfwGetWindowUserPointer(window));

@@ -11,6 +11,8 @@
 #include <shellapi.h>
 #include <algorithm>
 #include <cmath>
+#include <vector>
+#include <string>
 
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
@@ -25,7 +27,6 @@ void centerWrappedText(float windowCenterX, float wrapWidth, const char* text);
 void textWithLink(const char* text, const char* url);
 void renderPlainScreen(const char* windowID, float windowCenterX, float windowCenterY, float width, float height);
 
-
 ImVec2 calculateButtonSize(const char* text, float padding, float height);
 bool centerButton(float windowCenterX, const char* text, float padding, float height);
 bool renderExitButton(GLFWwindow* window, const ImVec4& buttonColor, const ImVec4& buttonHovered, const ImVec4& buttonActive);
@@ -35,6 +36,9 @@ bool sliderWithReset(const char* label, float* value, float min, float max, floa
 bool colorPickerWithReset(const char* label, ImVec4* color, const ImVec4& defaultColor);
 bool collapsingSectionWithToggle(const char* label, bool* isVisible);
 void centerColoredText(float windowCenterX, const ImVec4& color, const char* text);
+
+// Gets the maximum width of a list of strings (ensure all buttons are the same size)
+float getMaxWidth(const std::vector<std::string>& text);
 
 void showAboutScreen(GLFWwindow* window, Texture& backgroundTexture);
 void showCustomizeScreen(GLFWwindow* window, Texture& backgroundTexture);

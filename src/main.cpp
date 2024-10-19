@@ -205,7 +205,7 @@ int main() {
     //Texture hexagonPattern("./assets/images/Hexagon.jpg", "texture1");
     //Texture smallHexagonPattern("./assets/images/HexagonSmall.jpg", "texture1");
     //auto floorTexture = new Texture("./assets/images/Wood1.jpg", "texture1");
-    auto stadiumTexture = new Texture("./assets/images/Hexagon.jpg", "texture1");
+    auto stadiumTexture = new Texture("./assets/textures/Hexagon.jpg", "texture1");
 
     //// Static texture object
     //Texture homeScreenTexture("./assets/images/Brickbeyz.jpg", "texture1");
@@ -285,7 +285,7 @@ int main() {
     // Also call mesh->initializeMesh() here.
 
     GLuint Bey1VAO = 0, Bey1VBO = 0, Bey1EBO = 0;
-    std::string beyblade1Path = "./assets/images/TestBlade5.obj";
+    std::string beyblade1Path = "./assets/models/TestBlade5.obj";
     auto meshBey1 = new BeybladeMesh(beyblade1Path, Bey1VAO, Bey1VBO, Bey1EBO, glm::vec3(1.0f, 1.0f, 1.0f));
     meshBey1->initializeMesh();
 
@@ -299,7 +299,7 @@ int main() {
     Beyblade* beyblade1 = new Beyblade(rigidBey1, meshBey1, "Beyblade 1");
 
     GLuint Bey2VAO = 0, Bey2VBO = 0, Bey2EBO = 0;
-    std::string beyblade2Path = "./assets/images/TestBlade6.obj";
+    std::string beyblade2Path = "./assets/models/TestBlade6.obj";
     auto meshBey2 = new BeybladeMesh(beyblade2Path, Bey2VAO, Bey2VBO, Bey2EBO, glm::vec3(1.0f, 1.0f, 1.0f));
     meshBey2->initializeMesh();
 
@@ -334,7 +334,7 @@ int main() {
         engine.deltaTime = currentTime - engine.prevTime;
         engine.prevTime = currentTime;
 # else
-        engine.deltaTime = 0.0012; // fixed frame rate, lower = slower
+        engine.deltaTime = 0.0052; // fixed frame rate, lower = slower
 #endif
 
         engine.handleEvents();

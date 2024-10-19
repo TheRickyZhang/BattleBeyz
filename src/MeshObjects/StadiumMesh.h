@@ -15,11 +15,11 @@
 #include <iomanip>
 #include <glm/gtx/quaternion.hpp>
 
-#include "../Beyblade.h"
-#include "../ShaderProgram.h"
-#include "../Buffers.h"
-#include "../Texture.h"
-#include "../RigidBodies/StadiumBody.h"
+#include "Beyblade.h"
+#include "ShaderProgram.h"
+#include "Buffers.h"
+#include "Texture.h"
+#include "RigidBodies/StadiumBody.h"
 
 
 class StadiumMesh {

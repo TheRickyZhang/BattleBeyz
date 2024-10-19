@@ -1,6 +1,8 @@
 #include "HomeState.h"
 #include "../GameEngine.h"
+#include "../UI.h"
 #include "StateIdentifiers.h"
+#include <algorithm>
 
 void HomeState::init() {}
 
@@ -17,15 +19,13 @@ void HomeState::handleEvents(GameEngine* game) {
 void HomeState::update(GameEngine* game, float deltaTime) {}
 
 void HomeState::draw(GameEngine* game) {
-    ImGui::Begin("Main Menu");
-    if (ImGui::Button("Start Game")) {
-        game->changeState(GameStateType::ACTIVE);
-    }
-    if (ImGui::Button("Customize")) {
-        game->changeState(GameStateType::CUSTOMIZE);
-    }
-    if (ImGui::Button("About")) {
-        game->changeState(GameStateType::ABOUT);
-    }
+    int windowWidth = game->windowWidth;
+    int windowHeight = game->windowHeight;
+
+    renderBackground(game, "defaultBackground");
+
+    std::vector<std::string> buttonText = { "Start Game", "Customize Beyblades", "About" };
+    renderWindowWithButtons(game, "Main Menu", buttonText, "Battlebeyz!");
+
     ImGui::End();
 }

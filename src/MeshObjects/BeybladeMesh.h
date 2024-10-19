@@ -15,18 +15,17 @@
 #include <iomanip>
 #include <glm/gtx/quaternion.hpp>
 
-//#include "../Beyblade.h"
-#include "../ShaderProgram.h"
-#include "../Buffers.h"
-#include "../Texture.h"
-#include "../RigidBodies/StadiumBody.h"
+#include "ShaderProgram.h"
+#include "Buffers.h"
+#include "Texture.h"
+#include "RigidBodies/StadiumBody.h"
 
 class BeybladeMesh {
     //friend class Beyblade;
 public:
+    BeybladeMesh() : modelPath("../assets/models/default.obj"), VAO(0), VBO(0), EBO(0), color(glm::vec3(1.0f)) { }
     BeybladeMesh(std::string& modelPath, unsigned int vao, unsigned int vbo, unsigned int ebo, const glm::vec3& col)
         : modelPath(std::move(modelPath)), VAO(vao), VBO(vbo), EBO(ebo), color(col) {
-         //texture = new Texture("modelPath", "diffuse");
     }
 
     void loadModel(const std::string& path);
@@ -34,7 +33,6 @@ public:
 
     void printDebugInfo();
 
-    Texture* getTexture() { return texture; }
     unsigned int getVAO() const { return VAO; }
     int getIndicesSize() { return static_cast<int>(indices.size()); }
     std::unordered_map<std::string, glm::vec3>& getMaterialColors() { return materialColors; }
@@ -45,9 +43,6 @@ public:  // NEWMESH
     float radiusDisc{}, radiusLayer{}, radiusDriver{};  // Radii of subparts
 
 protected:
-    // TODO: This is never used
-    Texture* texture{};
-
     // Mesh data
     std::vector<glm::vec3> vertices;
     std::vector<glm::vec3> normals;

@@ -1,5 +1,26 @@
 #include "BeybladeBody.h"
 
+BeybladeBody::BeybladeBody(Layer layer, Disc disc, Driver driver) :
+    layer(layer), disc(disc), driver(driver),
+    mass(layer.mass + disc.mass + driver.mass),
+    momentOfInertia(layer.momentOfInertia + disc.momentOfInertia + driver.momentOfInertia)
+{
+    // Sum 0.5 * Cd * A for each part
+    // Use 0.9 for now using cylindrical approximation
+    double linearLayerCA = 0.9 * 2 * layer.height * layer.radius;
+    double linearDiscCA = 0.9 * 2 * disc.height * disc.radius;
+    double linearDriverCA = 0.9 * driver.height * driver.radius;
+    linearDragTerm = 0.5 * (linearLayerCA + linearDiscCA + linearDriverCA);
+
+    // Sum 0.5 * Cd*A * r^2 for each part (rotationalDragCoefficient*layerHeight is C * avg distance extending outwards)
+    double angularLayerCAr2 = layer.rotationalDragCoefficient * layer.height * layer.radius * layer.radius;
+    double angularDiscCAr2 = disc.rotationalDragCoefficient * disc.height * disc.radius * disc.radius;
+    double angularDriverCAr2 = driver.rotationalDragCoefficient * driver.height * driver.radius * driver.radius;
+    angularDragTerm = 0.5 * (angularLayerCAr2 + angularDiscCAr2 + angularDriverCAr2);
+}
+
+BeybladeBody::BeybladeBody() : BeybladeBody(Layer(), Disc(), Driver()) {}
+
 // NEWMESH: Added mesh argument.
 BeybladeBody::BeybladeBody(BeybladeMesh* mesh, Layer _layer, Disc _disc, Driver _driver) :
     layer(_layer),

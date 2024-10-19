@@ -28,11 +28,6 @@ Beyblade::~Beyblade() {
 void Beyblade::render(ShaderProgram& shader)
 {
     shader.use();
-    if (mesh->getTexture()) {
-        glActiveTexture(GL_TEXTURE0);
-        mesh->getTexture()->use();
-        shader.setInt("texture1", 0);
-    }
 
     glm::mat4 model = glm::translate(glm::mat4(1.0f), rigidBody->getCenter());
 

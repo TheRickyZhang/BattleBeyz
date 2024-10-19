@@ -24,20 +24,7 @@ void LoadingState::draw(GameEngine* game) {
     glfwGetWindowSize(game->getWindow(), &windowWidth, &windowHeight);
 
     // Render the background first
-    auto backgroundShader = game->backgroundShader;
-    auto quadRenderer = game->quadRenderer;
-    if (game->backgroundTexture->ID != 0) {
-        glm::mat4 ortho = glm::ortho(0.0f, (float)windowWidth, 0.0f, (float)windowHeight, -1.0f, 1.0f);
-        backgroundShader->use();
-        backgroundShader->setUniform1f("time", (float)glfwGetTime());
-        // Bind the background texture
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, game->backgroundTexture->ID);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-        backgroundShader->setInt("backgroundTexture", 0);
-        quadRenderer->render();
-    }
+    renderBackground(game, "defaultBackground");
 
     // Begin a plain, non-collapsible center window
     ImGui::SetNextWindowPos(ImVec2(windowWidth / 2.0f, windowHeight / 2.0f), ImGuiCond_Always, ImVec2(0.5f, 0.5f));

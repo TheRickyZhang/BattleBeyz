@@ -38,8 +38,8 @@ struct Layer {
         height(0.01),
         coefficientOfRestitution(0.8),
         rotationalDragCoefficient(0.7*0.005),
-        mass(0.03),
-        momentOfInertia(0.5 * 0.03 * 0.025 * 0.025)
+        mass(0.022),
+        momentOfInertia(0.5 * 0.022 * 0.025 * 0.025)
 {
         // TODO: defines recoilDistribution twice! Alter constructor to take in the mean and stddev
         recoilDistributionMean = 1.0;
@@ -67,8 +67,8 @@ struct Disc {
     Disc()
         : radius(0.018),
         height(0.01),
-        mass(0.025),
-        momentOfInertia(0.7 * 0.025 * 0.018 * 0.018),
+        mass(0.027),
+        momentOfInertia(0.7 * 0.027 * 0.018 * 0.018),
         rotationalDragCoefficient(0.1*0.005) {}
     double radius;
     double height;

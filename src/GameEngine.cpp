@@ -7,11 +7,14 @@
 #include "States/StateFactory.h"
 #include "Callbacks.h"
 
-// Constructor with default values (can be overridden by init)
+// Constructor with default values
 GameEngine::GameEngine()
     : window(nullptr),
     isRunning(false),
-    io(ImGui::GetIO())  // Need to initialize ImGuiIO as a reference, so need constructor
+    // Need to initialize these as references from constructor, as opposed to init()
+    tm(TextureManager::getInstance()),
+    pm(ProfileManager::getInstance()),
+    io(ImGui::GetIO()) 
 {
     (void)io;
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
@@ -126,13 +129,14 @@ bool GameEngine::init(const char* title, int width, int height) {
     //    panoramaShader->setUniforms(panoramaModel, panoramaView, panoramaProjection);
 
     textRenderer = new TextRenderer("./assets/fonts/OpenSans-Regular.ttf", 800, 600);
+    tm.loadTexture("defaultBackground", "./assets/textures/Brickbeyz.jpg");
+    tm.loadTexture("sceneBackground", "./assets/textures/HexagonSmall.jpg");
+    tm.loadTexture("stadium", "./assets/textures/Hexagon.jpg");
+    tm.loadTexture("floor", "./assets/textures/Wood1.jpg");
 
-    hexagonPattern = new Texture("./assets/images/Hexagon.jpg", "texture1");
-    smallHexagonPattern = new Texture("./assets/images/HexagonSmall.jpg", "texture1");
-    homeScreenTexture = new Texture("./assets/images/Brickbeyz.jpg", "texture1");
-    backgroundTexture = new Texture("./assets/images/Brickbeyz.jpg", "texture1");
-    floorTexture = new Texture("./assets/images/Wood1.jpg", "texture1");
-    stadiumTexture = new Texture("./assets/images/Hexagon.jpg", "texture1");
+    // Set default profile at first (Needed in order to not crash)
+    pm.addProfile("Default");
+    pm.setActiveProfile("Default");
 
     // Set window user pointer to GameEngine
     glfwSetWindowUserPointer(window, this);
@@ -190,6 +194,7 @@ void GameEngine::changeState(GameStateType stateType) {
         stateStack.back()->cleanup();
         stateStack.pop_back();
     }
+
 
     // Create and initialize the new state
     auto newState = createState(stateType);
@@ -288,13 +293,6 @@ void GameEngine::cleanup() {
     delete textRenderer;
     delete physicsWorld;
     delete cameraState;
-
-    delete hexagonPattern;
-    delete smallHexagonPattern;
-    delete homeScreenTexture;
-    delete backgroundTexture;
-    delete floorTexture;
-    delete stadiumTexture;
 
     delete iniData;
     delete iniFile;

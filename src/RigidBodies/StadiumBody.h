@@ -6,7 +6,7 @@
 #pragma once
 
 #include "BeybladeParts.h"
-#include "../BoundingBox.h"
+#include "BoundingBox.h"
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtx/vector_angle.hpp>

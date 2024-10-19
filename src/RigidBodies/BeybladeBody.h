@@ -10,9 +10,9 @@
 #include <optional>
 
 #include "BeybladeParts.h"
-#include "../BoundingBox.h"
-#include "../MeshObjects/BeybladeMesh.h"  // NEWMESH Added this, changed constructor definitions.
-#include "../Utils.h"
+#include "BoundingBox.h"
+#include "MeshObjects/BeybladeMesh.h"  // NEWMESH Added this, changed constructor definitions.
+#include "Utils.h"
 
 /**
  * BeybladeBody. Contains all of the physical properties of a beyblade.
@@ -21,8 +21,14 @@
  */
 class BeybladeBody {
 public:
+	// Two options for constructing: Do entirely by parts OR by mesh + stats
+
+	BeybladeBody::BeybladeBody();
+	BeybladeBody::BeybladeBody(Layer layer, Disc disc, Driver driver);
+
+	// NEWMESH: Would it be possible to initialize the body entirely based off of the mesh + a few additional custom inputs? 
+	// Instead of layer, disc, driver, etc. it would be only the additional variables needed
 	BeybladeBody::BeybladeBody(BeybladeMesh* mesh, Layer layer, Disc disc, Driver driver);
-	//NEWMESH: NO BeybladeBody::BeybladeBody();
 
 	// Simple getters.
 	// RZ:  Theoretically good style, but there are too many!  Just make the variables public!
@@ -45,8 +51,8 @@ public:
 	double BeybladeBody::getLayerMass() const { return layer.mass; };
 	double BeybladeBody::getLayerMomentOfInertia() const { return layer.momentOfInertia; }
 	double BeybladeBody::getLayerRadius() const { return layer.radius; }
-	double BeybladeBody::getLayerRecoilDistributionMean() { return layer.recoilDistributionMean; }
-	double BeybladeBody::getLayerRecoilDistributionStdDev() { return layer.recoileDistributionStdDev; }
+	double BeybladeBody::getLayerRecoilDistributionMean() const { return layer.recoilDistributionMean; }
+	double BeybladeBody::getLayerRecoilDistributionStdDev() const { return layer.recoileDistributionStdDev; }
 	double BeybladeBody::getLinearDragTerm() const { return linearDragTerm; }
 	double BeybladeBody::getMass() const { return mass; } // Total mass
 	double BeybladeBody::getMomentOfInertia() const { return momentOfInertia; }
@@ -111,16 +117,10 @@ private:
 	// Global Position
 	glm::vec3 baseCenter{};
 
+	// Parts - Access individual variables through these!
 	Disc disc;
 	Driver driver;
 	Layer layer;
-
-	// Contact Properties
-	/* NEWU: REMOVED THESE:
-	RandomDistribution* recoilDistribution;
-	double coefficientOfRestitution;
-	double coefficientOfFriction;
-	*/
 
 	// Linear Physics
 	double mass;

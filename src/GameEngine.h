@@ -2,7 +2,7 @@
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
-#include "States/GameState.h"
+#include "GameState.h"
 #include <unordered_map>
 #include <memory>
 #include <iostream>
@@ -12,6 +12,8 @@
 #include "Camera.h"
 #include "QuadRenderer.h"
 #include "TextRenderer.h"
+#include "TextureManager.h"
+#include "ProfileManager.h"
 #include "Callbacks.h"
 #include "Timer.h"
 
@@ -87,12 +89,8 @@ public:
 
     QuadRenderer* quadRenderer{};
 
-    Texture* hexagonPattern{};
-    Texture* smallHexagonPattern{};
-    Texture* homeScreenTexture{};
-    Texture* backgroundTexture{};
-    Texture* floorTexture{};
-    Texture* stadiumTexture{};
+    TextureManager& tm; // Central point for accessing all textures
+    ProfileManager& pm; // Central point for accessing all profiles
 
     // INI handling
     mINI::INIFile* iniFile{};
