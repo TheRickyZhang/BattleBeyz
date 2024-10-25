@@ -19,8 +19,15 @@ public:
     GameStateType getStateType() const override { return GameStateType::CUSTOMIZE; }
 
 private:
-    bool showNewProfilePopup = false;
-    bool showNewBeybladePopup = false;
+    enum class PopupState {
+        NONE,
+        NEW_PROFILE,
+        NEW_BEYBLADE,
+        DELETE_PROFILE,
+        DELETE_BEYBLADE
+    };
+    PopupState currentPopup = PopupState::NONE;
+
     char newProfileName[32] = "";
     char newBeybladeName[32] = "";
 

@@ -26,9 +26,10 @@ public:
     std::shared_ptr<Profile> getProfile(const std::string& name) const;
     std::vector<std::shared_ptr<Profile>> getAllProfiles() const;
     std::shared_ptr<Profile> getActiveProfile() const;
-    std::vector<std::shared_ptr<Beyblade>>& getBeybladesForActiveProfile();
-
     bool setActiveProfile(const std::string& name);
+
+    std::vector<std::shared_ptr<Beyblade>>& getBeybladesForActiveProfile();
+    bool deleteBeybladeFromActiveProfile(const std::string& name);
 
 private:
     ProfileManager() = default; // Private constructor

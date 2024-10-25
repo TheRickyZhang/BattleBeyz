@@ -21,6 +21,16 @@ public:
         beybladesOwned.push_back(beyblade);
     }
 
+    bool deleteBeyblade(const std::string& name) {
+        for (auto it = beybladesOwned.begin(); it != beybladesOwned.end(); ++it) {
+            if ((*it)->getName() == name) {
+                beybladesOwned.erase(it);
+                return true;
+            }
+        }
+        return false;
+    }
+
     // Retrieves the list of owned Beyblades
     std::vector<std::shared_ptr<Beyblade>>& getBeybladesOwned() {
         return beybladesOwned;

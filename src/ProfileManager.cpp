@@ -16,7 +16,7 @@ bool ProfileManager::addProfile(const std::string& name) {
 }
 
 bool ProfileManager::removeProfile(const std::string& name) {
-    return profiles.erase(name) > 0;
+    return profiles.size() > 1 && profiles.erase(name) > 0;
 }
 
 std::shared_ptr<Profile> ProfileManager::getProfile(const std::string& name) const {
@@ -50,4 +50,8 @@ std::shared_ptr<Profile> ProfileManager::getActiveProfile() const {
 
 std::vector<std::shared_ptr<Beyblade>>& ProfileManager::getBeybladesForActiveProfile() {
     return activeProfile->getBeybladesOwned();
+}
+
+bool ProfileManager::deleteBeybladeFromActiveProfile(const std::string& name) {
+    return activeProfile->deleteBeyblade(name);
 }
