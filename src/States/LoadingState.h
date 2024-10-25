@@ -4,15 +4,17 @@
 
 class LoadingState : public GameState {
 public:
+    LoadingState(GameEngine* _game) : GameState(_game) {};
+
     void init() override;
     void cleanup() override;
 
     void pause() override;
     void resume() override;
 
-    void handleEvents(GameEngine* game) override;
-    void update(GameEngine* game, float deltaTime) override;
-    void draw(GameEngine* game) override;
+    void handleEvents() override;
+    void update(float deltaTime) override;
+    void draw() override;
 
     GameStateType getStateType() const override { return GameStateType::LOADING; }
 

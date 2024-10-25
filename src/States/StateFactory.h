@@ -13,5 +13,5 @@ class AboutState;
 class StateFactory {
 public:
     // Static method to create a state based on the GameStateType
-    static std::unique_ptr<GameState> createState(GameStateType stateType);
+    static std::unique_ptr<GameState> createState(GameEngine* game, GameStateType stateType);
 };

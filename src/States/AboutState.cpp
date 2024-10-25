@@ -10,11 +10,11 @@ void AboutState::pause() {}
 
 void AboutState::resume() {}
 
-void AboutState::handleEvents(GameEngine* game) {}
+void AboutState::handleEvents() {}
 
-void AboutState::update(GameEngine* game, float deltaTime) {}
+void AboutState::update(float deltaTime) {}
 
-void AboutState::draw(GameEngine* game) {
+void AboutState::draw() {
     ImGui::Begin("About");
     if (ImGui::Button("Back to Home")) {
         game->changeState(GameStateType::HOME);

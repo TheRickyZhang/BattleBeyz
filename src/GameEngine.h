@@ -14,7 +14,6 @@
 #include "TextRenderer.h"
 #include "TextureManager.h"
 #include "ProfileManager.h"
-#include "Callbacks.h"
 #include "Timer.h"
 
 #define MINI_CASE_SENSITIVE
@@ -30,12 +29,15 @@ public:
     void cleanup();
 
     void changeState(GameStateType stateType);
+    GameState* getGameState();  // Return current state.
     void pushState(GameStateType stateType);
     void popState();
 
     void handleEvents();
     void update();
     void draw();
+
+    static void framebufferSizeCallback(GLFWwindow* window, int width, int height);
 
     bool running() const {
         return isRunning && !glfwWindowShouldClose(window);

@@ -1,6 +1,6 @@
-#include "HomeState.h"
-#include "../GameEngine.h"
 #include "../UI.h"
+#include "../GameEngine.h"
+#include "HomeState.h"
 #include "StateIdentifiers.h"
 #include <algorithm>
 
@@ -12,13 +12,13 @@ void HomeState::pause() {}
 
 void HomeState::resume() {}
 
-void HomeState::handleEvents(GameEngine* game) {
+void HomeState::handleEvents() {
     // Handle input for home state
 }
 
-void HomeState::update(GameEngine* game, float deltaTime) {}
+void HomeState::update(float deltaTime) {}
 
-void HomeState::draw(GameEngine* game) {
+void HomeState::draw() {
     int windowWidth = game->windowWidth;
     int windowHeight = game->windowHeight;
 

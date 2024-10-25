@@ -1,5 +1,12 @@
 #include "ProfileManager.h"
 
+// TEMP to start off with defaults
+void ProfileManager::addDefaultProfiles() {
+    profiles["Default"] = std::make_shared<Profile>("Default");
+    profiles["Player1"] = std::make_shared<Profile>("Player1");
+    profiles["Default"]->addBeyblade("DefaultBeyblade1");
+    profiles["Default"]->addBeyblade("DefaultBeyblade2");
+}
 bool ProfileManager::addProfile(const std::string& name) {
     if (profiles.find(name) != profiles.end()) {
         return false; // Profile already exists

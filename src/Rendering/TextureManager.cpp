@@ -30,6 +30,7 @@ std::shared_ptr<Texture> TextureManager::getTexture(const std::string& name) con
         return it->second;
     }
     std::cerr << "Texture not found: " << name << std::endl;
+    return nullptr;
 }
 
 // Unloads a texture from memory by removing it from the map

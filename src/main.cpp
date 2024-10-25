@@ -23,7 +23,6 @@
 #include "Buffers.h"
 #include "Stadium.h"
 #include "Camera.h"
-#include "Callbacks.h"
 #include "QuadRenderer.h"
 #include "Physics.h"
 
@@ -334,7 +333,7 @@ int main() {
         engine.deltaTime = currentTime - engine.prevTime;
         engine.prevTime = currentTime;
 # else
-        engine.deltaTime = 0.0052; // fixed frame rate, lower = slower
+        engine.deltaTime = 0.0052f; // fixed frame rate, lower = slower
 #endif
 
         engine.handleEvents();

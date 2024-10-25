@@ -9,15 +9,15 @@ void PauseState::pause() {}
 
 void PauseState::resume() {}
 
-void PauseState::handleEvents(GameEngine* game) {
+void PauseState::handleEvents() {
     if (ImGui::Button("Resume")) {
         game->popState();
     }
 }
 
-void PauseState::update(GameEngine* game, float deltaTime) {}
+void PauseState::update(float deltaTime) {}
 
-void PauseState::draw(GameEngine* game) {
+void PauseState::draw() {
     ImGui::Begin("Paused");
     if (ImGui::Button("Resume")) {
         game->popState();

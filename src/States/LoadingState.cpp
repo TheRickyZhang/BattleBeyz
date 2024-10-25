@@ -1,6 +1,6 @@
-#include "LoadingState.h"
-#include "../GameEngine.h"
 #include "../UI.h"
+#include "../GameEngine.h"
+#include "LoadingState.h"
 
 void LoadingState::init() {}
 
@@ -10,16 +10,16 @@ void LoadingState::pause() {}
 
 void LoadingState::resume() {}
 
-void LoadingState::handleEvents(GameEngine* game) {}
+void LoadingState::handleEvents() {}
 
-void LoadingState::update(GameEngine* game, float deltaTime) {
+void LoadingState::update(float deltaTime) {
     progress += deltaTime;
     if (progress >= duration) {
         game->changeState(GameStateType::HOME);
     }
 }
 
-void LoadingState::draw(GameEngine* game) {
+void LoadingState::draw() {
     int windowWidth, windowHeight;
     glfwGetWindowSize(game->getWindow(), &windowWidth, &windowHeight);
 

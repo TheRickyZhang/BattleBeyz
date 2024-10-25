@@ -5,7 +5,6 @@
 #include "GameEngine.h"
 
 #include "States/StateFactory.h"
-#include "Callbacks.h"
 
 // Constructor with default values
 GameEngine::GameEngine()
@@ -135,7 +134,8 @@ bool GameEngine::init(const char* title, int width, int height) {
     tm.loadTexture("floor", "./assets/textures/Wood1.jpg");
 
     // Set default profile at first (Needed in order to not crash)
-    pm.addProfile("Default");
+    //pm.addProfile("Default");
+    pm.addDefaultProfiles();
     pm.setActiveProfile("Default");
 
     // Set window user pointer to GameEngine
@@ -143,11 +143,12 @@ bool GameEngine::init(const char* title, int width, int height) {
     glfwSetWindowSizeLimits(window, minWidth, minHeight, GLFW_DONT_CARE, GLFW_DONT_CARE);
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-    glfwSetCursorPosCallback(window, mouse_callback);
-    glfwSetMouseButtonCallback(window, mouse_button_callback);
-    glfwSetKeyCallback(window, key_callback);
-    glfwSetScrollCallback(window, scroll_callback);
+    glfwSetFramebufferSizeCallback(window, GameEngine::framebufferSizeCallback);  // This handles window resizing
+// 2024-10-20 MOVED TO ActiveState code
+//    glfwSetCursorPosCallback(window, mouse_callback);
+//    glfwSetMouseButtonCallback(window, mouse_button_callback);
+//    glfwSetKeyCallback(window, key_callback);
+//    glfwSetScrollCallback(window, scroll_callback);
 
     // Initialize INI handling if needed
     iniFile = nullptr;
@@ -230,7 +231,23 @@ void GameEngine::popState() {
 }
 
 std::unique_ptr<GameState> GameEngine::createState(GameStateType stateType) {
-    return StateFactory::createState(stateType);
+    return StateFactory::createState(this, stateType);
+}
+
+/**
+* Get the current game state.
+* 
+* @return a unique_ptr to the state or nullptr if no state.
+*/
+
+GameState* GameEngine::getGameState()
+{
+    if (stateStack.empty()) {
+        return nullptr;
+    }
+    else {
+        return stateStack.back().get();
+    }
 }
 
 void GameEngine::handleEvents() {
@@ -238,27 +255,27 @@ void GameEngine::handleEvents() {
     glfwPollEvents();
 
     if (!stateStack.empty()) {
-        stateStack.back()->handleEvents(this);
+        stateStack.back()->handleEvents();
     }
 }
 
 void GameEngine::update() {
     if (!stateStack.empty()) {
-        stateStack.back()->update(this, deltaTime);
+        stateStack.back()->update(deltaTime);
     }
 }
 
 void GameEngine::draw() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Clear both color and depth buffers
 
-    // Start the ImGui frame (applies to all states)
+    // START IMGUI FRAME: applies to all states
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
     // Draw the current state
     if (!stateStack.empty()) {
-        stateStack.back()->draw(this);
+        stateStack.back()->draw();
     }
 
     // Show FPS for performance
@@ -273,7 +290,7 @@ void GameEngine::draw() {
         textRenderer->renderText(coordsText, 10.0f, 20.0f, 0.5f, glm::vec3(1.0f, 1.0f, 1.0f));
     }
 
-    // Render and swap buffers to display
+    // END IMGUI FRAME: renders to screen
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
     glfwSwapBuffers(window);
@@ -310,4 +327,34 @@ void GameEngine::cleanup() {
     glfwTerminate();
 
     std::cout << "GameEngine cleaned up successfully." << std::endl;
+}
+
+/**
+* Callback function to adjust the viewport when the window is resized.
+*/
+
+/*static*/
+void GameEngine::framebufferSizeCallback(GLFWwindow* window, int width, int height) {
+    auto* engine = static_cast<GameEngine*>(glfwGetWindowUserPointer(window));
+    if (!engine || (width == engine->windowWidth && height == engine->windowHeight)) {
+        return;
+    }
+
+    engine->windowWidth = width;
+    engine->windowHeight = height;
+
+    int newWidth = width;
+    int newHeight = static_cast<int>(width / engine->aspectRatio);
+    if (newHeight > height) {
+        newHeight = height;
+        newWidth = static_cast<int>(height * engine->aspectRatio);
+    }
+    if (newWidth != width || newHeight != height) {
+        glfwSetWindowSize(window, newWidth, newHeight);
+    }
+
+    glViewport(0, 0, newWidth, newHeight);
+    engine->projection = glm::perspective(glm::radians(45.0f), (float)newWidth / newHeight, 0.1f, 100.0f);
+    engine->objectShader->use();
+    engine->objectShader->setUniformMat4("projection", engine->projection);
 }

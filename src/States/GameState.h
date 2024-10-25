@@ -20,6 +20,7 @@ class GameEngine;
 
 class GameState {
 public:
+    GameState(GameEngine* _game) : game(_game) {};
     virtual ~GameState() = default;
 
     virtual void init() = 0;
@@ -28,15 +29,18 @@ public:
     virtual void pause() = 0;
     virtual void resume() = 0;
 
-    virtual void handleEvents(GameEngine* game) = 0;
-    virtual void update(GameEngine* game, float deltaTime) = 0;
+    virtual void handleEvents() = 0;
+    virtual void update(float deltaTime) = 0;
 
     // Draws the screen. Every implementation assumes ImGui::begin() is already called, but must end with an ImGui::End()
-    virtual void draw(GameEngine* game) = 0;
+    virtual void draw() = 0;
 
     virtual GameStateType getStateType() const = 0;
-protected:
 
+public:
+    GameEngine* game;
+
+protected:
     void renderBackground(GameEngine* game, const std::string& textureString);
 
     // Function to render a window with text, buttons, and optional text before/after

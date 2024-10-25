@@ -19,6 +19,8 @@ public:
     ProfileManager& operator=(const ProfileManager&) = delete;
 
     // Profile management methods
+    void addDefaultProfiles();
+
     bool addProfile(const std::string& name);
     bool removeProfile(const std::string& name);
     std::shared_ptr<Profile> getProfile(const std::string& name) const;
