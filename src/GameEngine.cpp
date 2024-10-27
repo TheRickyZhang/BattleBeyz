@@ -136,7 +136,6 @@ bool GameEngine::init(const char* title, int width, int height) {
     // Set default profile at first (Needed in order to not crash)
     //pm.addProfile("Default");
     pm.addDefaultProfiles();
-    pm.setActiveProfile("Default");
 
     // Set window user pointer to GameEngine
     glfwSetWindowUserPointer(window, this);
@@ -155,8 +154,6 @@ bool GameEngine::init(const char* title, int width, int height) {
     iniData = nullptr;
     boundCamera = false;
     debugMode = false;
-    selectedBeyblade = -1;
-
 
     prevTime = 0.0f;
     deltaTime = 0.0f;

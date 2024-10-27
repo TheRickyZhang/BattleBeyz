@@ -52,189 +52,10 @@ int main() {
         return -1;
     }
 
-//    // Window dimensions
-//#if 0
-//    int windowWidth = 1600, windowHeight = 900;
-//    const float aspectRatio = 16.0f / 9.0f;
-//#else  // TODO: This way will never work on a phone!
-//    // 1600:900 is a 16:9 aspect ratio
-//    int windowWidth = 1600;
-//    int windowHeight = 900;
-//    const float aspectRatio = (float)windowWidth / (float)windowHeight;
-//#endif
-//    int minWidth = windowWidth / 4;
-//    int minHeight = static_cast<int>(double(minWidth) / aspectRatio);
-
-    /* ----------------------INITIALIZATION-------------------------- */
-
-    //// Initialize GLFW
-    //if (!glfwInit()) {
-    //    std::cerr << "Failed to initialize GLFW" << std::endl;
-    //    return -1;
-    //}
-
-    //// Configure GLFW
-    //glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    //glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    //glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-    //// Create a GLFW window. Note you NEED to make context current to initialize everything else
-    //GLFWwindow* window = glfwCreateWindow(windowWidth, windowHeight, "BattleBeyz", nullptr, nullptr);
-    //if (!window) {
-    //    std::cerr << "Failed to create GLFW window" << std::endl;
-    //    cleanup(window);
-    //    return -1;
-    //}
-    //glfwMakeContextCurrent(window);
-
-    // Center the main window
-
-    //int nMonitors;
-    //GLFWmonitor** monitors = glfwGetMonitors(&nMonitors);
-    //const GLFWvidmode* videoMode = glfwGetVideoMode(monitors[0]);
-
-    //int monitorX, monitorY;
-    //glfwGetMonitorPos(monitors[0], &monitorX, &monitorY);
-
-    //glfwSetWindowPos(window,
-    //    monitorX + (videoMode->width - windowWidth) / 2,
-    //    monitorY + (videoMode->height - windowHeight) / 2);
-
-    // Initialize GLEW
-    //glewExperimental = GL_TRUE;
-    //if (glewInit() != GLEW_OK) {
-    //    std::cerr << "Failed to initialize GLEW" << std::endl;
-    //    cleanup(window);
-    //    return -1;
-    //}
-
-    //// Set color blinding and depth testing
-    //glEnable(GL_BLEND);
-    //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    //glDisable(GL_DEPTH_TEST);
-
-    //// Setup ImGui context
-    //IMGUI_CHECKVERSION();
-    //ImGui::CreateContext();
-    //ImGuiIO& io = ImGui::GetIO(); (void)io;
-    //io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-
-    //// Initialize ImGui fonts
-    //ImFont* defaultFont = io.Fonts->AddFontFromFileTTF(DEFAULT_FONT_PATH, 24.0f);
-    //ImFont* titleFont = io.Fonts->AddFontFromFileTTF(TITLE_FONT_PATH, 48.0f);
-    //ImFont* attackFont = io.Fonts->AddFontFromFileTTF(ATTACK_FONT_PATH, 128.0f);
-    //io.Fonts->Build();
-
-    //// Setup Dear ImGui style
-    //ImGui::StyleColorsDark();
-
-    //// Setup Platform/Renderer bindings
-    //ImGui_ImplGlfw_InitForOpenGL(window, true);
-    //ImGui_ImplOpenGL3_Init("#version 330");
-
-
-    /* ----------------------"GLOBAL" VARIABLES-------------------------- */
-
-    //// Relevant matrices
-    //auto model = glm::mat4(1.0f);
-    //auto view = glm::mat4(1.0f);
-    //auto projection = glm::mat4(1.0f);
-
     // Declare physics world with default parameters
     auto physicsWorld = new PhysicsWorld();
 
-    //// Primary camera and camera state
-    //glm::vec3 initialCameraPos(5.0f, 2.4f, 0.0f);
-    //glm::vec3 lookAtPoint(0.0f, 1.0f, 0.0f);
-    //glm::vec3 frontVector = glm::normalize(lookAtPoint - initialCameraPos);
-
-    //// Calculate initial yaw and pitch
-    //float initialYaw = glm::degrees(std::atan2(frontVector.z, frontVector.x)); // Yaw based on X and Z
-    //float initialPitch = glm::degrees(std::atan2(frontVector.y, glm::length(glm::vec2(frontVector.x, frontVector.z))));
-
-    //Camera mainCamera(initialCameraPos, initialYaw, initialPitch, 0.0f, physicsWorld);
-    //// TODO? Camera mainCamera(initialCameraPos, initialYaw, initialPitch, 0.0f, nullptr);
-    //mainCamera.Front = frontVector;  // Set the front vector to look at the desired point
-    //auto cameraState = new CameraState(&mainCamera, 400.0, 300.0);
-
-
-    //// Time variables
-    //float prevTime = 0.0f;
-
-    ////static float imguiColor[3] = {1.0f, 0.0f, 0.0f}; // Red
-    //static float imguiColor[3] = { 0.8f, 0.8f, 0.8f }; // Very Light Gray
-
-    /* ----------------------RELEVANT INSTANTIATIONS-------------------------- */
-
-
-    //auto quadRenderer = new QuadRenderer();
-
-    //auto identity4 = glm::mat4(1.0f);
-    //// Identity matrix, starting view, and projection matrices
-    //model = identity4;
-    //view = glm::lookAt(initialCameraPos, lookAtPoint, glm::vec3(0.0f, 1.0f, 0.0f));
-    //projection = glm::perspective(glm::radians(45.0f), float(windowWidth) / float(windowHeight), 0.1f, 100.0f);
-
-    //// Set orthographic projection and depth values for the background shader
-    //auto backgroundModel = identity4;
-    //auto backgroundView = identity4;
-    //glm::mat4 orthoProjection = glm::ortho(0.0f, float(windowWidth), 0.0f, float(windowHeight), 0.0f, 1.0f);
-
-    // Not urgent - position camera at the origin and rotate around it (Would like a background similar to minecraft's homescreen, but from the center of a stadium)
-
-    // Initialize ShaderProgram for 3D objects
-    //auto objectShader = new ShaderProgram(OBJECT_VERTEX_SHADER_PATH, OBJECT_FRAGMENT_SHADER_PATH);
-    //// Initialize default shader program with the model, view, and projection matrices. Also sets to use.
-    //objectShader->setUniforms(model, view, projection);
-    //objectShader->setUniformVec3("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
-    //objectShader->setUniformVec3("lightPos", glm::vec3(0.0f, 1e5f, 0.0f)); // Light position very high in the y-direction
-
-    //auto backgroundShader = new ShaderProgram(BACKGROUND_VERTEX_SHADER_PATH, BACKGROUND_FRAGMENT_SHADER_PATH);
-    //backgroundShader->setUniforms(backgroundModel, backgroundView, orthoProjection);
-    //backgroundShader->setUniform1f("wrapFactor", 4.0f);
-
-    //    auto panoramaShader = new ShaderProgram(PANORAMA_VERTEX_SHADER_PATH, PANORAMA_FRAGMENT_SHADER_PATH);
-    //    panoramaShader->setUniforms(panoramaModel, panoramaView, panoramaProjection);
-
-        // Initialize font rendering
-    ////TextRenderer textRenderer("./assets/fonts/paladins.ttf", 800, 600);
-    //TextRenderer textRenderer("./assets/fonts/OpenSans-Regular.ttf", 800, 600);
-
-    //// Initialize textures. Note that texture1 is primary texture
-    //Texture hexagonPattern("./assets/images/Hexagon.jpg", "texture1");
-    //Texture smallHexagonPattern("./assets/images/HexagonSmall.jpg", "texture1");
-    //auto floorTexture = new Texture("./assets/images/Wood1.jpg", "texture1");
     auto stadiumTexture = new Texture("./assets/textures/Hexagon.jpg", "texture1");
-
-    //// Static texture object
-    //Texture homeScreenTexture("./assets/images/Brickbeyz.jpg", "texture1");
-    //Texture backgroundTexture("./assets/images/Brickbeyz.jpg", "texture1");
-    //std::cout << "Texture ID: " << hexagonPattern.ID << std::endl;
-    //std::cout << "Texture ID: " << smallHexagonPattern.ID << std::endl;
-    //std::cout << "Texture ID: " << homeScreenTexture.ID << std::endl;
-    //std::cout << "Texture ID: " << backgroundTexture.ID << std::endl;
-
-    //// Initialize camera and camera state
-    //GameControl gameControl(&windowWidth, &windowHeight, aspectRatio, &projection,
-    //    objectShader, backgroundShader, cameraState, quadRenderer,
-    //    true, false, false, false, defaultFont,
-    //    titleFont, attackFont, false, ProgramState::ACTIVE,
-    //    false /* debug mode*/, physicsWorld);
-
-    //// Store the callback data in the window for easy access
-    //glfwSetWindowUserPointer(window, &gameControl);
-
-    //// Handle resizing the window
-    //glfwSetWindowSizeLimits(window, minWidth, minHeight, GLFW_DONT_CARE, GLFW_DONT_CARE);
-
-    //glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-
-    //// Other callbacks
-    //glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-    //glfwSetCursorPosCallback(window, mouse_callback);
-    //glfwSetMouseButtonCallback(window, mouse_button_callback);
-    //glfwSetKeyCallback(window, key_callback);
-    //glfwSetScrollCallback(window, scroll_callback);
 
     /* ----------------------OBJECT SETUP-------------------------- */
 
@@ -283,45 +104,45 @@ int main() {
     // mesh to the BeybladdeBody constructor.
     // Also call mesh->initializeMesh() here.
 
-    GLuint Bey1VAO = 0, Bey1VBO = 0, Bey1EBO = 0;
-    std::string beyblade1Path = "./assets/models/TestBlade5.obj";
-    auto meshBey1 = new BeybladeMesh(beyblade1Path, Bey1VAO, Bey1VBO, Bey1EBO, glm::vec3(1.0f, 1.0f, 1.0f));
-    meshBey1->initializeMesh();
+    //GLuint Bey1VAO = 0, Bey1VBO = 0, Bey1EBO = 0;
+    //std::string beyblade1Path = "./assets/models/TestBlade5.obj";
+    //auto meshBey1 = new BeybladeMesh(beyblade1Path, Bey1VAO, Bey1VBO, Bey1EBO, glm::vec3(1.0f, 1.0f, 1.0f));
+    //meshBey1->initializeMesh();
 
-    // NEWMESH: TODO: remove radius and heigth from these objects, leaving just some physics coefficients.
-    // Use default constructors for now
-    Layer layer1;
-    Disc disc1; 
-    Driver driver1;
-    auto rigidBey1 = new BeybladeBody(meshBey1, layer1, disc1, driver1);
-
-    Beyblade* beyblade1 = new Beyblade(rigidBey1, meshBey1, "Beyblade 1");
-
-    GLuint Bey2VAO = 0, Bey2VBO = 0, Bey2EBO = 0;
-    std::string beyblade2Path = "./assets/models/TestBlade6.obj";
-    auto meshBey2 = new BeybladeMesh(beyblade2Path, Bey2VAO, Bey2VBO, Bey2EBO, glm::vec3(1.0f, 1.0f, 1.0f));
-    meshBey2->initializeMesh();
-
-    Layer layer2;
-    Disc disc2;
-    Driver driver2;
-    auto rigidBey2 = new BeybladeBody(meshBey2, layer2, disc2, driver2);
+    //// NEWMESH: TODO: remove radius and heigth from these objects, leaving just some physics coefficients.
+    //// Use default constructors for now
+    //Layer layer1;
+    //Disc disc1; 
+    //Driver driver1;
+    //auto rigidBey1 = new BeybladeBody(meshBey1, layer1, disc1, driver1);
+    //Beyblade* beyblade1 = new Beyblade(101, "Beyblade 1", rigidBey1, meshBey1);
+    //GLuint Bey2VAO = 0, Bey2VBO = 0, Bey2EBO = 0;
+    //std::string beyblade2Path = "./assets/models/TestBlade6.obj";
+    //auto meshBey2 = new BeybladeMesh(beyblade2Path, Bey2VAO, Bey2VBO, Bey2EBO, glm::vec3(1.0f, 1.0f, 1.0f));
+    //meshBey2->initializeMesh();
+    //Layer layer2;
+    //Disc disc2;
+    //Driver driver2;
+    //auto rigidBey2 = new BeybladeBody(meshBey2, layer2, disc2, driver2);
+    //Beyblade* beyblade2 = new Beyblade(102, "Beyblade 2", rigidBey2, meshBey2);
 
 
-    Beyblade* beyblade2 = new Beyblade(rigidBey2, meshBey2, "Beyblade 2");
+    // These might be null for now, quell errors
+    Beyblade* beyblade1 = engine.pm.getActiveProfile()->getBeyblade(1).get();
+    Beyblade* beyblade2 = engine.pm.getActiveProfile()->getBeyblade(2).get();
 
     // Add beys
     physicsWorld->addBeyblade(beyblade1);
     physicsWorld->addBeyblade(beyblade2);
-
     glm::vec3 initialPosition1 = glm::vec3(0.0f, 2.0f, 0.5f);
     glm::vec initialPosition2 = glm::vec3(0.0f, 2.0f, -0.5f);
     glm::vec3 initialVelocity1 = glm::vec3(0.0f, 0.0f, -0.2f);
     glm::vec3 initialVelocity2 = glm::vec3(0.2f, 0.0f, 0.1f);
     glm::vec3 initialAngularVelocity = glm::vec3(0.0f, -450.0f, 0.0f);
 
-    beyblade1->getRigidBody()->setInitialLaunch(initialPosition1, initialVelocity1, initialAngularVelocity);
-    beyblade2->getRigidBody()->setInitialLaunch(initialPosition2, initialVelocity2, initialAngularVelocity);
+    // TOFIX: Why is beyblade1->getRigidBody() nullptr?
+    //beyblade1->getRigidBody()->setInitialLaunch(initialPosition1, initialVelocity1, initialAngularVelocity);
+    //beyblade2->getRigidBody()->setInitialLaunch(initialPosition2, initialVelocity2, initialAngularVelocity);
 
     /* ----------------------MAIN RENDERING LOOP-------------------------- */
 

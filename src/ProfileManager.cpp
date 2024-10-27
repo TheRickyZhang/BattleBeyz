@@ -2,56 +2,105 @@
 
 // TEMP to start off with defaults
 void ProfileManager::addDefaultProfiles() {
-    profiles["Default"] = std::make_shared<Profile>("Default");
-    profiles["Player1"] = std::make_shared<Profile>("Player1");
-    profiles["Default"]->addBeyblade("DefaultBeyblade1");
-    profiles["Default"]->addBeyblade("DefaultBeyblade2");
-}
-bool ProfileManager::addProfile(const std::string& name) {
-    if (profiles.find(name) != profiles.end()) {
-        return false; // Profile already exists
+    if (!createProfile("Default") || !createProfile("Player1")) {
+        std::cerr << "Error: Failed to create default profiles." << std::endl;
+        return;
     }
-    profiles[name] = std::make_shared<Profile>(name);
+    if (!getActiveProfile()->createBeyblade("DefaultBeyblade1")) {
+        std::cout << "Cannot create 1" << std::endl;
+    }
+    if (!getActiveProfile()->createBeyblade("DefaultBeyblade2")) {
+        std::cout << "Cannot create 2" << std::endl;
+    }
+}
+
+
+// SERVER: To replace with server requests for unique profileIds
+bool ProfileManager::createProfile(const std::string& name) {
+    std::lock_guard<std::mutex> lock(mtx);
+    if (profiles.size() >= MAX_PROFILES) {
+        std::cerr << "Error: Cannot add profile. Maximum number of profiles (" << MAX_PROFILES << ") reached." << std::endl;
+        return false;
+    }
+    currentTempId++;
+    if (profiles.size() > 0 && getProfileIterator(currentTempId) != profiles.end()) {
+        return false;
+    }
+    auto profile = std::make_shared<Profile>(currentTempId, name);
+    profiles.push_back(profile);
+    if (!activeProfileId.has_value()) {
+        activeProfileId = profile->getId();  // Set newly added profile as active if none active
+    }
     return true;
 }
 
-bool ProfileManager::removeProfile(const std::string& name) {
-    return profiles.size() > 1 && profiles.erase(name) > 0;
+bool ProfileManager::addProfile(std::shared_ptr<Profile> profile) {
+    std::lock_guard<std::mutex> lock(mtx);
+    if (profiles.size() >= MAX_PROFILES) {
+        return false;
+    }
+    if (getProfileIterator(profile->getId()) != profiles.end()) {
+        return false;
+    }
+    profiles.push_back(profile);
+    if (!activeProfileId.has_value()) {
+        activeProfileId = profile->getId();
+    }
+    return true;
 }
 
-std::shared_ptr<Profile> ProfileManager::getProfile(const std::string& name) const {
-    auto it = profiles.find(name);
+// Deletes a profile by ID
+bool ProfileManager::deleteProfile(int profileId) {
+    std::lock_guard<std::mutex> lock(mtx);
+    auto it = getProfileIterator(profileId);
+    if (it == profiles.end()) {
+        std::cerr << "Error: Profile with ID " << profileId << " not found." << std::endl;
+        return false;
+    }
+
+    bool wasSelected = (activeProfileId && *activeProfileId == profileId);
+    profiles.erase(it);
+    if (wasSelected) {
+        if (!profiles.empty()) {
+            activeProfileId = profiles.front()->getId(); // Default to the first remaining profile
+        }
+        else {
+            activeProfileId.reset();
+        }
+    }
+    return true;
+}
+
+std::shared_ptr<Profile> ProfileManager::getProfile(int profileId) const {
+    std::lock_guard<std::mutex> lock(mtx);
+    auto it = getProfileIterator(profileId);
+    if (it == profiles.end()) return nullptr;
+    return *it;
+}
+
+// Nullptr if no active profile
+std::shared_ptr<Profile> ProfileManager::getActiveProfile() const {
+    std::lock_guard<std::mutex> lock(mtx);
+    if (!activeProfileId.has_value()) {
+        return nullptr;
+    }
+    auto it = getProfileIterator(activeProfileId.value());
+    if (it == profiles.end()) return nullptr;
+    return *it;
+}
+
+// Sets a profile as the active profile by ID
+bool ProfileManager::setActiveProfile(int profileId) {
+    std::lock_guard<std::mutex> lock(mtx);
+    auto it = getProfileIterator(profileId);
     if (it != profiles.end()) {
-        return it->second;
-    }
-    return nullptr;
-}
-
-std::vector<std::shared_ptr<Profile>> ProfileManager::getAllProfiles() const {
-    std::vector<std::shared_ptr<Profile>> result;
-    for (const auto& pair : profiles) {
-        result.push_back(pair.second);
-    }
-    return result;
-}
-
-bool ProfileManager::setActiveProfile(const std::string& name) {
-    auto profile = getProfile(name);
-    if (profile) {
-        activeProfile = profile;
+        activeProfileId = profileId;
         return true;
     }
     return false;
 }
 
-std::shared_ptr<Profile> ProfileManager::getActiveProfile() const {
-    return activeProfile;
-}
-
-std::vector<std::shared_ptr<Beyblade>>& ProfileManager::getBeybladesForActiveProfile() {
-    return activeProfile->getBeybladesOwned();
-}
-
-bool ProfileManager::deleteBeybladeFromActiveProfile(const std::string& name) {
-    return activeProfile->deleteBeyblade(name);
+const std::vector<std::shared_ptr<Profile>>& ProfileManager::getAllProfiles() const {
+    std::lock_guard<std::mutex> lock(mtx);
+    return profiles;
 }

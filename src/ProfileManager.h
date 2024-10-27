@@ -2,37 +2,40 @@
 
 #include "Profile.h"
 #include "Beyblade.h"
-#include <unordered_map>
 #include <memory>
 #include <string>
 
 class ProfileManager {
 public:
-    // Get the singleton instance
+    static constexpr size_t MAX_PROFILES = 5;
+
     static ProfileManager& getInstance() {
         static ProfileManager instance;
         return instance;
     }
 
-    // Deleted to prevent copying or assignment
     ProfileManager(const ProfileManager&) = delete;
     ProfileManager& operator=(const ProfileManager&) = delete;
 
-    // Profile management methods
     void addDefaultProfiles();
 
-    bool addProfile(const std::string& name);
-    bool removeProfile(const std::string& name);
-    std::shared_ptr<Profile> getProfile(const std::string& name) const;
-    std::vector<std::shared_ptr<Profile>> getAllProfiles() const;
+    bool createProfile(const std::string& name);
+    bool addProfile(std::shared_ptr<Profile> profile);
+    bool deleteProfile(int profileId);
+    std::shared_ptr<Profile> getProfile(int profileId) const;
     std::shared_ptr<Profile> getActiveProfile() const;
-    bool setActiveProfile(const std::string& name);
-
-    std::vector<std::shared_ptr<Beyblade>>& getBeybladesForActiveProfile();
-    bool deleteBeybladeFromActiveProfile(const std::string& name);
-
+    bool setActiveProfile(int profileId);
+    const std::vector<std::shared_ptr<Profile>>& getAllProfiles() const;
 private:
-    ProfileManager() = default; // Private constructor
-    std::unordered_map<std::string, std::shared_ptr<Profile>> profiles;
-    std::shared_ptr<Profile> activeProfile;
+    ProfileManager() = default;
+
+    int currentTempId = 1;
+    std::optional<int> activeProfileId;
+    std::vector<std::shared_ptr<Profile>> profiles;
+    mutable std::mutex mtx;
+
+    std::vector<std::shared_ptr<Profile>>::const_iterator getProfileIterator(int profileId) const {
+        return std::find_if(profiles.begin(), profiles.end(),
+            [&](const std::shared_ptr<Profile>& p) { return p->getId() == profileId; });
+    }
 };

@@ -23,27 +23,31 @@
 #include <memory>
 #include <iomanip>
 
+// Note this beyblade id is GLOBALLY UNIQUE
 class Beyblade {
     friend class BeybladeMesh;
     friend class BeybladeBody;
 public:
-    // Temp: introduce a default constructor for testing purposes
-    Beyblade::Beyblade(const std::string& name) : rigidBody(new BeybladeBody()), mesh(new BeybladeMesh()), name(name) {}
-    Beyblade::Beyblade(BeybladeBody* rigidBody, BeybladeMesh* mesh, std::string name);
+    Beyblade(int id, const std::string& name) :
+        id(id), rigidBody(new BeybladeBody()), mesh(new BeybladeMesh()), name(name) {}
+    Beyblade(int id, std::string name, BeybladeBody* rigidBody, BeybladeMesh* mesh) :
+        id(id), name(name), rigidBody(rigidBody), mesh(mesh) {}
     ~Beyblade();
 
-    void Beyblade::render(ShaderProgram& shader);
+    void render(ShaderProgram& shader);
 
+    int getId() const { return id; }
+    std::string getName() const { return name; }
+    std::string setName() const { return name; }
     BeybladeBody* getRigidBody() { return rigidBody; }
     BeybladeMesh* getMesh() { return mesh; }
 
-    std::string getName() const { return name; }
     void setName(const std::string& name) { Beyblade::name = name; }
 protected:
 
 private:
+    const int id; // Globally unique, will be managed by centralized server
+    std::string name;
     BeybladeBody* rigidBody;
     BeybladeMesh* mesh;
-
-    std::string name;
 };

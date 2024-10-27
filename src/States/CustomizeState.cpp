@@ -22,7 +22,7 @@ void CustomizeState::draw() {
     float frameSpacing = ImGui::GetStyle().FramePadding.x;
     float spacing = ImGui::GetStyle().ItemSpacing.x;
     float leftTextWidth = std::max(ImGui::CalcTextSize("Profile").x, ImGui::CalcTextSize("Beyblade").x) + frameSpacing * 2;
-    float rightButton2Width = ImGui::CalcTextSize("Delete").x + frameSpacing * 2;
+    float rightButton2Width = ImGui::CalcTextSize("Delete##profile").x + frameSpacing * 2;
     float rightButton1Width = ImGui::CalcTextSize("Create New").x + frameSpacing * 2;
     float rightButton1X = windowWidth - rightButton1Width - rightButton2Width - 2*spacing;
     float rightButton2X = windowWidth - rightButton2Width - spacing;
@@ -30,14 +30,31 @@ void CustomizeState::draw() {
     float dropdownRightEdge = rightButton1X - spacing;
     float dropdownWidth = dropdownRightEdge - dropdownLeftX;
 
-    std::string currentProfileName = game->pm.getActiveProfile() ? game->pm.getActiveProfile()->getName() : "No Profile Selected";
-    auto& beyblades = game->pm.getBeybladesForActiveProfile();
+    // Initialization for helpful data
+    std::vector<std::shared_ptr<Profile>> profiles = game->pm.getAllProfiles();
+    std::vector<std::shared_ptr<Beyblade>> beyblades;
+    BeybladeBody* beybladeBody = nullptr;
 
-    std::string beybladeName = currentIndex == -1 ? "" : beyblades[currentIndex]->getName();
-    BeybladeBody* beybladeBody = currentIndex == -1 ? nullptr : beyblades[currentIndex]->getRigidBody();
+    auto activeProfile = game->pm.getActiveProfile();
+    if (activeProfile) {
+        //currentProfileName = activeProfile->getName().c_str();
+        beyblades = activeProfile->getAllBeyblades();
+        currentProfileName = activeProfile->getName();
+        if (!beyblades.empty()) {
+            auto activeBeyblade = activeProfile->getActiveBeyblade();
+            beybladeBody = activeBeyblade->getRigidBody();
+            currentBeybladeName = activeBeyblade->getName();
+        }
+        else {
+            currentBeybladeName = "No Beyblade Selected";
+        }
+    }
+    else {
+        currentProfileName = "No Profile Selected";
+    }
 
-    std::cout << "index" << currentIndex << std::endl;
     std::cout << int(currentPopup) << std::endl;
+
     // Cover full screen
     ImGui::SetNextWindowPos(ImVec2(0, 0));
     ImGui::SetNextWindowSize(ImGui::GetIO().DisplaySize);
@@ -54,11 +71,10 @@ void CustomizeState::draw() {
     ImGui::SetCursorPosX(dropdownLeftX);
     ImGui::SetNextItemWidth(dropdownWidth);
     if (ImGui::BeginCombo("##ProfileCombo", currentProfileName.c_str())) {
-        auto& profiles = game->pm.getAllProfiles();
         for (auto& profile : profiles) {
             bool isSelected = (game->pm.getActiveProfile() == profile);
             if (ImGui::Selectable(profile->getName().c_str(), isSelected)) {
-                game->pm.setActiveProfile(profile->getName());
+                game->pm.setActiveProfile(profile->getId());
                 currentProfileName = profile->getName();
             }
             if (isSelected) {
@@ -69,30 +85,29 @@ void CustomizeState::draw() {
     }
     ImGui::SameLine();
     ImGui::SetCursorPosX(rightButton1X);
-    if (ImGui::Button("Create New")) {
+    if (ImGui::Button("Create New##profile")) {
         currentPopup = PopupState::NEW_PROFILE;
         ImGui::OpenPopup("New Profile");
     }
     ImGui::SameLine();
     ImGui::SetCursorPosX(rightButton2X);
-    if (ImGui::Button("Delete")) {
+    if (ImGui::Button("Delete##profile")) {
         currentPopup = PopupState::DELETE_PROFILE;
         ImGui::OpenPopup("Confirm Profile Deletion");
     }
 
     // Line 3: [Beyblade] <{Beyblade Dropdown}...> [Create New] [Delete]
     if (game->pm.getActiveProfile()) {
-        std::string currentBeybladeName = beyblades.size() > 0 ? beyblades[currentIndex]->getName() : "No Beyblade Selected";
         ImGui::Text("Beyblade");
         ImGui::SameLine();
         ImGui::SetCursorPosX(dropdownLeftX);
         ImGui::SetNextItemWidth(dropdownWidth);
         if (ImGui::BeginCombo("##BeybladeCombo", currentBeybladeName.c_str())) {
-            for (int i = 0; i < (int)beyblades.size(); ++i) {
-                bool isSelected = (currentIndex == i);
-                if (ImGui::Selectable(beyblades[i]->getName().c_str(), isSelected)) {
-                    currentIndex = i;
-                    currentBeybladeName = beyblades[currentIndex]->getName();
+            for (const auto& beyblade : beyblades) {
+                bool isSelected = (beyblade == activeProfile->getActiveBeyblade());
+                if (ImGui::Selectable(beyblade->getName().c_str(), isSelected)) {
+                    activeProfile->setActiveBeyblade(beyblade->getId());
+                    currentBeybladeName = beyblade->getName();
                 }
                 if (isSelected) {
                     ImGui::SetItemDefaultFocus();
@@ -102,17 +117,15 @@ void CustomizeState::draw() {
         }
         ImGui::SameLine();
         ImGui::SetCursorPosX(rightButton1X);
-        if (ImGui::Button("Create New")) {
+        if (ImGui::Button("Create New##blade")) {
             currentPopup = PopupState::NEW_BEYBLADE;
             ImGui::OpenPopup("New Beyblade");
         }
         ImGui::SameLine();
         ImGui::SetCursorPosX(rightButton2X);
-        if (ImGui::Button("Delete")) {
+        if (ImGui::Button("Delete##blade")) {
             currentPopup = PopupState::DELETE_BEYBLADE;
             ImGui::OpenPopup("Confirm Beyblade Deletion");
-            // TOFIX: Why does this not even print on click? And I suspect the beyblade row is not working
-            std::cout << "clicked" << (int)currentPopup << std::endl;
         }
     }
        
@@ -122,7 +135,7 @@ void CustomizeState::draw() {
         ImGui::End();
         return;
     }
-    if (beybladeName.empty()) {
+    if (currentBeybladeName.empty()) {
         ImGui::Text("Current Beyblade not selected");
         ImGui::End();
         return;
@@ -150,10 +163,11 @@ void CustomizeState::draw() {
 
     // Open popups based on currentPopup
     if (currentPopup == PopupState::NEW_PROFILE && ImGui::BeginPopupModal("New Profile", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+        ImGui::OpenPopup("New Profile");
         ImGui::InputText("##ProfileName", newProfileName, IM_ARRAYSIZE(newProfileName));
         if (ImGui::Button("Submit")) {
-            game->pm.addProfile(newProfileName);
-            game->pm.setActiveProfile(newProfileName);
+            game->pm.createProfile(newProfileName);  // Use createProfile to handle profile creation
+            game->pm.setActiveProfile(game->pm.getAllProfiles().back()->getId());  // Set the last profile created as active
             newProfileName[0] = '\0';
             currentPopup = PopupState::NONE;
             ImGui::CloseCurrentPopup();
@@ -168,13 +182,14 @@ void CustomizeState::draw() {
     }
 
     if (currentPopup == PopupState::NEW_BEYBLADE && ImGui::BeginPopupModal("New Beyblade", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+        ImGui::OpenPopup("New Beyblade");
         ImGui::Text("Enter a name for the new Beyblade:");
         ImGui::InputText("##BeybladeName", newBeybladeName, IM_ARRAYSIZE(newBeybladeName));
         std::string beybladeNameStr(newBeybladeName);
         if (ImGui::Button("Submit")) {
-            // Add the new beyblade to the active profile, set as currently selected, clear input/popup
-            game->pm.getActiveProfile()->addBeyblade(beybladeNameStr);
-            currentIndex = (int)beyblades.size() - 1;
+            // Add the new beyblade to the active profile and set it as selected
+            activeProfile->createBeyblade(beybladeNameStr);
+            activeProfile->setActiveBeyblade(activeProfile->getAllBeyblades().back()->getId());  // Set last beyblade as active
             newBeybladeName[0] = '\0';
             currentPopup = PopupState::NONE;
             ImGui::CloseCurrentPopup();
@@ -188,11 +203,12 @@ void CustomizeState::draw() {
         ImGui::EndPopup();
     }
 
-    // Confirmation Popup
+    // Confirmation Popup for deleting a profile
     if (currentPopup == PopupState::DELETE_PROFILE && ImGui::BeginPopupModal("Confirm Profile Deletion", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+        ImGui::OpenPopup("Delete Profile");
         ImGui::Text("Are you sure you want to delete the profile: %s", currentProfileName.c_str());
         if (ImGui::Button("Yes")) {
-            if (!game->pm.removeProfile(currentProfileName)) {
+            if (!game->pm.deleteProfile(game->pm.getActiveProfile()->getId())) {
                 std::cerr << "Cannot remove current profile (you must have at least one profile)" << std::endl;
             }
             currentPopup = PopupState::NONE;
@@ -206,19 +222,23 @@ void CustomizeState::draw() {
         ImGui::EndPopup();
     }
 
-    if (currentPopup == PopupState::DELETE_BEYBLADE && currentIndex != -1 && ImGui::BeginPopupModal("Confirm Beyblade Deletion", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
-        ImGui::Text("Are you sure you want to delete the Beyblade: %s", beybladeName.c_str());
-        if (ImGui::Button("Yes")) {
-            if (!game->pm.getActiveProfile()->deleteBeyblade(beybladeName)) {
-                std::cerr << "Cannot delete current beyblade" << std::endl;
+    // Confirmation Popup for deleting a beyblade
+    if (currentPopup == PopupState::DELETE_BEYBLADE && ImGui::BeginPopupModal("Confirm Beyblade Deletion", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+        ImGui::OpenPopup("Delete Beyblade");
+        if (auto activeProfile = game->pm.getActiveProfile()) {
+            ImGui::Text("Are you sure you want to delete the Beyblade: %s", currentBeybladeName.c_str());
+            if (ImGui::Button("Yes")) {
+                if (!activeProfile->deleteBeyblade(activeProfile->getActiveBeyblade()->getId())) {
+                    std::cerr << "Cannot delete current beyblade" << std::endl;
+                }
+                currentPopup = PopupState::NONE;
+                ImGui::CloseCurrentPopup();
             }
-            currentPopup = PopupState::NONE;
-            ImGui::CloseCurrentPopup();
-        }
-        ImGui::SameLine();
-        if (ImGui::Button("No")) {
-            currentPopup = PopupState::NONE;
-            ImGui::CloseCurrentPopup();
+            ImGui::SameLine();
+            if (ImGui::Button("No")) {
+                currentPopup = PopupState::NONE;
+                ImGui::CloseCurrentPopup();
+            }
         }
         ImGui::EndPopup();
     }

@@ -101,7 +101,6 @@ public:
     // Other various global states
     bool boundCamera{};
     bool debugMode{};
-    int selectedBeyblade{};
 
     std::vector<Timer> timers;  // TODO: In very future, if have dynamic timers separate from the fixed timers (frame rate, etc)
     std::vector<std::function<void()>> timerCallbacks;
