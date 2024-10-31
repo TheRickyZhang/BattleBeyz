@@ -27,8 +27,10 @@ public:
 	StadiumBody::StadiumBody(glm::vec3 center, double radius, double curvature, double coefficientOfFriction) :
 		center(center), radius(radius), curvature(curvature), scaledCurvature(curvature / radius),
 		coefficientOfFriction(coefficientOfFriction) {}
+
+    // Default parameters: 1.2 meters radius is quite large
 	StadiumBody::StadiumBody() :
-        center(glm::vec3(0.0)), radius(0.4), curvature(0.05), scaledCurvature(0.05/0.4), coefficientOfFriction(0.1) {}
+        center(glm::vec3(0.0)), radius(1.2f), curvature(0.10), scaledCurvature(0.10/1.2), coefficientOfFriction(0.35) {}
 
 	bool isInside(double x, double z) const;
 	const double getRadius() const { return radius; }

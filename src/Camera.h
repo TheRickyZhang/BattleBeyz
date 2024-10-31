@@ -16,27 +16,27 @@
 class Camera {
 public:
     // Default constructor
-    Camera() : Position(glm::vec3(0.0f, 0.0f, 0.0f)), Front(glm::vec3(0.0f, 0.0f, -1.0f)), Up(glm::vec3(0.0f, 1.0f, 0.0f)), Right(glm::vec3(1.0f, 0.0f, 0.0f)), WorldUp(glm::vec3(0.0f, 1.0f, 0.0f)), Yaw(-90.0f), Pitch(0.0f), Roll(0.0f), MovementSpeed(2.5f), MouseSensitivity(0.1f), Zoom(45.0f), physicsWorld(nullptr) {
+    Camera() : position(glm::vec3(0.0f, 0.0f, 0.0f)), front(glm::vec3(0.0f, 0.0f, -1.0f)), up(glm::vec3(0.0f, 1.0f, 0.0f)), right(glm::vec3(1.0f, 0.0f, 0.0f)), worldUp(glm::vec3(0.0f, 1.0f, 0.0f)), yaw(-90.0f), pitch(0.0f), roll(0.0f), movementSpeed(2.5f), mouseSensitivity(0.1f), zoom(45.0f), physicsWorld(nullptr) {
         updateCameraVectors();
     }
     explicit Camera(const glm::vec3& position, float yaw = -90.0f, float pitch = 0.0f, float roll = 0.0f, PhysicsWorld* world = nullptr);
 
     // Camera Attributes
-    glm::vec3 Position;
-    glm::vec3 Front;
-    glm::vec3 Up{};
-    glm::vec3 Right{};
-    glm::vec3 WorldUp;
+    glm::vec3 position;
+    glm::vec3 front;
+    glm::vec3 up{};
+    glm::vec3 right{};
+    glm::vec3 worldUp;
 
     // Euler Angles (add roll)
-    float Yaw;
-    float Pitch;
-    float Roll;
+    float yaw;
+    float pitch;
+    float roll;
 
     // Camera options
-    float MovementSpeed;
-    float MouseSensitivity;
-    float Zoom;
+    float movementSpeed;
+    float mouseSensitivity;
+    float zoom;
 
     // TODO: Add different camera states of (free, fixedFocus, followBeyblade, circularPath)
     // These all have their own data needed to funciton, which needs to be figured out
@@ -50,7 +50,7 @@ public:
     // Camera matrices
     [[nodiscard]] glm::mat4 getViewMatrix() const;
     void processKeyboard(int direction, float deltaTime, bool boundCamera);
-    void processMouseMovement(float xoffset, float yoffset, GLboolean constrainPitch = true);
+    void processMouseMovement(float xoffset, float yoffset, GLboolean constrainpitch = true);
     void processMouseScroll(float yoffset);
 
 private:

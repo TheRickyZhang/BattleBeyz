@@ -22,11 +22,13 @@ bool ProfileManager::createProfile(const std::string& name) {
         std::cerr << "Error: Cannot add profile. Maximum number of profiles (" << MAX_PROFILES << ") reached." << std::endl;
         return false;
     }
-    currentTempId++;
-    if (profiles.size() > 0 && getProfileIterator(currentTempId) != profiles.end()) {
+    
+    
+    nextProfileID++;
+    if (profiles.size() > 0 && getProfileIterator(nextProfileID) != profiles.end()) {
         return false;
     }
-    auto profile = std::make_shared<Profile>(currentTempId, name);
+    auto profile = std::make_shared<Profile>(nextProfileID, name);
     profiles.push_back(profile);
     if (!activeProfileId.has_value()) {
         activeProfileId = profile->getId();  // Set newly added profile as active if none active

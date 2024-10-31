@@ -20,15 +20,16 @@
 #include "Buffers.h"
 #include "Texture.h"
 #include "RigidBodies/StadiumBody.h"
+#include "ShaderPath.h"
 
-
+// Note - radius is not stored anywhere here. I think the mesh data already indicates its size?
 class StadiumMesh {
     friend class Stadium;
 public:
-    StadiumMesh(Texture* texture, double radius, int verticesPerRing, int numRings, const glm::vec3& ringColor, const glm::vec3& crossColor, const glm::vec3& col, float textureScale)
+    StadiumMesh(Texture* texture, int verticesPerRing, int numRings, const glm::vec3& ringColor, const glm::vec3& crossColor, const glm::vec3& col, float textureScale)
         : texture(texture), verticesPerRing(verticesPerRing), numRings(numRings),
-        ringColor(ringColor), crossColor(crossColor), color(col), textureScale(textureScale) {
-    }
+        ringColor(ringColor), crossColor(crossColor), color(col), textureScale(textureScale) {}
+    StadiumMesh();
 
     Texture* getTexture() { return texture; }
 

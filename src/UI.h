@@ -5,10 +5,6 @@
 
 #pragma once
 
-#define WIN32_LEAN_AND_MEAN
-#define NOMINMAX
-#include <windows.h>
-#include <shellapi.h>
 #include <algorithm>
 #include <cmath>
 #include <vector>
@@ -43,7 +39,7 @@ float getMaxWidth(const std::vector<std::string>& text);
 void showAboutScreen(GLFWwindow* window, Texture& backgroundTexture);
 void showCustomizeScreen(GLFWwindow* window, Texture& backgroundTexture);
 void showHomeScreen(GLFWwindow* window, Texture& homeScreenTexture, Texture& backgroundTexture);
-void showInfoScreen(GLFWwindow* window, float (*imguiColor)[3]);
+void drawInfoScreen(GLFWwindow* window);
 void showLoadingScreen(GLFWwindow* window, Texture& backgroundTexture, const char* message = "Loading...");
 void showOptionsScreen(GLFWwindow* window);
 

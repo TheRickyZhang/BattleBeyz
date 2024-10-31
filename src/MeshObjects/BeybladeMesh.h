@@ -20,17 +20,19 @@
 #include "Texture.h"
 #include "RigidBodies/StadiumBody.h"
 
+// Need to call loadModel and initializeMesh for using the mesh
 class BeybladeMesh {
     //friend class Beyblade;
 public:
-    BeybladeMesh() : modelPath("../assets/models/default.obj"), VAO(0), VBO(0), EBO(0), color(glm::vec3(1.0f)) { }
     BeybladeMesh(std::string& modelPath, unsigned int vao, unsigned int vbo, unsigned int ebo, const glm::vec3& col)
         : modelPath(std::move(modelPath)), VAO(vao), VBO(vbo), EBO(ebo), color(col) {
+        initializeMesh();
+    }
+    BeybladeMesh() : modelPath("../assets/models/default.obj"), VAO(0), VBO(0), EBO(0), color(glm::vec3(1.0f)) {
+        initializeMesh();
     }
 
     void loadModel(const std::string& path);
-    void initializeMesh();
-
     void printDebugInfo();
 
     unsigned int getVAO() const { return VAO; }
@@ -58,5 +60,9 @@ protected:
 
     unsigned int VAO{}, VBO{}, EBO{};
     glm::vec3 color;
+
+private:
+    void initializeMesh();
+
 
 };

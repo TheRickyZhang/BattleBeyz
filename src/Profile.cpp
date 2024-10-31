@@ -8,15 +8,14 @@ bool Profile::createBeyblade(const std::string& name) {
         std::cerr << "Error: Cannot add Beyblade. Maximum number of beyblades (" << MAX_BEYBLADES_PER_PROFILE << ") reached." << std::endl;
         return false;
     }
-    // This id generation could be better
-    currentTempId++;
-    if (!beybladesOwned.empty() && getBeybladeIterator(currentTempId) == beybladesOwned.end()) {
-        std::cout << "sz" << beybladesOwned.size() << std::endl;
-        std::cerr << "Error: Beyblade with ID " << currentTempId << " already exists." << std::endl;
+
+    nextBladeID++;
+    if (!beybladesOwned.empty() && getBeybladeIterator(nextBladeID) != beybladesOwned.end()) {
+        std::cerr << "Error: Beyblade with ID " << nextBladeID << " already exists." << std::endl;
         return false;
     }
 
-    auto beyblade = std::make_shared<Beyblade>(currentTempId, name);
+    auto beyblade = std::make_shared<Beyblade>(nextBladeID, name);
 
 
     beybladesOwned.push_back(beyblade);

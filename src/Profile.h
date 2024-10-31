@@ -32,11 +32,12 @@ public:
     const std::vector<std::shared_ptr<Beyblade>>& getAllBeyblades() const;
 
 private:
-    int currentTempId = 1; // Temporary id for new Beyblades (remove when server implemented)
     int id; // This is PROFILE ID!
+    std::vector<std::shared_ptr<Beyblade>> beybladesOwned{};    // List of Beyblades owned by the profile
     std::optional<int> activeBeybladeId;
     std::string name{};
-    std::vector<std::shared_ptr<Beyblade>> beybladesOwned{};    // List of Beyblades owned by the profile
+    int nextBladeID = 0;                    // Next blade id is #1.
+
 
     mutable std::mutex mtx;
 

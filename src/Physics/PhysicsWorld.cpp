@@ -110,6 +110,7 @@ void PhysicsWorld::update(float deltaTime) {
     * Apply forces simultaneously by storing them, rather than sequentially which can cause consistency issues
     * Then, apply all at once to change velocities, then update positions with new velocities.
     */
+
     for (Beyblade* beyblade : beyblades) {
         BeybladeBody* beybladeBody = beyblade->getRigidBody();
         beybladeBody->applyAccumulatedChanges(deltaTime);
@@ -140,6 +141,7 @@ void PhysicsWorld::renderDebug(ShaderProgram& shader) const {
             beybladeBody->boundingBoxes[i]->renderDebug(shader, beybladeBody->getCenter());
         }
     }
+
     for (Stadium* stadium : stadiums) {
         StadiumBody* stadiumBody = stadium->getRigidBody();
         for (int i = 0; i < stadiumBody->boundingBoxes.size() /*&& i < 100*/; i++) {

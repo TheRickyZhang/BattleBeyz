@@ -14,6 +14,8 @@
 #include "TextRenderer.h"
 #include "TextureManager.h"
 #include "ProfileManager.h"
+#include "MessageLog.h"
+#include "InputManager.h"
 #include "Timer.h"
 
 #define MINI_CASE_SENSITIVE
@@ -76,23 +78,29 @@ public:
     glm::mat4 orthoProjection{};
 
     PhysicsWorld* physicsWorld{};
-    Camera mainCamera{};
+    Camera mainCamera{}; // TODO: ALready handled in cameraState?
     CameraState* cameraState{};
 
     ShaderProgram* objectShader{};
     ShaderProgram* backgroundShader{};
 
     TextRenderer* textRenderer{};
+    QuadRenderer* quadRenderer{};
+    MessageLog* messageLog;
 
     float prevTime{};
     float deltaTime{};
 
     float imguiColor[3];
 
-    QuadRenderer* quadRenderer{};
 
     TextureManager& tm; // Central point for accessing all textures
     ProfileManager& pm; // Central point for accessing all profiles
+    InputManager inputManager;
+    static void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
+    static void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
+    static void cursorPositionCallback(GLFWwindow* window, double xPos, double yPos);
+    static void scrollCallback(GLFWwindow* window, double xOffset, double yOffset);
 
     // INI handling
     mINI::INIFile* iniFile{};
@@ -110,8 +118,8 @@ public:
 
 private:
     std::unique_ptr<GameState> createState(GameStateType stateType);
-
     std::vector<std::unique_ptr<GameState>> stateStack;
     GLFWwindow* window;
     bool isRunning;
+
 };

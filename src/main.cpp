@@ -95,7 +95,7 @@ int main() {
     float stadiumTextureScale = 1.5f;
 
     StadiumBody* rigidBody = new StadiumBody(stadiumPosition, stadiumRadius, stadiumCurvature, stadiumCoefficientOfFriction);
-    StadiumMesh* stadiumMesh = new StadiumMesh(stadiumTexture, stadiumRadius, sectionsPerRing, numRings, ringColor, crossColor, stadiumColor, stadiumTextureScale);
+    StadiumMesh* stadiumMesh = new StadiumMesh(stadiumTexture, sectionsPerRing, numRings, ringColor, crossColor, stadiumColor, stadiumTextureScale);
 
     Stadium* stadium = new Stadium(rigidBody, stadiumMesh, "Stadium 1");
     physicsWorld->addStadium(stadium);
@@ -128,6 +128,7 @@ int main() {
 
 
     // These might be null for now, quell errors
+
     Beyblade* beyblade1 = engine.pm.getActiveProfile()->getBeyblade(1).get();
     Beyblade* beyblade2 = engine.pm.getActiveProfile()->getBeyblade(2).get();
 
@@ -140,9 +141,8 @@ int main() {
     glm::vec3 initialVelocity2 = glm::vec3(0.2f, 0.0f, 0.1f);
     glm::vec3 initialAngularVelocity = glm::vec3(0.0f, -450.0f, 0.0f);
 
-    // TOFIX: Why is beyblade1->getRigidBody() nullptr?
-    //beyblade1->getRigidBody()->setInitialLaunch(initialPosition1, initialVelocity1, initialAngularVelocity);
-    //beyblade2->getRigidBody()->setInitialLaunch(initialPosition2, initialVelocity2, initialAngularVelocity);
+    beyblade1->getRigidBody()->setInitialLaunch(initialPosition1, initialVelocity1, initialAngularVelocity);
+    beyblade2->getRigidBody()->setInitialLaunch(initialPosition2, initialVelocity2, initialAngularVelocity);
 
     /* ----------------------MAIN RENDERING LOOP-------------------------- */
 
@@ -182,7 +182,6 @@ int main() {
 //#endif
 //
 //        // Update changing camera variables
-//
 //        glm::vec3 cameraPos = cameraState->camera->Position;
 //        view = glm::lookAt(cameraState->camera->Position, cameraState->camera->Position + cameraState->camera->Front, cameraState->camera->Up);
 //

@@ -29,10 +29,11 @@ public:
 private:
     ProfileManager() = default;
 
-    int currentTempId = 1;
     std::optional<int> activeProfileId;
     std::vector<std::shared_ptr<Profile>> profiles;
     mutable std::mutex mtx;
+
+    int nextProfileID = 0;                  // Next profile id is #1.
 
     std::vector<std::shared_ptr<Profile>>::const_iterator getProfileIterator(int profileId) const {
         return std::find_if(profiles.begin(), profiles.end(),

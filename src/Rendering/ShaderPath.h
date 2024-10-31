@@ -21,3 +21,5 @@
 #define DEFAULT_FONT_PATH "./assets/fonts/Orbitron-Regular.ttf"
 #define TITLE_FONT_PATH "./assets/fonts/Orbitron-Bold.ttf"
 #define ATTACK_FONT_PATH "./assets/fonts/paladins.ttf"
+
+#define MISSING_TEXTURE_PATH "./assets/textures/missing.jpg"

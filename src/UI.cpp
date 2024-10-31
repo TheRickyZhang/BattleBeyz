@@ -5,6 +5,11 @@
 
 // NEWUI Huge changes in this file.
 
+#define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
+#include <windows.h>
+#include <shellapi.h>
+
 #include "UI.h"
 
 // TODO
@@ -462,9 +467,10 @@ void showHomeScreen(GLFWwindow *window, Texture &homeScreenTexture, Texture &bac
 
 /**
 * Show game information.
+* add ing the backgroundCOlor in form  float(*imguiColor)[3]
 */
 
-void showInfoScreen(GLFWwindow* window, float(*imguiColor)[3]) {
+void drawInfoScreen(GLFWwindow* window) {
     auto* data = static_cast<GameControl*>(glfwGetWindowUserPointer(window));
 
     ImGui::SetNextWindowSize(ImVec2(500, 400), ImGuiCond_FirstUseEver);
@@ -546,14 +552,12 @@ void showInfoScreen(GLFWwindow* window, float(*imguiColor)[3]) {
         }
     }
 
-
-
     if (ImGui::Button("Launch")) {
 
     }
 
     // Color editor
-    ImGui::ColorEdit3("background color", *imguiColor);
+    //ImGui::ColorEdit3("background color", *imguiColor);
 
     // Checkbox to toggle showCamera
     ImGui::Checkbox("Bound Camera", &data->boundCamera);

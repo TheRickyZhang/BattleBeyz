@@ -105,7 +105,7 @@ bool GameEngine::init(const char* title, int width, int height) {
     float initialPitch = glm::degrees(std::atan2(frontVector.y, glm::length(glm::vec2(frontVector.x, frontVector.z))));
 
     mainCamera = Camera(initialCameraPos, initialYaw, initialPitch, 0.0f, physicsWorld);
-    mainCamera.Front = frontVector;
+    mainCamera.front = frontVector;
     cameraState = new CameraState(&mainCamera, 400.0, 300.0); // LOOK: Are these dimensions supposed to be hardcoded?
 
     model = glm::mat4(1.0f);
@@ -143,11 +143,12 @@ bool GameEngine::init(const char* title, int width, int height) {
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 
     glfwSetFramebufferSizeCallback(window, GameEngine::framebufferSizeCallback);  // This handles window resizing
-// 2024-10-20 MOVED TO ActiveState code
-//    glfwSetCursorPosCallback(window, mouse_callback);
-//    glfwSetMouseButtonCallback(window, mouse_button_callback);
-//    glfwSetKeyCallback(window, key_callback);
-//    glfwSetScrollCallback(window, scroll_callback);
+
+    // Set for use in inputManager
+    glfwSetKeyCallback(window, GameEngine::keyCallback);
+    glfwSetMouseButtonCallback(window, GameEngine::mouseButtonCallback);
+    glfwSetCursorPosCallback(window, GameEngine::cursorPositionCallback);
+    glfwSetScrollCallback(window, GameEngine::scrollCallback);
 
     // Initialize INI handling if needed
     iniFile = nullptr;
@@ -182,7 +183,7 @@ void GameEngine::initTimers() {
     timers.push_back(Timer(0.1f, true, -1.0f));
     timerCallbacks.push_back([this]() {
         std::stringstream ss;
-        ss << std::fixed << std::setprecision(1) << "X: " << mainCamera.Position.x << " Y: " << mainCamera.Position.y << " Z: " << mainCamera.Position.z;
+        ss << std::fixed << std::setprecision(1) << "X: " << mainCamera.position.x << " Y: " << mainCamera.position.y << " Z: " << mainCamera.position.z;
     });
 }
 
@@ -354,4 +355,37 @@ void GameEngine::framebufferSizeCallback(GLFWwindow* window, int width, int heig
     engine->projection = glm::perspective(glm::radians(45.0f), (float)newWidth / newHeight, 0.1f, 100.0f);
     engine->objectShader->use();
     engine->objectShader->setUniformMat4("projection", engine->projection);
+}
+
+/*------------------------------------Statis input callbacks-----------------------------------------------------------*/
+
+// Static input callbacks
+void GameEngine::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+    auto* engine = static_cast<GameEngine*>(glfwGetWindowUserPointer(window));
+    if (engine) {
+        bool isPressed = (action == GLFW_PRESS || action == GLFW_REPEAT);
+        engine->inputManager.setKey(key, isPressed);
+    }
+}
+
+void GameEngine::mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
+    auto* engine = static_cast<GameEngine*>(glfwGetWindowUserPointer(window));
+    if (engine) {
+        bool isPressed = (action == GLFW_PRESS);
+        engine->inputManager.setMouseButton(button, isPressed);
+    }
+}
+
+void GameEngine::cursorPositionCallback(GLFWwindow* window, double xPos, double yPos) {
+    auto* engine = static_cast<GameEngine*>(glfwGetWindowUserPointer(window));
+    if (engine) {
+        engine->inputManager.setMousePosition(xPos, yPos);
+    }
+}
+
+void GameEngine::scrollCallback(GLFWwindow* window, double xOffset, double yOffset) {
+    auto* engine = static_cast<GameEngine*>(glfwGetWindowUserPointer(window));
+    if (engine) {
+        engine->inputManager.setScrollOffset(xOffset, yOffset);
+    }
 }

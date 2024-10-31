@@ -175,6 +175,7 @@ void BeybladeMesh::loadModel(const std::string& path) {
         heightDriver = shapeBounds[2].max.y - shapeBounds[2].min.y;
     }
 
+    modelPath = path;
     std::cout << "Model loaded successfully with " << vertices.size() << " vertices and " << indices.size() << " indices." << std::endl;
 }
 

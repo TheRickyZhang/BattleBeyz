@@ -1,5 +1,17 @@
 #include "StadiumMesh.h"
 
+StadiumMesh::StadiumMesh()
+    : texture(new Texture(MISSING_TEXTURE_PATH, "missing_texture")),
+    verticesPerRing(64),
+    numRings(10),
+    ringColor(1.0f, 0.0f, 0.0f),    // Red color for ring
+    crossColor(0.0f, 0.0f, 1.0f),   // Blue color for cross
+    color(0.2f, 0.2f, 0.2f),        // Gray color for stadium
+    textureScale(1.5f)
+{
+    // Any additional initialization code
+}
+
 void StadiumMesh::printDebugInfo() {
     std::ostringstream buffer;
     buffer << "Vertices: " << vertices.size() << std::endl;

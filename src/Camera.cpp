@@ -10,8 +10,8 @@
 */
 
 Camera::Camera(const glm::vec3& position, float yaw, float pitch, float roll, PhysicsWorld* world) :
-    Front(glm::vec3(0.0f, 0.0f, -1.0f)), MovementSpeed(10.0f), MouseSensitivity(0.1f), Zoom(45.0f),
-    Position(position), WorldUp(glm::vec3(0.0f, 1.0f, 0.0f)), Yaw(yaw), Pitch(pitch), Roll(roll),
+    front(glm::vec3(0.0f, 0.0f, -1.0f)), movementSpeed(10.0f), mouseSensitivity(0.1f), zoom(45.0f),
+    position(position), worldUp(glm::vec3(0.0f, 1.0f, 0.0f)), yaw(yaw), pitch(pitch), roll(roll),
     physicsWorld(world) {
     updateCameraVectors();
 
@@ -28,7 +28,7 @@ Camera::Camera(const glm::vec3& position, float yaw, float pitch, float roll, Ph
 */
 
 glm::mat4 Camera::getViewMatrix() const {
-    return glm::lookAt(Position, Position + Front, Up);
+    return glm::lookAt(position, position + front, up);
 }
 
 /**
@@ -38,7 +38,7 @@ glm::mat4 Camera::getViewMatrix() const {
 void Camera::applyBoundaries(glm::vec3& position) const {
     if (!physicsWorld) return;
     //// Temporarily move the body's position to check for collisions
-    //glm::vec3 originalPosition = body->position;
+    //glm::vec3 originalposition = body->position;
     //body->position = position;
 
     //std::cout << "Applying boundaries. New position: "
@@ -50,7 +50,7 @@ void Camera::applyBoundaries(glm::vec3& position) const {
     //    }
     //}
 
-    //body->position = originalPosition; // Restore original position
+    //body->position = originalposition; // Restore original position
 }
 
 /**
@@ -66,38 +66,38 @@ void Camera::applyBoundaries(glm::vec3& position) const {
 */
 
 void Camera::processKeyboard(int direction, float deltaTime, bool boundCamera) {
-    float velocity = MovementSpeed * deltaTime;
-    glm::vec3 newPosition = Position;
+    float velocity = movementSpeed * deltaTime;
+    glm::vec3 newPosition = position;
 
     bool isMoving = false;
 
     switch (direction) {
         case GLFW_KEY_W:
-            newPosition += Front * velocity;
+            newPosition += front * velocity;
             isMoving = true;
             break;
         case GLFW_KEY_S:
-            newPosition -= Front * velocity;
+            newPosition -= front * velocity;
             isMoving = true;
             break;
         case GLFW_KEY_A:
-            newPosition -= Right * velocity;
+            newPosition -= right * velocity;
             isMoving = true;
             break;
         case GLFW_KEY_D:
-            newPosition += Right * velocity;
+            newPosition += right * velocity;
             isMoving = true;
             break;
         case GLFW_KEY_Q:
-            newPosition -= Up * velocity;
+            newPosition -= up * velocity;
             isMoving = true;
             break;
         case GLFW_KEY_E:
-            newPosition += Up * velocity;
+            newPosition += up * velocity;
             isMoving = true;
             break;
         case GLFW_KEY_ESCAPE:
-            Zoom = 1.0f;
+            zoom = 1.0f;
             break;
     }
 
@@ -109,10 +109,10 @@ void Camera::processKeyboard(int direction, float deltaTime, bool boundCamera) {
         applyBoundaries(newPosition);
     }
 
-    Position = newPosition;
+    position = newPosition;
     //std::cout << "Camera position: " << Position.x << ", " << Position.y << ", " << Position.z << std::endl;
-    // Update the body's position to match the camera
-    body->position = Position;
+    // update the body's position to match the camera
+    body->position = position;
     body->updateBoundingBoxes();
     //std::cout << "Body position: " << body->position.x << ", " << body->position.y << ", " << body->position.z << std::endl;
 }
@@ -124,22 +124,22 @@ void Camera::processKeyboard(int direction, float deltaTime, bool boundCamera) {
 * 
 * @param yoffset                    [in] Mouse Y position relative to previous position.
 * 
-* @param constrainPitch             [in] True if pitch needs to be constrained.
+* @param constrainpitch             [in] True if pitch needs to be constrained.
 */
 
-void Camera::processMouseMovement(float xoffset, float yoffset, GLboolean constrainPitch) {
-    xoffset *= MouseSensitivity;
-    yoffset *= MouseSensitivity;
+void Camera::processMouseMovement(float xoffset, float yoffset, GLboolean constrainpitch) {
+    xoffset *= mouseSensitivity;
+    yoffset *= mouseSensitivity;
 
-    Yaw += xoffset;
-    Pitch += yoffset;
+    yaw += xoffset;
+    pitch += yoffset;
 
-    if (constrainPitch) {
-        if (Pitch > 89.0f) {
-            Pitch = 89.0f;
+    if (constrainpitch) {
+        if (pitch > 89.0f) {
+            pitch = 89.0f;
         }
-        if (Pitch < -89.0f) {
-            Pitch = -89.0f;
+        if (pitch < -89.0f) {
+            pitch = -89.0f;
         }
     }
 
@@ -153,35 +153,35 @@ void Camera::processMouseMovement(float xoffset, float yoffset, GLboolean constr
 */
 
 void Camera::processMouseScroll(float yoffset) {
-    MovementSpeed += yoffset * 0.5f;
-    if (MovementSpeed < 0.1f) {
-        MovementSpeed = 0.1f;
+    movementSpeed += yoffset * 0.5f;
+    if (movementSpeed < 0.1f) {
+        movementSpeed = 0.1f;
     }
-    if (MovementSpeed > 10.0f) {
-        MovementSpeed = 10.0f;
+    if (movementSpeed > 10.0f) {
+        movementSpeed = 10.0f;
     }
 }
 
 /**
-* Update camera vectors.
+* update camera vectors.
 *
 * TODO: More comments.
 */
 
 void Camera::updateCameraVectors() {
-    // Calculate the new Front vector
-    float x = cos(glm::radians(Yaw)) * cos(glm::radians(Pitch));
-    float y = sin(glm::radians(Pitch));
-    float z = sin(glm::radians(Yaw)) * cos(glm::radians(Pitch));
+    // Calculate the new front vector
+    float x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+    float y = sin(glm::radians(pitch));
+    float z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
     glm::vec3 front = glm::vec3(x, y, z);
-    Front = glm::normalize(front);
+    front = glm::normalize(front);
 
-    // Also re-calculate the Right and Up vector
-    Right = glm::normalize(glm::cross(Front, WorldUp));  // Normalize the vectors, because their length gets closer to 0
-    Up = glm::normalize(glm::cross(Right, Front));       // the more you look up or down which results in slower movement.
+    // Also re-calculate the right and up vector
+    right = glm::normalize(glm::cross(front, worldUp));  // Normalize the vectors, because their length gets closer to 0
+    up = glm::normalize(glm::cross(right, front));       // the more you look up or down which results in slower movement.
 
     // Apply roll
-    glm::mat4 rot = glm::rotate(glm::mat4(1.0f), glm::radians(Roll), Front);
-    Right = glm::vec3(rot * glm::vec4(Right, 0.0f));
-    Up = glm::vec3(rot * glm::vec4(Up, 0.0f));
+    glm::mat4 rot = glm::rotate(glm::mat4(1.0f), glm::radians(roll), front);
+    right = glm::vec3(rot * glm::vec4(right, 0.0f));
+    up = glm::vec3(rot * glm::vec4(up, 0.0f));
 }
