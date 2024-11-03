@@ -94,6 +94,7 @@ int main() {
     int sectionsPerRing = 64;
     float stadiumTextureScale = 1.5f;
 
+    stadiumTexture->use();
     StadiumBody* rigidBody = new StadiumBody(stadiumPosition, stadiumRadius, stadiumCurvature, stadiumCoefficientOfFriction);
     StadiumMesh* stadiumMesh = new StadiumMesh(stadiumTexture, sectionsPerRing, numRings, ringColor, crossColor, stadiumColor, stadiumTextureScale);
 
@@ -149,7 +150,7 @@ int main() {
     engine.pushState(GameStateType::LOADING);
 
     while (engine.running()) {
-#if 0
+#if 1
         auto currentTime = static_cast<float>(glfwGetTime());
         engine.deltaTime = currentTime - engine.prevTime;
         engine.prevTime = currentTime;
@@ -157,9 +158,9 @@ int main() {
         engine.deltaTime = 0.0052f; // fixed frame rate, lower = slower
 #endif
 
-        engine.handleEvents();
-        engine.update();
-        engine.draw();
+        engine.handleEvents();  // External inputs: user/system
+        engine.update();        // Time-based state updates
+        engine.draw();          // Render the current state
     }
     return 0;
 

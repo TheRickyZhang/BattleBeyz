@@ -145,10 +145,60 @@ bool GameEngine::init(const char* title, int width, int height) {
     glfwSetFramebufferSizeCallback(window, GameEngine::framebufferSizeCallback);  // This handles window resizing
 
     // Set for use in inputManager
-    glfwSetKeyCallback(window, GameEngine::keyCallback);
-    glfwSetMouseButtonCallback(window, GameEngine::mouseButtonCallback);
-    glfwSetCursorPosCallback(window, GameEngine::cursorPositionCallback);
-    glfwSetScrollCallback(window, GameEngine::scrollCallback);
+    /**
+    * Various callbacks
+    *
+    * @param window                 [in] The parent window.
+    *
+    * @param key                    [in] The GLFW key code such as the letter 'A'.
+    *
+    * @param scancode               [in] The raw key number.  For example, the cursor
+    *                               keys do not correspond to letters.
+    *
+    * @param action                 [in] The key action that occured (press, release,
+    *                               or release).
+    */
+    inputManager = InputManager();
+    glfwSetKeyCallback(window, [](GLFWwindow* window, int key, int scancode, int action, int mods) {
+        GameEngine* engine = static_cast<GameEngine*>(glfwGetWindowUserPointer(window));
+        if (engine) {
+            bool isPressed = (action == GLFW_PRESS || action == GLFW_REPEAT);
+            engine->inputManager.setKey(key, isPressed);
+        }
+    });
+    glfwSetMouseButtonCallback(window, [](GLFWwindow* window, int button, int action, int mods) {
+        // Forward to ImGui if needed
+        ImGui_ImplGlfw_MouseButtonCallback(window, button, action, mods);
+        if (ImGui::GetIO().WantCaptureMouse) {
+            return;
+        }
+
+        GameEngine* engine = static_cast<GameEngine*>(glfwGetWindowUserPointer(window));
+        if (engine) {
+            bool isPressed = (action == GLFW_PRESS);
+            engine->inputManager.setMouseButton(button, isPressed);
+        }
+    });
+    glfwSetCursorPosCallback(window, [](GLFWwindow* window, double xpos, double ypos) {
+        // Forward to ImGui if needed
+        ImGui_ImplGlfw_CursorPosCallback(window, xpos, ypos);
+        if (ImGui::GetIO().WantCaptureMouse) return;
+
+        GameEngine* engine = static_cast<GameEngine*>(glfwGetWindowUserPointer(window));
+        if (engine) {
+            engine->inputManager.setMousePosition(xpos, ypos);
+        }
+    });
+    glfwSetScrollCallback(window, [](GLFWwindow* window, double xoffset, double yoffset) {
+        // Forward to ImGui if needed
+        ImGui_ImplGlfw_ScrollCallback(window, xoffset, yoffset);
+        if (ImGui::GetIO().WantCaptureMouse) return;
+
+        GameEngine* engine = static_cast<GameEngine*>(glfwGetWindowUserPointer(window));
+        if (engine) {
+            engine->inputManager.setScrollOffset(xoffset, yoffset);
+        }
+    });
 
     // Initialize INI handling if needed
     iniFile = nullptr;
@@ -194,7 +244,6 @@ void GameEngine::changeState(GameStateType stateType) {
         stateStack.pop_back();
     }
 
-
     // Create and initialize the new state
     auto newState = createState(stateType);
     if (newState) {
@@ -224,7 +273,8 @@ void GameEngine::popState() {
         stateStack.back()->resume();
     }
     else {
-        quit(); // No more states, quit the game
+        std::cout << "No states left in stack. Quitting." << std::endl;
+        quit();
     }
 }
 
@@ -255,6 +305,8 @@ void GameEngine::handleEvents() {
     if (!stateStack.empty()) {
         stateStack.back()->handleEvents();
     }
+
+    inputManager.updateState();  // Must be called at end
 }
 
 void GameEngine::update() {
@@ -360,32 +412,34 @@ void GameEngine::framebufferSizeCallback(GLFWwindow* window, int width, int heig
 /*------------------------------------Statis input callbacks-----------------------------------------------------------*/
 
 // Static input callbacks
-void GameEngine::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
-    auto* engine = static_cast<GameEngine*>(glfwGetWindowUserPointer(window));
-    if (engine) {
-        bool isPressed = (action == GLFW_PRESS || action == GLFW_REPEAT);
-        engine->inputManager.setKey(key, isPressed);
-    }
-}
-
-void GameEngine::mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
-    auto* engine = static_cast<GameEngine*>(glfwGetWindowUserPointer(window));
-    if (engine) {
-        bool isPressed = (action == GLFW_PRESS);
-        engine->inputManager.setMouseButton(button, isPressed);
-    }
-}
-
-void GameEngine::cursorPositionCallback(GLFWwindow* window, double xPos, double yPos) {
-    auto* engine = static_cast<GameEngine*>(glfwGetWindowUserPointer(window));
-    if (engine) {
-        engine->inputManager.setMousePosition(xPos, yPos);
-    }
-}
-
-void GameEngine::scrollCallback(GLFWwindow* window, double xOffset, double yOffset) {
-    auto* engine = static_cast<GameEngine*>(glfwGetWindowUserPointer(window));
-    if (engine) {
-        engine->inputManager.setScrollOffset(xOffset, yOffset);
-    }
-}
+//void GameEngine::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+//    ImGui_ImplGlfw_KeyCallback(window, key, scancode, action, mods);
+//    auto* engine = static_cast<GameEngine*>(glfwGetWindowUserPointer(window));
+//    if (engine) {
+//        bool isPressed = (action == GLFW_PRESS || action == GLFW_REPEAT);
+//        engine->inputManager.setKey(key, isPressed);
+//        engine->inputManager.setModifiers(mods);
+//    }
+//}
+//
+//void GameEngine::mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
+//    auto* engine = static_cast<GameEngine*>(glfwGetWindowUserPointer(window));
+//    if (engine) {
+//        bool isPressed = (action == GLFW_PRESS);
+//        engine->inputManager.setMouseButton(button, isPressed);
+//    }
+//}
+//
+//void GameEngine::cursorPositionCallback(GLFWwindow* window, double xPos, double yPos) {
+//    auto* engine = static_cast<GameEngine*>(glfwGetWindowUserPointer(window));
+//    if (engine) {
+//        engine->inputManager.setMousePosition(xPos, yPos);
+//    }
+//}
+//
+//void GameEngine::scrollCallback(GLFWwindow* window, double xOffset, double yOffset) {
+//    auto* engine = static_cast<GameEngine*>(glfwGetWindowUserPointer(window));
+//    if (engine) {
+//        engine->inputManager.setScrollOffset(xOffset, yOffset);
+//    }
+//}

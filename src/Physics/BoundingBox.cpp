@@ -105,7 +105,7 @@ bool BoundingBox::intersectsSphere(const glm::vec3& center, float radius) const 
 */
 
 void BoundingBox::renderDebug(ShaderProgram &shader, const glm::vec3& bodyPosition) {
-    shader.use();
+    //shader.use();
 
     setupBuffers();
 
@@ -122,7 +122,7 @@ void BoundingBox::renderDebug(ShaderProgram &shader, const glm::vec3& bodyPositi
     glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, nullptr); // 36 is the number of indices for 12 triangles
     glBindVertexArray(0);
 
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // Switch to shaded mode
+    //glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // Switch to shaded mode
 
     //shader.setObjectColor(nullptr);  // Now disable this feature
 

@@ -1,35 +1,94 @@
 #pragma once
+#include <GLFW/glfw3.h>
 #include <unordered_map>
-#include <glm/vec2.hpp>
+#include "InputUtils.h"
 
-// Very distant to-do: expand class to allow for more complex handling of input, such as combinations, different controllers, and key remappings
 class InputManager {
 public:
-    // Keyboard
-    void setKey(int key, bool isPressed);
-    bool isKeyPressed(int key) const;
+    /* GENERAL */
+    void setWindow(GLFWwindow* window) { this->window = window; }
+    void updateState() {
+        prevKeyStates = keyStates;
+        prevMouseButtonStates = mouseButtonStates;
+    }
 
-    // Mouse button/position
-    void setMouseButton(int button, bool isPressed);
-    bool isMouseButtonPressed(int button) const;
-    void setMousePosition(double xPos, double yPos);
-    glm::vec2 getMousePosition() const;
+    /* KEYS */
+    void setKey(int key, bool isPressed) { keyStates[key] = isPressed; }
+    bool keyPressed(int key) const {
+        return keyStates.count(key) && keyStates.at(key);
+    }
+    bool keyJustPressed(int key) const {
+        return keyStates.count(key) && keyStates.at(key) && (!prevKeyStates.count(key) || !prevKeyStates.at(key));
+    }
+    bool keyJustReleased(int key) const {
+        return prevKeyStates.count(key) && prevKeyStates.at(key) && (!keyStates.count(key) || !keyStates.at(key));
+    }
+    bool keyJustPressed(const KeyCombination& combo) const {
+        return keyJustPressed(combo.primaryKey) && keyJustPressed(combo.modifierKey);
+    }
 
-    // Mouse scroll
-    void setScrollOffset(double xOffset, double yOffset);
-    glm::vec2 getScrollOffset() const;
-    void resetScrollOffset(); // Call this after processing scroll input (?)
+    /* MOUSE */
+    void setMouseButton(int button, bool isPressed) { mouseButtonStates[button] = isPressed; }
+    bool mouseButtonPressed(int button) const {
+        return mouseButtonStates.count(button) && mouseButtonStates.at(button);
+    }
+    bool mouseButtonJustPressed(int button) const {
+        return mouseButtonStates.count(button) && mouseButtonStates.at(button) && (!prevMouseButtonStates.count(button) || !prevMouseButtonStates.at(button));
+    }
+    void setMousePosition(double xpos, double ypos) {
+        if (mouseButtonPressed(GLFW_MOUSE_BUTTON_RIGHT)) {
+            if (firstMouseMove) { // Initialize the mouse position on the first click
+                lastX = xpos;
+                lastY = ypos;
+                firstMouseMove = false;
+            }
+            xOffset = xpos - lastX;
+            yOffset = lastY - ypos;
+            lastX = xpos;
+            lastY = ypos;
+        }
+        else {
+            resetMouseState();
+        }
+    }
+    std::pair<float, float> getMouseOffsets() {
+        auto offsets = std::make_pair(static_cast<float>(xOffset), static_cast<float>(yOffset));
+        xOffset = 0.0;
+        yOffset = 0.0;
+        return offsets;
+    }
+    void resetMouseState() {
+        xOffset = 0.0;
+        yOffset = 0.0;
+        firstMouseMove = true;
+    }
+
+    /* SCROLL */
+    void setScrollOffset(double xoffset, double yoffset) {
+        scrollOffsetY = static_cast<float>(yoffset);
+        scrollMovedFlag = (scrollOffsetY != 0.0f);
+    }
+    bool scrollMoved() const {
+        return scrollMovedFlag;
+    }
+    float getScrollOffsetY() const { return scrollOffsetY; }
+    void resetScrollOffset() {
+        scrollOffsetY = 0.0f;
+        scrollMovedFlag = false;
+    }
 
 private:
-    // Key: GLFW key code, Value: true if pressed
+    GLFWwindow* window = nullptr;
     std::unordered_map<int, bool> keyStates;
-    
-    // Mouse button states
+    std::unordered_map<int, bool> prevKeyStates;
+
     std::unordered_map<int, bool> mouseButtonStates;
+    std::unordered_map<int, bool> prevMouseButtonStates;
 
-    // Mouse cursor position
-    glm::vec2 mousePosition = glm::vec2(0.0f);
+    bool firstMouseMove = true;
+    double lastX = 0.0, lastY = 0.0;
+    double xOffset = 0.0, yOffset = 0.0;
 
-    // Scroll offset since last frame
-    glm::vec2 scrollOffset = glm::vec2(0.0f);
+    float scrollOffsetY = 0.0f;
+    bool scrollMovedFlag = false;
 };

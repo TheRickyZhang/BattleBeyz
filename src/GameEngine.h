@@ -97,10 +97,10 @@ public:
     TextureManager& tm; // Central point for accessing all textures
     ProfileManager& pm; // Central point for accessing all profiles
     InputManager inputManager;
-    static void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
+    /*static void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
     static void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
     static void cursorPositionCallback(GLFWwindow* window, double xPos, double yPos);
-    static void scrollCallback(GLFWwindow* window, double xOffset, double yOffset);
+    static void scrollCallback(GLFWwindow* window, double xOffset, double yOffset);*/
 
     // INI handling
     mINI::INIFile* iniFile{};

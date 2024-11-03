@@ -12,11 +12,12 @@
 #include "BoundingBox.h"
 #include "RigidBody.h"
 #include "PhysicsWorld.h"
+#include "InputManager.h"
 
 class Camera {
 public:
     // Default constructor
-    Camera() : position(glm::vec3(0.0f, 0.0f, 0.0f)), front(glm::vec3(0.0f, 0.0f, -1.0f)), up(glm::vec3(0.0f, 1.0f, 0.0f)), right(glm::vec3(1.0f, 0.0f, 0.0f)), worldUp(glm::vec3(0.0f, 1.0f, 0.0f)), yaw(-90.0f), pitch(0.0f), roll(0.0f), movementSpeed(2.5f), mouseSensitivity(0.1f), zoom(45.0f), physicsWorld(nullptr) {
+    Camera() : position(glm::vec3(0.0f, 0.0f, 0.0f)), front(glm::vec3(0.0f, 0.0f, -1.0f)), up(glm::vec3(0.0f, 1.0f, 0.0f)), right(glm::vec3(1.0f, 0.0f, 0.0f)), worldUp(glm::vec3(0.0f, 1.0f, 0.0f)), yaw(-90.0f), pitch(0.0f), roll(0.0f), movementSpeed(0.5f), mouseSensitivity(0.05f), zoom(45.0f), physicsWorld(nullptr) {
         updateCameraVectors();
     }
     explicit Camera(const glm::vec3& position, float yaw = -90.0f, float pitch = 0.0f, float roll = 0.0f, PhysicsWorld* world = nullptr);
@@ -49,7 +50,7 @@ public:
 
     // Camera matrices
     [[nodiscard]] glm::mat4 getViewMatrix() const;
-    void processKeyboard(int direction, float deltaTime, bool boundCamera);
+    void processKeyboard(Action action, float deltaTime, bool boundCamera);
     void processMouseMovement(float xoffset, float yoffset, GLboolean constrainpitch = true);
     void processMouseScroll(float yoffset);
 

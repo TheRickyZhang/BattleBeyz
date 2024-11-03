@@ -20,12 +20,6 @@ public:
 
     GameStateType getStateType() const override { return GameStateType::ACTIVE; }
 
-    // Keyboard and mouse event handlers
-
-    static void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
-    static void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
-    static void mouseCallback(GLFWwindow* window, double xpos, double ypos);
-    static void scrollCallback(GLFWwindow* window, double xoffset, double yoffset);
 private:
     bool escPressed = false;
 
@@ -36,5 +30,5 @@ private:
     std::vector<Stadium*> stadiums;
     std::vector<Beyblade*> beyblades;
 
-    void ActiveState::drawInfoScreen();
+    void drawInfoScreen();
 };

@@ -28,7 +28,7 @@ public:
         : modelPath(std::move(modelPath)), VAO(vao), VBO(vbo), EBO(ebo), color(col) {
         initializeMesh();
     }
-    BeybladeMesh() : modelPath("../assets/models/default.obj"), VAO(0), VBO(0), EBO(0), color(glm::vec3(1.0f)) {
+    BeybladeMesh() : modelPath("./assets/models/default.obj"), VAO(0), VBO(0), EBO(0), color(glm::vec3(1.0f)) {
         initializeMesh();
     }
 

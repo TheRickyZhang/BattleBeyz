@@ -56,7 +56,7 @@ void Camera::applyBoundaries(glm::vec3& position) const {
 /**
 * Process keyboard input at affects the view.
 *
-* @param direction                  [in] A GLFW_KEY_value.
+* @param action                     [in] An Action value.
 *
 * @param deltaTime                  [in] Time in seconds since last event.
 *
@@ -65,39 +65,36 @@ void Camera::applyBoundaries(glm::vec3& position) const {
 * Use WASD, QE for camera movement
 */
 
-void Camera::processKeyboard(int direction, float deltaTime, bool boundCamera) {
+void Camera::processKeyboard(Action action, float deltaTime, bool boundCamera) {
     float velocity = movementSpeed * deltaTime;
     glm::vec3 newPosition = position;
 
     bool isMoving = false;
 
-    switch (direction) {
-        case GLFW_KEY_W:
+    switch (action) {
+    case Action::MoveForward:
             newPosition += front * velocity;
             isMoving = true;
             break;
-        case GLFW_KEY_S:
+    case Action::MoveBackward:
             newPosition -= front * velocity;
             isMoving = true;
             break;
-        case GLFW_KEY_A:
+    case Action::MoveLeft:
             newPosition -= right * velocity;
             isMoving = true;
             break;
-        case GLFW_KEY_D:
+    case Action::MoveRight:
             newPosition += right * velocity;
             isMoving = true;
             break;
-        case GLFW_KEY_Q:
+    case Action::MoveDown:
             newPosition -= up * velocity;
             isMoving = true;
             break;
-        case GLFW_KEY_E:
+    case Action::MoveUp:
             newPosition += up * velocity;
             isMoving = true;
-            break;
-        case GLFW_KEY_ESCAPE:
-            zoom = 1.0f;
             break;
     }
 
@@ -169,19 +166,20 @@ void Camera::processMouseScroll(float yoffset) {
 */
 
 void Camera::updateCameraVectors() {
-    // Calculate the new front vector
-    float x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-    float y = sin(glm::radians(pitch));
-    float z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-    glm::vec3 front = glm::vec3(x, y, z);
+    // Calculate the new front vector based on yaw and pitch
+    front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+    front.y = sin(glm::radians(pitch));
+    front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
     front = glm::normalize(front);
 
-    // Also re-calculate the right and up vector
-    right = glm::normalize(glm::cross(front, worldUp));  // Normalize the vectors, because their length gets closer to 0
-    up = glm::normalize(glm::cross(right, front));       // the more you look up or down which results in slower movement.
+    // Recalculate the right and up vectors without roll
+    right = glm::normalize(glm::cross(front, worldUp));
+    up = glm::normalize(glm::cross(right, front));
 
-    // Apply roll
-    glm::mat4 rot = glm::rotate(glm::mat4(1.0f), glm::radians(roll), front);
-    right = glm::vec3(rot * glm::vec4(right, 0.0f));
-    up = glm::vec3(rot * glm::vec4(up, 0.0f));
+    // Apply roll around the front vector
+    if (roll != 0.0f) {
+        glm::mat4 rollMatrix = glm::rotate(glm::mat4(1.0f), glm::radians(roll), front);
+        right = glm::normalize(glm::vec3(rollMatrix * glm::vec4(right, 0.0f)));
+        up = glm::normalize(glm::vec3(rollMatrix * glm::vec4(up, 0.0f)));
+    }
 }

@@ -132,19 +132,19 @@ void PhysicsWorld::update(float deltaTime) {
 * @param shader                 [in] Our custom ShaderProgram.
 */
 
-// TOFIX if not working?
+// Limited to 100 per object otherwise FPS tanks
 void PhysicsWorld::renderDebug(ShaderProgram& shader) const {
     // Render all bounding boxes
     for (Beyblade* beyblade : beyblades) {
         BeybladeBody* beybladeBody = beyblade->getRigidBody();
-        for (int i = 0; i < beybladeBody->boundingBoxes.size() /*&& i < 100*/; i++) {
+        for (int i = 0; i < beybladeBody->boundingBoxes.size() && i < 100; i++) {
             beybladeBody->boundingBoxes[i]->renderDebug(shader, beybladeBody->getCenter());
         }
     }
 
     for (Stadium* stadium : stadiums) {
         StadiumBody* stadiumBody = stadium->getRigidBody();
-        for (int i = 0; i < stadiumBody->boundingBoxes.size() /*&& i < 100*/; i++) {
+        for (int i = 0; i < stadiumBody->boundingBoxes.size() && i < 100; i++) {
             stadiumBody->boundingBoxes[i]->renderDebug(shader, stadiumBody->getCenter());
         }
     }

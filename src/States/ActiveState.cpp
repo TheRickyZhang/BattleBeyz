@@ -7,10 +7,6 @@ void ActiveState::init()
 {
     // Set up keyboard and mouse callbacks.
     GLFWwindow* window = game->getWindow();
-    glfwSetKeyCallback(window, ActiveState::keyCallback);
-    glfwSetMouseButtonCallback(window, ActiveState::mouseButtonCallback);
-    glfwSetCursorPosCallback(window, ActiveState::mouseCallback);
-    glfwSetScrollCallback(window, ActiveState::scrollCallback);
 
     PhysicsWorld* physicsWorld = game->physicsWorld;
 
@@ -90,38 +86,57 @@ void ActiveState::pause() {}
 
 void ActiveState::resume() {}
 
-void ActiveState::handleEvents() {}
+void ActiveState::handleEvents() {
+    auto& inputManager = game->inputManager;
+
+    if (inputManager.keyJustPressed(GLFW_KEY_TAB)) {
+        showInfoScreen = !showInfoScreen;
+    }
+
+    if (inputManager.keyJustPressed(GLFW_KEY_D) && glfwGetKey(game->getWindow(), GLFW_KEY_LEFT_CONTROL)) {
+        game->debugMode = !game->debugMode;
+        std::cout << "Debug mode is " << (game->debugMode ? "On" : "Off") << std::endl;
+    }
+
+    if (inputManager.keyJustPressed(CtrlD)) {
+        game->debugMode = !game->debugMode;
+        std::cout << "Debug mode is " << (game->debugMode ? "On" : "Off") << std::endl;
+    }
+
+    for (const auto& [movementKey, action] : movementKeys) {
+        if (inputManager.keyPressed(movementKey)) {
+            game->cameraState->camera->processKeyboard(action, game->deltaTime, game->boundCamera);
+        }
+    }
+
+    if (inputManager.mouseButtonJustPressed(GLFW_MOUSE_BUTTON_LEFT)) {
+        double xpos, ypos;
+        glfwGetCursorPos(game->getWindow(), &xpos, &ypos);
+
+        // Calculate world ray and perform intersection check
+        glm::vec3 ray_world = screenToWorldCoordinates(game->getWindow(), xpos, ypos,
+            game->cameraState->camera->getViewMatrix(),
+            game->projection);
+        std::cout << "Left mouse button clicked! Ray: " << ray_world[0] << ", "
+            << ray_world[1] << ", " << ray_world[2] << std::endl;
+    }
+
+    // RIght click + drag to move camera
+    if (inputManager.mouseButtonPressed(GLFW_MOUSE_BUTTON_RIGHT)) {
+        auto [xOffset, yOffset] = inputManager.getMouseOffsets();
+        if (xOffset != 0.0f || yOffset != 0.0f) {
+            game->cameraState->camera->processMouseMovement(xOffset, yOffset);
+        }
+    }
+
+    if (inputManager.scrollMoved()) {
+        float scrollOffsetY = inputManager.getScrollOffsetY();
+        game->cameraState->camera->processMouseScroll(scrollOffsetY);
+        inputManager.resetScrollOffset();
+    }
+}
 
 void ActiveState::update(float deltaTime) {
-    // TODO: Clarify this usage
-    if (input.isKeyPressed(GLFW_KEY_W)) {
-        // Move forward
-    }
-    if (input.isKeyPressed(GLFW_KEY_S)) {
-        // Move backward
-    }
-    if (input.isKeyPressed(GLFW_KEY_ESCAPE)) {
-        // Pause game or open options menu
-        gameEngine->pushState(std::make_unique<PauseState>());
-    }
-
-    // Handle mouse input
-    if (input.isMouseButtonPressed(GLFW_MOUSE_BUTTON_LEFT)) {
-        // Fire weapon or interact
-    }
-
-    // Handle mouse movement
-    glm::vec2 mousePos = input.getMousePosition();
-    // Use mousePos for camera rotation or object selection
-
-    // Handle scroll input
-    glm::vec2 scrollOffset = input.getScrollOffset();
-    if (scrollOffset.y != 0.0f) {
-        // Zoom in or out
-    }
-    // Reset scroll offset after processing
-    input.resetScrollOffset();
-
     game->physicsWorld->update(deltaTime);
 }
 
@@ -189,9 +204,11 @@ void ActiveState::draw() {
     ShaderProgram* objectShader = game->objectShader;
     TextureManager& tm = game->tm;
 
-    ImGui::Begin("About");
+    ImGui::Begin("Controls");
     if (ImGui::Button("Back to Home")) {
         game->changeState(GameStateType::HOME);
+        ImGui::End();
+        return; //TODO: Is there any better way to do this than adding end and return here? Otehrwise crash. Also does not preserve state correctly
     }
 
     glEnable(GL_DEPTH_TEST);
@@ -229,144 +246,9 @@ void ActiveState::draw() {
         drawInfoScreen();
     }
 
-    ImGui::Text("This is the Active screen.");
+    ImGui::Text("Use WASDQE for camera movement");
+    ImGui::Text("Use Right Click Hold + Drag for camera rotation");
+    ImGui::Text("Use the scroll wheel to control moving speed");
     ImGui::End();
 }
 
-
-/**
-* Keyboard callback.
-*
-* @param window                 [in] The parent window.
-*
-* @param key                    [in] The GLFW key code such as the letter 'A'.
-*
-* @param scancode               [in] The raw key number.  For example, the cursor
-*                               keys do not correspond to letters.
-*
-* @param action                 [in] The key action that occured (press, release,
-*                               or release).
-*/
-
-/* static. TOLOOK: Since we already have window defined in gameEngine, is there a way to reduce redundant calls? */
-void ActiveState::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
-    ImGui_ImplGlfw_KeyCallback(window, key, scancode, action, mods);
-    auto* game = static_cast<GameEngine*>(glfwGetWindowUserPointer(window));
-    if (!game) return;
-
-    auto gs = game->getGameState();
-    if (gs && gs->getStateType() == GameStateType::ACTIVE) {
-        if (action == GLFW_PRESS || action == GLFW_REPEAT) {
-            switch (key) {
-            case GLFW_KEY_TAB:  // Toggle display of the "Info Screen".
-                //?? TODO ?? engine->showInfoScreen = !engine->showInfoScreen;
-                break;
-            case GLFW_KEY_D:
-                if ((mods & GLFW_MOD_CONTROL)) {  // CTRL-D: toggle debug mode.
-                    game->debugMode = !game->debugMode;
-                    std::cout << "Debug mode is " << (game->debugMode ? "On" : "Off") << std::endl;
-                    break;
-                }  // Else fall into code below
-            case GLFW_KEY_A:
-            case GLFW_KEY_E:
-            case GLFW_KEY_S:
-            case GLFW_KEY_Q:
-            case GLFW_KEY_I:
-                showInfoScreen = !showInfoScreen;
-            case GLFW_KEY_W:
-                game->cameraState->camera->processKeyboard(key, game->deltaTime, game->boundCamera);
-                break;
-            case GLFW_KEY_ESCAPE:
-                // Toggle Options screen when ESC is pressed, but ensure it only happens on one press
-                if (!escPressed) {
-                    //?? TODO ?? engine->showOptionsScreen = !engine->showOptionsScreen;
-                    escPressed = true;
-                }
-                break;
-            case GLFW_KEY_UNKNOWN:  // We don't use this key.
-                break;
-            }
-        }
-    }
-
-    // Handle key release to reset the escPressed flag
-    if (action == GLFW_RELEASE) {
-        if (key == GLFW_KEY_ESCAPE) {
-            escPressed = false;
-        }
-    }
-}
-
-/**
-* Mouse button handler.
-*/
-
-/* TODO: make static */
-void ActiveState::mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
-    ImGui_ImplGlfw_MouseButtonCallback(window, button, action, mods);
-    if (ImGui::GetIO().WantCaptureMouse) return;
-
-    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
-        double xpos, ypos;
-        glfwGetCursorPos(window, &xpos, &ypos);
-
-         //TODO: Refactor, as GameControl is no longer valid
-        glm::vec3 ray_world = screenToWorldCoordinates(window, xpos, ypos, game->cameraState->camera->getViewMatrix(), game->projection);
-        std::string clickedObject = checkIntersection(ray_world);
-        std::cout << "Left mouse button clicked! Ray: " << ray_world[0] << ", " << ray_world[1] << ", " << ray_world[2] << " Object: " << clickedObject << std::endl;
-    }
-}
-
-/**
-* Mouse movement callback.
-*
-* This adjust the viewport when the window is resized, and moves the
-* camera when the right mouse button is pressed.
-*/
-
-/* Not static - depends on the current */
-void ActiveState::mouseCallback(GLFWwindow* window, double xpos, double ypos) {
-    ImGui_ImplGlfw_CursorPosCallback(window, xpos, ypos);
-    ImGuiIO& io = ImGui::GetIO();
-
-    // Process camera movement only when the right mouse button is pressed and ImGui is not capturing the mouse
-    if (!io.WantCaptureMouse || glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) {
-        auto* game = static_cast<GameEngine*>(glfwGetWindowUserPointer(window));
-        if (!game || !game->cameraState) return;
-        CameraState* cameraState = game->cameraState;
-
-        if (cameraState->firstMouse) {
-            cameraState->lastX = xpos;
-            cameraState->lastY = ypos;
-            cameraState->firstMouse = false;
-        }
-
-        double xoffset = xpos - cameraState->lastX;
-        double yoffset = cameraState->lastY - ypos;
-        cameraState->lastX = xpos;
-        cameraState->lastY = ypos;
-
-        if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) {
-            cameraState->camera->processMouseMovement((float)xoffset, (float)yoffset);
-        }
-        else {
-            cameraState->firstMouse = true;
-        }
-    }
-}
-
-/**
-* Scroll handler.
-*
-* This handles camera speed and zoom.
-*/
-
-/* static */
-void ActiveState::scrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
-    ImGui_ImplGlfw_ScrollCallback(window, xoffset, yoffset);
-    auto* game = static_cast<GameEngine*>(glfwGetWindowUserPointer(window));
-    if (!game || !game->cameraState) return;
-    CameraState* cameraState = game->cameraState;
-
-    cameraState->camera->processMouseScroll((float)yoffset);
-}
