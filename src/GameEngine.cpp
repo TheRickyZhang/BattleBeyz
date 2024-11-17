@@ -104,9 +104,13 @@ bool GameEngine::init(const char* title, int width, int height) {
     float initialYaw = glm::degrees(std::atan2(frontVector.z, frontVector.x));
     float initialPitch = glm::degrees(std::atan2(frontVector.y, glm::length(glm::vec2(frontVector.x, frontVector.z))));
 
-    mainCamera = Camera(initialCameraPos, initialYaw, initialPitch, 0.0f, physicsWorld);
-    mainCamera.front = frontVector;
-    cameraState = new CameraState(&mainCamera, 400.0, 300.0); // LOOK: Are these dimensions supposed to be hardcoded?
+    Camera* mainCamera = new Camera (initialCameraPos, initialYaw, initialPitch, 0.0f, physicsWorld, BoundingBox(-30.0f, 30.0f));
+    cameraState = new CameraState(mainCamera, 400.0, 300.0); // LOOK: Are these dimensions supposed to be hardcoded?
+
+    if (cameraState->camera->position == glm::vec3(0.0f)) {
+        throw std::exception("reweaer");
+    }
+
 
     model = glm::mat4(1.0f);
     view = glm::lookAt(initialCameraPos, lookAtPoint, glm::vec3(0.0f, 1.0f, 0.0f));
@@ -144,9 +148,8 @@ bool GameEngine::init(const char* title, int width, int height) {
 
     glfwSetFramebufferSizeCallback(window, GameEngine::framebufferSizeCallback);  // This handles window resizing
 
-    // Set for use in inputManager
     /**
-    * Various callbacks
+    * Various callbacks for inputManager
     *
     * @param window                 [in] The parent window.
     *
@@ -167,6 +170,7 @@ bool GameEngine::init(const char* title, int width, int height) {
         }
     });
     glfwSetMouseButtonCallback(window, [](GLFWwindow* window, int button, int action, int mods) {
+        //std::cout << "DBG Click" << std::endl;
         // Forward to ImGui if needed
         ImGui_ImplGlfw_MouseButtonCallback(window, button, action, mods);
         if (ImGui::GetIO().WantCaptureMouse) {
@@ -180,6 +184,7 @@ bool GameEngine::init(const char* title, int width, int height) {
         }
     });
     glfwSetCursorPosCallback(window, [](GLFWwindow* window, double xpos, double ypos) {
+        //std::cout << "DBG Move" << std::endl;
         // Forward to ImGui if needed
         ImGui_ImplGlfw_CursorPosCallback(window, xpos, ypos);
         if (ImGui::GetIO().WantCaptureMouse) return;
@@ -233,7 +238,7 @@ void GameEngine::initTimers() {
     timers.push_back(Timer(0.1f, true, -1.0f));
     timerCallbacks.push_back([this]() {
         std::stringstream ss;
-        ss << std::fixed << std::setprecision(1) << "X: " << mainCamera.position.x << " Y: " << mainCamera.position.y << " Z: " << mainCamera.position.z;
+        ss << std::fixed << std::setprecision(1) << "X: " << cameraState->camera->position.x << " Y: " << cameraState->camera->position.y << " Z: " << cameraState->camera->position.z;
     });
 }
 
@@ -332,8 +337,13 @@ void GameEngine::draw() {
     std::stringstream ss; 
     ss << std::fixed << std::setprecision(1) << "FPS: " << ImGui::GetIO().Framerate;
     std::string fpsText = ss.str();
-    textRenderer->resize(windowWidth, windowHeight);
-    textRenderer->renderText(fpsText, 10.0f, windowHeight - 20.0f, 0.5f, glm::vec3(1.0f, 1.0f, 1.0f));
+
+    if (windowWidth != lastWidth || windowHeight != lastHeight) {
+        textRenderer->resize(windowWidth, windowHeight);
+        lastWidth = windowWidth;
+        lastHeight = windowHeight;
+    }
+    textRenderer->renderText(fpsText, 0.0f, windowHeight - 20.0f, 0.5f, glm::vec3(1.0f, 1.0f, 1.0f));
 
     // Show coordinates if in beyblade space
     if (stateStack.back()->getStateType() == GameStateType::ACTIVE) {

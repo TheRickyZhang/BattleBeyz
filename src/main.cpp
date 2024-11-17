@@ -56,7 +56,8 @@ int main() {
     auto physicsWorld = new PhysicsWorld();
 
     auto stadiumTexture = new Texture("./assets/textures/Hexagon.jpg", "texture1");
-
+    
+    std::cout << "HUH" << std::endl;
     /* ----------------------OBJECT SETUP-------------------------- */
 
     //setupBuffers(tetrahedronVAO, tetrahedronVBO, tetrahedronEBO, tetrahedronVertices,

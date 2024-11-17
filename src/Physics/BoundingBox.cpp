@@ -9,9 +9,13 @@
 /**
 * Constructor.
 */
+BoundingBox::BoundingBox() :
+    min(glm::vec3(FLT_MAX)), max(glm::vec3(FLT_MIN)) {
+    setupBuffers();
+}
 
-BoundingBox::BoundingBox()
-        : min(glm::vec3(FLT_MAX)), max(glm::vec3(-FLT_MAX)), VAO(0), VBO(0), EBO(0) {
+BoundingBox::BoundingBox(float min, float max)
+        : min(glm::vec3(min)), max(glm::vec3(max)) {
     setupBuffers();
 }
 
@@ -20,7 +24,7 @@ BoundingBox::BoundingBox()
 */
 
 BoundingBox::BoundingBox(const glm::vec3& min, const glm::vec3& max)
-        : min(min), max(max), VAO(0), VBO(0), EBO(0) {
+        : min(min), max(max) {
     setupBuffers();
 }
 
@@ -42,11 +46,59 @@ BoundingBox::~BoundingBox() {
 * @return true if thix bounding box and the other bounding box intersect.
 */
 
-bool BoundingBox::checkCollision(const BoundingBox &other) const {
-    return (min.x <= other.max.x && max.x >= other.min.x) &&
-           (min.y <= other.max.y && max.y >= other.min.y) &&
-           (min.z <= other.max.z && max.z >= other.min.z);
+bool BoundingBox::intersect(const BoundingBox& a, const BoundingBox& b){
+    return (a.min.x <= b.max.x && a.max.x >= b.min.x) &&
+           (a.min.y <= b.max.y && a.max.y >= b.min.y) &&
+           (a.min.z <= b.max.z && a.max.z >= b.min.z);
 }
+
+glm::vec3 BoundingBox::closestPointOutside(const glm::vec3& point) const {
+    glm::vec3 adjustedPoint = point;
+    float epsilon = 0.01f; // Small offset to ensure the point is outside
+    if (point.x >= max.x) {
+        adjustedPoint.x = max.x + epsilon;
+    }
+    else if (point.x <= min.x) {
+        adjustedPoint.x = min.x - epsilon;
+    }
+    if (point.y >= max.y) {
+        adjustedPoint.y = max.y + epsilon;
+    }
+    else if (point.y <= min.y) {
+        adjustedPoint.y = min.y - epsilon;
+    }
+    if (point.z >= max.z) {
+        adjustedPoint.z = max.z + epsilon;
+    }
+    else if (point.z <= min.z) {
+        adjustedPoint.z = min.z - epsilon;
+    }
+    return adjustedPoint;
+}
+
+glm::vec3 BoundingBox::closestPointInside(const glm::vec3& point) const {
+    glm::vec3 adjustedPoint = point;
+    if (point.x < min.x) {
+        adjustedPoint.x = min.x;
+    }
+    else if (point.x > max.x) {
+        adjustedPoint.x = max.x;
+    }
+    if (point.y < min.y) {
+        adjustedPoint.y = min.y;
+    }
+    else if (point.y > max.y) {
+        adjustedPoint.y = max.y;
+    }
+    if (point.z < min.z) {
+        adjustedPoint.z = min.z;
+    }
+    else if (point.z > max.z) {
+        adjustedPoint.z = max.z;
+    }
+    return adjustedPoint;
+}
+
 
 /**
 * Expand a bounding box, basically make a union.
@@ -140,27 +192,6 @@ void BoundingBox::setupBuffers() {
     // TODO: You need to set this to 1 to align the stadium data, but then it is statdium-specific.
     // Instead, the renderer needs to know the position of it's parent.
     float offset = 0.0f;
-
-    //    float vertices[] = {
-    //            // Positions         // Normals         // Texture Coords  // Colors (RGB)
-    //            -1.0f, -1.0f, -1.0f,  0.0f, 0.0f, -1.0f,  0.0f, 0.0f,      1.0f, 0.0f, 0.0f, // Red
-    //            1.0f, -1.0f, -1.0f,  1.0f, 0.0f, 0.0f,  1.0f, 0.0f,      0.0f, 1.0f, 0.0f, // Green
-    //            1.0f,  1.0f, -1.0f,  0.0f, 1.0f, 0.0f,  1.0f, 1.0f,      0.0f, 0.0f, 1.0f, // Blue
-    //            -1.0f,  1.0f, -1.0f, -1.0f, 0.0f, 0.0f,  0.0f, 1.0f,      1.0f, 1.0f, 0.0f, // Yellow
-    //            -1.0f, -1.0f,  1.0f,  0.0f, -1.0f, 0.0f,  0.0f, 0.0f,      1.0f, 0.0f, 1.0f, // Magenta
-    //            1.0f, -1.0f,  1.0f,  1.0f, 0.0f, 0.0f,  1.0f, 0.0f,      0.0f, 1.0f, 1.0f, // Cyan
-    //            1.0f,  1.0f,  1.0f,  0.0f, 1.0f, 0.0f,  1.0f, 1.0f,      1.0f, 0.5f, 0.0f, // Orange
-    //            -1.0f,  1.0f,  1.0f, -1.0f, 0.0f, 0.0f,  0.0f, 1.0f,      0.5f, 0.5f, 0.5f  // Grey
-    //    };
-    //
-    //    unsigned int indices[] = {
-    //            0, 1, 2, 2, 3, 0, // Bottom face
-    //            4, 5, 6, 6, 7, 4, // Top face
-    //            0, 1, 5, 5, 4, 0, // Front face
-    //            1, 2, 6, 6, 5, 1, // Right face
-    //            2, 3, 7, 7, 6, 2, // Back face
-    //            3, 0, 4, 4, 7, 3  // Left face
-    //    };
 
 #if 0
     float vertices[] = {

@@ -43,7 +43,6 @@ public:
 
 	std::vector<BoundingBox*> boundingBoxes{};
 
-private:
 	// Dimensions
 	glm::vec3 center{};
 	double radius;
@@ -52,4 +51,5 @@ private:
 
 	// Contact Properties
 	double coefficientOfFriction;
+private:
 };

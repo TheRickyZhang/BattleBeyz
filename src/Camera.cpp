@@ -9,10 +9,9 @@
 * Constructor
 */
 
-Camera::Camera(const glm::vec3& position, float yaw, float pitch, float roll, PhysicsWorld* world) :
-    front(glm::vec3(0.0f, 0.0f, -1.0f)), movementSpeed(10.0f), mouseSensitivity(0.1f), zoom(45.0f),
-    position(position), worldUp(glm::vec3(0.0f, 1.0f, 0.0f)), yaw(yaw), pitch(pitch), roll(roll),
-    physicsWorld(world) {
+Camera::Camera(const glm::vec3& position, float yaw, float pitch, float roll, PhysicsWorld* world, BoundingBox box) :
+    position(position),yaw(yaw), pitch(pitch), roll(roll),
+    movementSpeed(1.0f), mouseSensitivity(0.1f), zoom(45.0f), physicsWorld(world), movementRange(box) {
     updateCameraVectors();
 
     // Initialize the camera's rigid body
@@ -32,26 +31,31 @@ glm::mat4 Camera::getViewMatrix() const {
 }
 
 /**
-* TODO: Apply boundaries for "restricted" camera mode, where the camera cannot leave a certain area
+* Returns new position after applying any potential colisions
+* TOLOOK: Maybe have a small buffer around camera position to reduce clipping
 */
 
-void Camera::applyBoundaries(glm::vec3& position) const {
-    if (!physicsWorld) return;
-    //// Temporarily move the body's position to check for collisions
-    //glm::vec3 originalposition = body->position;
-    //body->position = position;
+glm::vec3 Camera::applyCollisions(const glm::vec3& currPos, glm::vec3& nextPos) const {
+    for (const Beyblade* beyblade : physicsWorld->getBeyblades()) {
+        BoundingBox beybladeBoundary = beyblade->getRigidBody()->getBoundingBox();
+        BoundingBox cameraBoundary(nextPos - glm::vec3(0.5f), nextPos + glm::vec3(0.5f));
+        if (BoundingBox::intersect(cameraBoundary, beybladeBoundary)) {
+            nextPos = beybladeBoundary.closestPointOutside(nextPos);
+        }
+    }
 
-    //std::cout << "Applying boundaries. New position: "
-    //    << position.x << ", " << position.y << ", " << position.z << "\n";
-
-    //for (const auto beybladeBody : physicsWorld->getBeybladeBodies()) {
-    //    for (const auto box : beybladeBody->boundingBoxes) {
-
-    //    }
-    //}
-
-    //body->position = originalposition; // Restore original position
+    for (const Stadium* stadium : physicsWorld->getStadiums()) {
+        StadiumBody* body = stadium->getRigidBody();
+        if (body->isInside(nextPos.x, nextPos.z)) {
+            float surfaceY = body->getY(nextPos.x, nextPos.z);
+            if (nextPos.y < surfaceY) {
+                nextPos.y = surfaceY;
+            }
+        }
+    }
+    return nextPos;
 }
+
 
 /**
 * Process keyboard input at affects the view.
@@ -65,57 +69,39 @@ void Camera::applyBoundaries(glm::vec3& position) const {
 * Use WASD, QE for camera movement
 */
 
-void Camera::processKeyboard(Action action, float deltaTime, bool boundCamera) {
+void Camera::processKeyboard(Action action, float deltaTime) {
     float velocity = movementSpeed * deltaTime;
     glm::vec3 newPosition = position;
 
     bool isMoving = false;
 
-    switch (action) {
-    case Action::MoveForward:
-            newPosition += front * velocity;
-            isMoving = true;
-            break;
-    case Action::MoveBackward:
-            newPosition -= front * velocity;
-            isMoving = true;
-            break;
-    case Action::MoveLeft:
-            newPosition -= right * velocity;
-            isMoving = true;
-            break;
-    case Action::MoveRight:
-            newPosition += right * velocity;
-            isMoving = true;
-            break;
-    case Action::MoveDown:
-            newPosition -= up * velocity;
-            isMoving = true;
-            break;
-    case Action::MoveUp:
-            newPosition += up * velocity;
-            isMoving = true;
-            break;
+    glm::vec3 direction = getDirection(action);
+    if (direction != glm::vec3(0.0f)) {
+        newPosition += direction * velocity;
+        isMoving = true;
     }
 
+     // If no movement occurred, set the velocity to zero
     if (!isMoving) {
         body->velocity = glm::vec3(0.0f);
+        return;
     }
 
-    if (boundCamera) {
-        applyBoundaries(newPosition);
-    }
+    // This works
+    newPosition = movementRange.closestPointInside(newPosition);
 
+    // TODO: Camera gets stuck on a beyblade or stadium when you get too close. Probably becuase no buffer / incorrect logic
+    if (hasCollision && physicsWorld != nullptr) {
+        newPosition = applyCollisions(position, newPosition);
+    }
     position = newPosition;
-    //std::cout << "Camera position: " << Position.x << ", " << Position.y << ", " << Position.z << std::endl;
-    // update the body's position to match the camera
-    body->position = position;
-    body->updateBoundingBoxes();
+
+    std::cout << "Camera position: " << position.x << ", " << position.y << ", " << position.z << std::endl;
     //std::cout << "Body position: " << body->position.x << ", " << body->position.y << ", " << body->position.z << std::endl;
 }
 
 /**
-* Process mouse movement.
+* Process mouse movement. Pitch is always constrained to prevent gimbal lock.
 * 
 * @param xoffset                    [in] Mouse X position relative to previous position.
 * 
@@ -124,22 +110,13 @@ void Camera::processKeyboard(Action action, float deltaTime, bool boundCamera) {
 * @param constrainpitch             [in] True if pitch needs to be constrained.
 */
 
-void Camera::processMouseMovement(float xoffset, float yoffset, GLboolean constrainpitch) {
+void Camera::processMouseMovement(float xoffset, float yoffset ) {
     xoffset *= mouseSensitivity;
     yoffset *= mouseSensitivity;
-
     yaw += xoffset;
     pitch += yoffset;
 
-    if (constrainpitch) {
-        if (pitch > 89.0f) {
-            pitch = 89.0f;
-        }
-        if (pitch < -89.0f) {
-            pitch = -89.0f;
-        }
-    }
-
+    constrainAngles();
     updateCameraVectors();
 }
 
@@ -162,7 +139,7 @@ void Camera::processMouseScroll(float yoffset) {
 /**
 * update camera vectors.
 *
-* TODO: More comments.
+* Computes front, up, right based on yaw and pitch. Applies roll.
 */
 
 void Camera::updateCameraVectors() {
@@ -182,4 +159,34 @@ void Camera::updateCameraVectors() {
         right = glm::normalize(glm::vec3(rollMatrix * glm::vec4(right, 0.0f)));
         up = glm::normalize(glm::vec3(rollMatrix * glm::vec4(up, 0.0f)));
     }
+}
+
+// Yaw and roll overflow, while pitch is constrained (gimbal lock)
+void Camera::constrainAngles() {
+    if (yaw > 180.0f) {
+        yaw -= 360.0f;
+    }
+    else if (yaw < -180.0f) {
+        yaw += 360.0f;
+    }
+    pitch = std::min(pitch, 89.0f);
+    pitch = std::max(pitch, -89.0f);
+    if (roll > 180.0f) {
+        roll -= 360.0f;
+    }
+    else if (roll < -180.0f) {
+        roll += 360.0f;
+    }
+}
+
+glm::vec3 Camera::getDirection(Action action) const {
+    switch (action) {
+        case Action::MoveForward: return front;
+        case Action::MoveBackward: return -front;
+        case Action::MoveLeft: return -right;
+        case Action::MoveRight: return right;
+        case Action::MoveDown: return -up;
+        case Action::MoveUp: return up;
+    }
+    return glm::vec3(0.0f);
 }

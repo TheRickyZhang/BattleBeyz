@@ -19,12 +19,12 @@ void HomeState::handleEvents() {
 void HomeState::update(float deltaTime) {}
 
 void HomeState::draw() {
+    static std::vector<std::string> buttonText = { "Start Game", "Customize Beyblades", "About" };
     int windowWidth = game->windowWidth;
     int windowHeight = game->windowHeight;
 
     renderBackground(game, "defaultBackground");
 
-    std::vector<std::string> buttonText = { "Start Game", "Customize Beyblades", "About" };
     renderWindowWithButtons(game, "Main Menu", buttonText, "Battlebeyz!");
 
     ImGui::End();

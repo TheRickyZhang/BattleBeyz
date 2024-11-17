@@ -63,6 +63,8 @@ void CustomizeState::draw() {
     ImGui::Begin("Customize Menu");
     if (ImGui::Button("Back to Home")) {
         game->changeState(GameStateType::HOME);
+        ImGui::End();  // 2024-11-03 Added these two lines, fixes crash problem.
+        return;
     }
 
     // Line 2: [Profile] <{Profile Dropdown}...> [Create New] [Delete]

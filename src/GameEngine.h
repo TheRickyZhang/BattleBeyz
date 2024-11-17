@@ -53,6 +53,10 @@ public:
 
     int windowWidth{};
     int windowHeight{};
+    // For optimizing any window resize checks. ANy instance of resize() must be checked with previous window values
+    int lastWidth{}; 
+    int lastHeight{}; 
+
     float aspectRatio{};
     int minWidth{};
     int minHeight{};
@@ -78,7 +82,6 @@ public:
     glm::mat4 orthoProjection{};
 
     PhysicsWorld* physicsWorld{};
-    Camera mainCamera{}; // TODO: ALready handled in cameraState?
     CameraState* cameraState{};
 
     ShaderProgram* objectShader{};

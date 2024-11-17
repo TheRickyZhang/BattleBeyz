@@ -72,14 +72,6 @@ void ActiveState::init()
 
 void ActiveState::cleanup()
 {
-    // Remove keyboard and mouse callbacks.
-
-    GLFWwindow* window = game->getWindow();
-
-    glfwSetKeyCallback(window, nullptr);
-    glfwSetMouseButtonCallback(window, nullptr);
-    glfwSetCursorPosCallback(window, nullptr);
-    glfwSetScrollCallback(window, nullptr);
 }
 
 void ActiveState::pause() {}
@@ -105,7 +97,7 @@ void ActiveState::handleEvents() {
 
     for (const auto& [movementKey, action] : movementKeys) {
         if (inputManager.keyPressed(movementKey)) {
-            game->cameraState->camera->processKeyboard(action, game->deltaTime, game->boundCamera);
+            game->cameraState->camera->processKeyboard(action, game->deltaTime);
         }
     }
 
@@ -205,10 +197,12 @@ void ActiveState::draw() {
     TextureManager& tm = game->tm;
 
     ImGui::Begin("Controls");
-    if (ImGui::Button("Back to Home")) {
+    if (ImGui::Button("Back to Home##Active")) {
         game->changeState(GameStateType::HOME);
         ImGui::End();
-        return; //TODO: Is there any better way to do this than adding end and return here? Otehrwise crash. Also does not preserve state correctly
+        return;
+        //TODO: Is there any better way to do this than adding end and return here? Otehrwise crash. Also does not preserve state correctly
+        // 2024-11-03.  Huh?  Why not leave here?  The 
     }
 
     glEnable(GL_DEPTH_TEST);
@@ -237,6 +231,30 @@ void ActiveState::draw() {
     // update and render the stadium (uses this texture)
     for(auto stadium : stadiums) stadium->render(*objectShader);  // render(shader, light color=white, light position)
     for (auto beyblade : beyblades) beyblade->render(*objectShader);
+
+    // Render the position
+    glm::vec3 cameraPosition = game->cameraState->camera->position;
+    std::ostringstream ss;
+    ss << std::fixed << std::setprecision(1)
+        << "Position: " << cameraPosition.x << ", "
+        << cameraPosition.y << ", " << cameraPosition.z;
+    std::string positionText = ss.str();
+
+    // Only resize if window dimensions have changed
+    if (game->windowWidth != game->lastWidth || game->windowHeight != game->lastHeight) {
+        game->textRenderer->resize(game->windowWidth, game->windowHeight);
+        game->lastWidth = game->windowWidth;
+        game->lastHeight = game->windowHeight;
+    }
+
+    //float textWidth = ImGui::CalcTextSize(positionText.data()).x;
+    game->textRenderer->renderText(
+        positionText,
+        game->windowWidth - 300.0f,
+        game->windowHeight - 20.0f,
+        0.5f,
+        glm::vec3(1.0f, 1.0f, 1.0f)
+    );
 
     if (game->debugMode) {
         game->physicsWorld->renderDebug(*objectShader);

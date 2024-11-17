@@ -33,8 +33,8 @@ public:
     void initializeMesh();
 
     void render(ShaderProgram& shader);
-    StadiumBody* getRigidBody() { return rigidBody; }
-    StadiumMesh* getMesh() { return mesh; }
+    StadiumBody* getRigidBody() const { return rigidBody; }
+    StadiumMesh* getMesh() const { return mesh; }
 
 private:
     StadiumBody* rigidBody;

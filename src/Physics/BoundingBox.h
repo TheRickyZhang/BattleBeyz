@@ -18,17 +18,24 @@ public:
     GLuint VAO{}, VBO{}, EBO{};
 
     BoundingBox();
+    BoundingBox(float min, float max);
     BoundingBox(const glm::vec3& min, const glm::vec3& max);
     ~BoundingBox();
 
-    [[nodiscard]] bool checkCollision(const BoundingBox& other) const;
+    // These ones are actually used
+    static bool intersect(const BoundingBox& a, const BoundingBox& b);
+    void renderDebug(ShaderProgram &shader, const glm::vec3& bodyPosition);
+
+    // Naive implementaiton that clamps limits
+    glm::vec3 closestPointOutside(const glm::vec3& point) const;
+    glm::vec3 closestPointInside(const glm::vec3& point) const;
+
+    // Unused
     [[nodiscard]] bool intersectsSphere(const glm::vec3& center, float radius) const;
     void update(const glm::vec3& v1, const glm::vec3& v2, const glm::vec3& v3);
     void update(const glm::vec3& position, const glm::quat& orientation);
     void expandToInclude(const BoundingBox& other);
     void expandToInclude(const glm::vec3& point);
-    void renderDebug(ShaderProgram &shader, const glm::vec3& bodyPosition);
 private:
     void setupBuffers();
-
 };

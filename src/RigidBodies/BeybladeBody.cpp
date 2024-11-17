@@ -83,6 +83,13 @@ void BeybladeBody::setInitialLaunch(glm::vec3 initialCenter, glm::vec3 initialVe
     angularVelocity = initialAngularVelocity;
 }
 
+// IMPROVE: Gets rough bounding box based on current dimensions
+BoundingBox BeybladeBody::getBoundingBox() const {
+    glm::vec3 mx = baseCenter + glm::vec3(layer.radius, layer.height, layer.radius);
+    glm::vec3 mn = baseCenter - glm::vec3(layer.radius, disc.height + driver.height, layer.radius);
+    return BoundingBox(mx, mn);
+}
+
 /*--------------------------------------------Collision Calculations--------------------------------------------*/
 
 double BeybladeBody::sampleRecoil()

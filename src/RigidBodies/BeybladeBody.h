@@ -23,77 +23,77 @@ class BeybladeBody {
 public:
 	// Two options for constructing: Do entirely by parts OR by mesh + stats
 
-	BeybladeBody::BeybladeBody();
-	BeybladeBody::BeybladeBody(Layer layer, Disc disc, Driver driver);
+	BeybladeBody();
+	BeybladeBody(Layer layer, Disc disc, Driver driver);
 
 	// NEWMESH: Would it be possible to initialize the body entirely based off of the mesh + a few additional custom inputs? 
 	// Instead of layer, disc, driver, etc. it would be only the additional variables needed
-	BeybladeBody::BeybladeBody(BeybladeMesh* mesh, Layer layer, Disc disc, Driver driver);
+	BeybladeBody(BeybladeMesh* mesh, Layer layer, Disc disc, Driver driver);
 
 	// Simple getters.
 	// RZ:  Theoretically good style, but there are too many!  Just make the variables public!
-	// ALSO, these class qualifiers are overkill.
 
-	double BeybladeBody::getAngularDragTerm() const { return angularDragTerm; }
-	glm::vec3 BeybladeBody::getAngularVelocity() const { return angularVelocity; }
-	glm::vec3 BeybladeBody::getCenter() const { return baseCenter; }
-	double BeybladeBody::getDiscHeight() const { return disc.height; }
-	double BeybladeBody::getDiscMass() const { return disc.mass;  };
-	double BeybladeBody::getDiscMomentOfInertia() const { return disc.momentOfInertia; }
-	double BeybladeBody::getDiscRadius() const { return disc.radius; }
-	double BeybladeBody::getDriverCOF() const { return driver.coefficientOfFriction; }
-	double BeybladeBody::getDriverHeight() const { return driver.height; }
-	double BeybladeBody::getDriverMass() const { return driver.mass; };
-	double BeybladeBody::getDriverMomentOfInertia() const { return driver.momentOfInertia; }
-	double BeybladeBody::getDriverRadius() const { return driver.radius; }
-	double BeybladeBody::getLayerCOR() const { return layer.coefficientOfRestitution; }
-	double BeybladeBody::getLayerHeight() const { return driver.height; }
-	double BeybladeBody::getLayerMass() const { return layer.mass; };
-	double BeybladeBody::getLayerMomentOfInertia() const { return layer.momentOfInertia; }
-	double BeybladeBody::getLayerRadius() const { return layer.radius; }
-	double BeybladeBody::getLayerRecoilDistributionMean() const { return layer.recoilDistributionMean; }
-	double BeybladeBody::getLayerRecoilDistributionStdDev() const { return layer.recoileDistributionStdDev; }
-	double BeybladeBody::getLinearDragTerm() const { return linearDragTerm; }
-	double BeybladeBody::getMass() const { return mass; } // Total mass
-	double BeybladeBody::getMomentOfInertia() const { return momentOfInertia; }
-	glm::vec3 BeybladeBody::getVelocity() const { return velocity; }
+	double getAngularDragTerm() const { return angularDragTerm; }
+	glm::vec3 getAngularVelocity() const { return angularVelocity; }
+	glm::vec3 getCenter() const { return baseCenter; }
+	double getDiscHeight() const { return disc.height; }
+	double getDiscMass() const { return disc.mass;  };
+	double getDiscMomentOfInertia() const { return disc.momentOfInertia; }
+	double getDiscRadius() const { return disc.radius; }
+	double getDriverCOF() const { return driver.coefficientOfFriction; }
+	double getDriverHeight() const { return driver.height; }
+	double getDriverMass() const { return driver.mass; };
+	double getDriverMomentOfInertia() const { return driver.momentOfInertia; }
+	double getDriverRadius() const { return driver.radius; }
+	double getLayerCOR() const { return layer.coefficientOfRestitution; }
+	double getLayerHeight() const { return driver.height; }
+	double getLayerMass() const { return layer.mass; };
+	double getLayerMomentOfInertia() const { return layer.momentOfInertia; }
+	double getLayerRadius() const { return layer.radius; }
+	double getLayerRecoilDistributionMean() const { return layer.recoilDistributionMean; }
+	double getLayerRecoilDistributionStdDev() const { return layer.recoileDistributionStdDev; }
+	double getLinearDragTerm() const { return linearDragTerm; }
+	double getMass() const { return mass; } // Total mass
+	double getMomentOfInertia() const { return momentOfInertia; }
+	glm::vec3 getVelocity() const { return velocity; }
 
 
 	// TODO: Need to distinguish between the top and bottom of the driver, or driverRadiusTop and driverRadiusBottom
-	double BeybladeBody::getDriverTopRadius() const { return 0.012; }
+	double getDriverTopRadius() const { return 0.012; }
 	// TODO: Add linearDragCoefficient (low priority, currently assumed to be constant 0.9)
 
 	// Specialized getters
-	double BeybladeBody::getAngularVelocityMagnitude() const { return glm::length(angularVelocity); }
+	double getAngularVelocityMagnitude() const { return glm::length(angularVelocity); }
 	bool isSpinningClockwise() const { return angularVelocity.y < 0; }
-	glm::vec3 BeybladeBody::getNormal() const;
-	glm::vec3 BeybladeBody::getBottomPosition() const;
+	glm::vec3 getNormal() const;
+	glm::vec3 getBottomPosition() const;
+	BoundingBox getBoundingBox() const;
 
 	// Setters  // NEWUI adds several members.
-	void BeybladeBody::setInitialLaunch(glm::vec3 initialCenter, glm::vec3 initialVelocity, glm::vec3 initialAngularVelocity);
-	void BeybladeBody::setDiscMass(double _mass) { disc.mass = _mass; }
-	void BeybladeBody::setDiscMomentOfInertia(double _moi) { disc.momentOfInertia = _moi; }
-	void BeybladeBody::setDriverCOF(double _cof) { driver.coefficientOfFriction = _cof;  }
-	void BeybladeBody::setDriverMass(double _mass) { driver.mass = _mass; }
-	void BeybladeBody::setDriverMomentOfInertia(double _moi) { driver.momentOfInertia = _moi; }
-	void BeybladeBody::setLayerCoefficientOfRestitution(double _cor) { layer.coefficientOfRestitution = _cor; }
-	void BeybladeBody::setLayerMass(double _mass) { layer.mass = _mass; }
-	void BeybladeBody::setLayerMomentOfInertia(double _moi) { layer.momentOfInertia = _moi; }
-	void BeybladeBody::setLayerRecoilDistribution(double mean, double stddev) {
+	void setInitialLaunch(glm::vec3 initialCenter, glm::vec3 initialVelocity, glm::vec3 initialAngularVelocity);
+	void setDiscMass(double _mass) { disc.mass = _mass; }
+	void setDiscMomentOfInertia(double _moi) { disc.momentOfInertia = _moi; }
+	void setDriverCOF(double _cof) { driver.coefficientOfFriction = _cof;  }
+	void setDriverMass(double _mass) { driver.mass = _mass; }
+	void setDriverMomentOfInertia(double _moi) { driver.momentOfInertia = _moi; }
+	void setLayerCoefficientOfRestitution(double _cor) { layer.coefficientOfRestitution = _cor; }
+	void setLayerMass(double _mass) { layer.mass = _mass; }
+	void setLayerMomentOfInertia(double _moi) { layer.momentOfInertia = _moi; }
+	void setLayerRecoilDistribution(double mean, double stddev) {
 		layer.recoilDistributionMean = mean;
 		layer.recoileDistributionStdDev = stddev;
 		delete layer.recoilDistribution;
 		layer.recoilDistribution = new RandomDistribution(mean, stddev);
 	}
-	void BeybladeBody::setMass(double _mass) { mass = _mass; }  // Total mass
-	void BeybladeBody::setMomentOfInertia(double _totalMOI) { momentOfInertia = _totalMOI; }
+	void setMass(double _mass) { mass = _mass; }  // Total mass
+	void setMomentOfInertia(double _totalMOI) { momentOfInertia = _totalMOI; }
 
 	// Adjustors
-	void BeybladeBody::addCenterY(double addY) { baseCenter.y += static_cast<float>(addY); }
-	void BeybladeBody::addCenterXZ(double addX, double addZ) { baseCenter.x += static_cast<float>(addX); baseCenter.z += static_cast<float>(addZ); }
-	void BeybladeBody::setCenterY(double addY) { baseCenter.y = static_cast<float>(addY); }
-	void BeybladeBody::setVelocity(glm::vec3 newVelocity) { velocity = newVelocity; }
-	void BeybladeBody::setVelocityY(double newY) { velocity.y = static_cast<float>(newY); }
+	void addCenterY(double addY) { baseCenter.y += static_cast<float>(addY); }
+	void addCenterXZ(double addX, double addZ) { baseCenter.x += static_cast<float>(addX); baseCenter.z += static_cast<float>(addZ); }
+	void setCenterY(double addY) { baseCenter.y = static_cast<float>(addY); }
+	void setVelocity(glm::vec3 newVelocity) { velocity = newVelocity; }
+	void setVelocityY(double newY) { velocity.y = static_cast<float>(newY); }
 
 	// Used in collision calculations
 	double sampleRecoil();

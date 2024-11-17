@@ -39,8 +39,8 @@ public:
     int getId() const { return id; }
     std::string getName() const { return name; }
     std::string setName() const { return name; }
-    BeybladeBody* getRigidBody() { return rigidBody; }
-    BeybladeMesh* getMesh() { return mesh; }
+    BeybladeBody* getRigidBody() const { return rigidBody; }
+    BeybladeMesh* getMesh() const { return mesh; }
 
     void setName(const std::string& name) { Beyblade::name = name; }
 protected:
