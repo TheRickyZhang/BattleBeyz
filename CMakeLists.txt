@@ -24,6 +24,7 @@ include_directories(${PROJECT_SOURCE_DIR}/lib/imgui-1.90.8/backends)
 
 # Include the src/ directory and all its subdirectories
 include_directories(${PROJECT_SOURCE_DIR}/src)
+include_directories(${PROJECT_SOURCE_DIR}/src/Camera)
 include_directories(${PROJECT_SOURCE_DIR}/src/GameObjects)
 include_directories(${PROJECT_SOURCE_DIR}/src/MeshObjects)
 include_directories(${PROJECT_SOURCE_DIR}/src/mini)
@@ -31,9 +32,6 @@ include_directories(${PROJECT_SOURCE_DIR}/src/Physics)
 include_directories(${PROJECT_SOURCE_DIR}/src/Rendering)
 include_directories(${PROJECT_SOURCE_DIR}/src/RigidBodies)
 include_directories(${PROJECT_SOURCE_DIR}/src/States)
-
-
-
 
 # Specify ImGui source files
 set(IMGUI_SOURCES

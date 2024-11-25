@@ -33,6 +33,10 @@ private:
     std::string currentProfileName = "";
     std::string currentBeybladeName = "";
 
+    // 2024-11-18.  When a new blade is selected we must refresh the tempxxx values:
+
+    BeybladeBody* prevbladeBody = nullptr;
+
     // Temp for sliders
     float tempLayerMass = 0.020f;
     float tempLayerMOI = 0.7f * 0.027f * 0.018f * 0.018f;

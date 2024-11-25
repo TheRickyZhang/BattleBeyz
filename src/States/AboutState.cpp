@@ -1,5 +1,5 @@
 #include "AboutState.h"
-#include "../GameEngine.h"
+#include "GameEngine.h"
 #include "StateIdentifiers.h"
 
 void AboutState::init() {}

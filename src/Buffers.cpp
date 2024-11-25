@@ -30,6 +30,7 @@
 void setupBuffers(unsigned int &VAO, unsigned int &VBO, unsigned int &EBO, const float* vertices,
                   size_t verticesSize, const unsigned int* indices, size_t indicesSize) {
     GL_CHECK(glGenVertexArrays(1, &VAO));
+
     GL_CHECK(glGenBuffers(1, &VBO));
     GL_CHECK(glGenBuffers(1, &EBO));
 

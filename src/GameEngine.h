@@ -82,7 +82,8 @@ public:
     glm::mat4 orthoProjection{};
 
     PhysicsWorld* physicsWorld{};
-    CameraState* cameraState{};
+
+    Camera* camera;
 
     ShaderProgram* objectShader{};
     ShaderProgram* backgroundShader{};

@@ -21,10 +21,9 @@ public:
     GameStateType getStateType() const override { return GameStateType::ACTIVE; }
 
 private:
-    bool escPressed = false;
+    bool showInfoScreen = true;
 
     float imguiColor[3] = { 0.45f, 0.55f, 0.60f };
-    bool showInfoScreen = false; // Only one bool here
 
     GLuint floorVAO, floorVBO, floorEBO; // TODO: floor class? Right now assum only one floor;
     std::vector<Stadium*> stadiums;

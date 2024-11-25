@@ -9,8 +9,9 @@
 #define NOMINMAX
 #include <windows.h>
 #include <shellapi.h>
-
 #include "UI.h"
+
+using namespace ImGui;
 
 // TODO
 // OK does not save -- should it?
@@ -47,61 +48,53 @@ static std::vector<float> layerRecoilDistributionStdDev;
 static std::string runState = "Idle";
 bool runStateIsError = false;
 
-
-void MyEventHandler(int selectedItemIndex) {
-    // Your event handling code here
-    // For example:
-    // std::cout << "Selected item index: " << selectedItemIndex << std::endl;
-}
-
-
 // Centers and wraps text in window
 void centerWrappedText(float windowCenterX, float wrapWidth, const char* text) {
-    ImVec2 textSize = ImGui::CalcTextSize(text, text + strlen(text), false, wrapWidth);
-    ImGui::SetCursorPosX(windowCenterX - textSize.x / 2.0f);
-    ImGui::PushTextWrapPos(windowCenterX + wrapWidth / 2.0f);
-    ImGui::TextWrapped(text);
-    ImGui::PopTextWrapPos();
+    ImVec2 textSize = CalcTextSize(text, text + strlen(text), false, wrapWidth);
+    SetCursorPosX(windowCenterX - textSize.x / 2.0f);
+    PushTextWrapPos(windowCenterX + wrapWidth / 2.0f);
+    TextWrapped(text);
+    PopTextWrapPos();
 }
 
 // Calculates the size of a button based on text and padding
 ImVec2 calculateButtonSize(const char* text, float padding = 20.0f, float height = 30.0f) {
-    ImVec2 textSize = ImGui::CalcTextSize(text);
+    ImVec2 textSize = CalcTextSize(text);
     return ImVec2(textSize.x + padding, height);
 }
 
 void renderPlainScreen(const char* windowID, float windowCenterX, float windowCenterY, float width, float height) {
-    ImGui::SetNextWindowPos(ImVec2(windowCenterX, windowCenterY), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
-    ImGui::SetNextWindowSize(ImVec2(width, height));
-    ImGui::Begin(windowID, nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
+    SetNextWindowPos(ImVec2(windowCenterX, windowCenterY), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
+    SetNextWindowSize(ImVec2(width, height));
+    Begin(windowID, nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
 }
 
 
 // Centers a button and returns true if clicked
 bool centerButton(float windowCenterX, const char* label, float padding = 20.0f, float height = 30.0f) {
     ImVec2 buttonSize = calculateButtonSize(label, padding, height);
-    ImGui::SetCursorPosX(windowCenterX - buttonSize.x / 2.0f);
-    return ImGui::Button(label, buttonSize);
+    SetCursorPosX(windowCenterX - buttonSize.x / 2.0f);
+    return Button(label, buttonSize);
 }
 
 void textWithLink(const char* text, const char* url) {
     ImVec4 linkColor = ImVec4(0.2f, 0.2f, 1.0f, 1.0f);
-    ImGui::TextColored(linkColor, text);
+    TextColored(linkColor, text);
 
     // Check if the item is hovered and clicked
-    if (ImGui::IsItemHovered()) {
-        ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
-        if (ImGui::IsMouseClicked(0)) {
+    if (IsItemHovered()) {
+        SetMouseCursor(ImGuiMouseCursor_Hand);
+        if (IsMouseClicked(0)) {
             ShellExecute(nullptr, nullptr, url, nullptr, nullptr, SW_SHOW);
         }
 
         // Underline the text to indicate a hyperlink
-        ImVec2 textSize = ImGui::CalcTextSize(text);
-        ImVec2 cursorPos = ImVec2(ImGui::GetItemRectMin().x, ImGui::GetItemRectMax().y);
-        ImGui::GetWindowDrawList()->AddLine(
+        ImVec2 textSize = CalcTextSize(text);
+        ImVec2 cursorPos = ImVec2(GetItemRectMin().x, GetItemRectMax().y);
+        GetWindowDrawList()->AddLine(
                 cursorPos,
                 ImVec2(cursorPos.x + textSize.x, cursorPos.y),
-                ImGui::GetColorU32(linkColor));
+                GetColorU32(linkColor));
     }
 }
 
@@ -109,27 +102,27 @@ void textWithLink(const char* text, const char* url) {
 bool renderExitButton(GLFWwindow* window, const ImVec4& buttonColor = ImVec4(0.8f, 0.0f, 0.0f, 1.0f),
     const ImVec4& buttonHovered = ImVec4(1.0f, 0.0f, 0.0f, 1.0f),
     const ImVec4& buttonActive = ImVec4(0.6f, 0.0f, 0.0f, 1.0f)) {
-    ImGui::PushStyleColor(ImGuiCol_Button, buttonColor);
-    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, buttonHovered);
-    ImGui::PushStyleColor(ImGuiCol_ButtonActive, buttonActive);
-    bool exitPressed = ImGui::Button("Exit");
+    PushStyleColor(ImGuiCol_Button, buttonColor);
+    PushStyleColor(ImGuiCol_ButtonHovered, buttonHovered);
+    PushStyleColor(ImGuiCol_ButtonActive, buttonActive);
+    bool exitPressed = Button("Exit");
     if (exitPressed) {
         glfwSetWindowShouldClose(window, GLFW_TRUE);
     }
-    ImGui::PopStyleColor(3);
+    PopStyleColor(3);
     return exitPressed;
 }
 
 void showTooltip(const char* text) {
-    if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("%s", text);
+    if (IsItemHovered()) {
+        SetTooltip("%s", text);
     }
 }
 
 bool sliderWithReset(const char* label, float* value, float min, float max, float defaultValue) {
-    bool changed = ImGui::SliderFloat(label, value, min, max);
-    ImGui::SameLine();
-    if (ImGui::Button("Reset")) {
+    bool changed = SliderFloat(label, value, min, max);
+    SameLine();
+    if (Button("Reset")) {
         *value = defaultValue;
         changed = true;
     }
@@ -137,9 +130,9 @@ bool sliderWithReset(const char* label, float* value, float min, float max, floa
 }
 
 bool colorPickerWithReset(const char* label, ImVec4* color, const ImVec4& defaultColor) {
-    bool changed = ImGui::ColorEdit4(label, (float*)color);
-    ImGui::SameLine();
-    if (ImGui::Button("Reset")) {
+    bool changed = ColorEdit4(label, (float*)color);
+    SameLine();
+    if (Button("Reset")) {
         *color = defaultColor;
         changed = true;
     }
@@ -147,21 +140,21 @@ bool colorPickerWithReset(const char* label, ImVec4* color, const ImVec4& defaul
 }
 
 bool collapsingSectionWithToggle(const char* label, bool* isVisible) {
-    bool open = ImGui::CollapsingHeader(label);
-    ImGui::SameLine(ImGui::GetWindowWidth() - 30);
-    ImGui::Checkbox("##Visible", isVisible);
+    bool open = CollapsingHeader(label);
+    SameLine(GetWindowWidth() - 30);
+    Checkbox("##Visible", isVisible);
     return open;
 }
 
 void centerColoredText(float windowCenterX, const ImVec4& color, const char* text) {
-    ImGui::SetCursorPosX(windowCenterX - ImGui::CalcTextSize(text).x / 2);
-    ImGui::TextColored(color, "%s", text);
+    SetCursorPosX(windowCenterX - CalcTextSize(text).x / 2);
+    TextColored(color, "%s", text);
 }
 
 float getMaxWidth(const std::vector<std::string>& text) {
     float maxWidth = 0.0f;
     for (int i = 0; i < text.size(); i++) {
-        ImVec2 textSize = ImGui::CalcTextSize(text[i].c_str());
+        ImVec2 textSize = CalcTextSize(text[i].c_str());
         if (textSize.x > maxWidth) {
             maxWidth = textSize.x;
         }
@@ -170,7 +163,7 @@ float getMaxWidth(const std::vector<std::string>& text) {
 }
 
 
-void setupBackground(GLFWwindow *window, Texture &backgroundTexture) {
+static void setupBackground(GLFWwindow *window, Texture &backgroundTexture) {
     auto *data = static_cast<GameControl *>(glfwGetWindowUserPointer(window));
     auto windowWidth = *data->windowWidth;
     auto windowHeight = *data->windowHeight;
@@ -191,6 +184,33 @@ void setupBackground(GLFWwindow *window, Texture &backgroundTexture) {
     }
 }
 
+/*
+Result for (3, 4, 2, 1):          Result for (3, 4, 2, 1, 2, 3):
+    +---+---+---+---+                +---+---+---+---+
+    |   |   |   |   |  1             |   |   |   |   |  1
+    +---+---+---+---+                +---+---+---+---+
+    | W |   |   |   |  2             | W | W | W |   |  2
+    +---+---+---+---+                +---+---+---+---+
+    |   |   |   |   |  3             | W | W | W |   |  3
+    +---+---+---+---+                +---+---+---+---+
+      1   2   3   4                    1   2   3   4
+*/
+void SetWindowPositionAndSize(int numRows, int numCols, int row, int col, int rowSize, int colSize) {
+    row--; col--;
+    ImGuiIO& io = GetIO();
+
+    // Calculate the size of each segment
+    float windowWidth = io.DisplaySize.x / numCols;
+    float windowHeight = io.DisplaySize.y / numRows;
+
+    // Calculate position based on the grid
+    float xPos = windowWidth * col;
+    float yPos = windowHeight * row;
+
+    SetNextWindowPos(ImVec2(xPos, yPos), ImGuiCond_Always);
+    SetNextWindowSize(ImVec2(colSize * windowWidth, rowSize * windowHeight), ImGuiCond_Always);
+}
+
 void showAboutScreen(GLFWwindow* window, Texture& backgroundTexture)
 {
     auto* data = static_cast<GameControl*>(glfwGetWindowUserPointer(window));
@@ -205,67 +225,68 @@ void showAboutScreen(GLFWwindow* window, Texture& backgroundTexture)
     float windowCenterX = windowWidth / 2.0f;
     float wrapWidth = windowWidth * 0.7f;
 
-    ImGui::SetNextWindowSize(ImVec2(windowWidth, windowHeight));
-    ImGui::SetNextWindowPos(ImVec2(0, 0));
-    ImGui::Begin("About Screen", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar);
+    //SetNextWindowSize(ImVec2(windowWidth, windowHeight));
+    //SetNextWindowPos(ImVec2(0, 0));
+    SetWindowPositionAndSize(1, 1, 1, 1); // Take up whole screen
+    Begin("About Screen", nullptr, MinimalWindow);
 
     // Apply larger font for the title and center it
-    ImGui::PushFont(titleFont);
+    PushFont(titleFont);
     centerWrappedText(windowCenterX, wrapWidth, "About BattleBeyz");
-    ImGui::PopFont();
-    ImGui::Spacing();
-    ImGui::Dummy(ImVec2(0.0f, 20.0f));
+    PopFont();
+    Spacing();
+    Dummy(ImVec2(0.0f, 20.0f));
 
-    ImGui::PushFont(defaultFont);
+    PushFont(defaultFont);
 
     // Center the wrapped text blocks with a link
     {
         const char* part1 = "This project is currently in development. If you want to contribute, feel free to fork the repo";
         const char* linkText = "here";
-        ImVec2 part1Size = ImGui::CalcTextSize(part1);
-        ImVec2 linkSize = ImGui::CalcTextSize(linkText);
+        ImVec2 part1Size = CalcTextSize(part1);
+        ImVec2 linkSize = CalcTextSize(linkText);
         float totalWidth = part1Size.x + linkSize.x;
 
-        ImGui::SetCursorPosX(windowCenterX - totalWidth / 2.0f);
-        ImGui::TextUnformatted(part1);
-        ImGui::SameLine();
+        SetCursorPosX(windowCenterX - totalWidth / 2.0f);
+        TextUnformatted(part1);
+        SameLine();
         textWithLink(linkText, "https://github.com/TheRickyZhang/BattleBeyz");
-        ImGui::Spacing();
+        Spacing();
     }
 
-    ImGui::Dummy(ImVec2(0.0f, 10.0f));
+    Dummy(ImVec2(0.0f, 10.0f));
 
     // Center the wrapped text blocks with another link
     {
         const char* part1 = "Like what you see? Show your support by getting some hand-crafted Lego Beyblades on";
         const char* linkText = "my website";
-        ImVec2 part1Size = ImGui::CalcTextSize(part1);
-        ImVec2 linkSize = ImGui::CalcTextSize(linkText);
+        ImVec2 part1Size = CalcTextSize(part1);
+        ImVec2 linkSize = CalcTextSize(linkText);
         float totalWidth = part1Size.x + linkSize.x;
 
-        ImGui::SetCursorPosX(windowCenterX - totalWidth / 2.0f);
-        ImGui::TextUnformatted(part1);
-        ImGui::SameLine();
+        SetCursorPosX(windowCenterX - totalWidth / 2.0f);
+        TextUnformatted(part1);
+        SameLine();
         textWithLink(linkText, "https://www.brickbeyz.com/shop");
-        ImGui::Spacing();
+        Spacing();
     }
 
     centerWrappedText(windowCenterX, wrapWidth, "For any inquiries, please contact me at rickyzhang196@outlook.com.");
-    ImGui::Spacing();
-    ImGui::Dummy(ImVec2(0.0f, 20.0f));
+    Spacing();
+    Dummy(ImVec2(0.0f, 20.0f));
 
     centerWrappedText(windowCenterX, wrapWidth, "Thank you for playing BattleBeyz!");
-    ImGui::Spacing();
+    Spacing();
 
     centerWrappedText(windowCenterX, wrapWidth, "(c) 2024 Ricky Zhang. All rights reserved.");
-    ImGui::PopFont();
-    ImGui::Spacing();
+    PopFont();
+    Spacing();
 
     if (centerButton(windowCenterX, "Back to Home")) {
         data->showAboutScreen = false;
     }
 
-    ImGui::End();
+    End();
 }
 
 void showCustomizeScreen(GLFWwindow* window, Texture& backgroundTexture)
@@ -296,23 +317,21 @@ void showCustomizeScreen(GLFWwindow* window, Texture& backgroundTexture)
     // Centering helper
     float windowCenterX = *windowWidth / 2.0f;
 
-    ImGui::SetNextWindowSize(ImVec2((float)*windowWidth, (float)*windowHeight));
-    ImGui::SetNextWindowPos(ImVec2(0, 0));
+    SetNextWindowSize(ImVec2((float)*windowWidth, (float)*windowHeight));
+    SetNextWindowPos(ImVec2(0, 0));
 
-    ImGui::Begin("Customize Screen", nullptr,
-        ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
-        ImGuiWindowFlags_NoTitleBar);
+    Begin("Customize Screen", nullptr, MinimalWindow);
 
     // Center the text at the top
-    ImGui::SetCursorPos(ImVec2(windowCenterX - ImGui::CalcTextSize("Customize Your Beyblades!").x / 2.0f, 20));
-    ImGui::Text("Customize Your Beyblades!");
+    SetCursorPos(ImVec2(windowCenterX - CalcTextSize("Customize Your Beyblades!").x / 2.0f, 20));
+    Text("Customize Your Beyblades!");
 
     // The ImGui API is very awkward -- To initialize this dialog data you need to click a button in some
     // parent window to run initialization code for here.  Yuck.
 
-    ImGui::RadioButton("Blade1", &activeBlade, 0);
-    ImGui::SameLine();
-    ImGui::RadioButton("Blade2", &activeBlade, 1);
+    RadioButton("Blade1", &activeBlade, 0);
+    SameLine();
+    RadioButton("Blade2", &activeBlade, 1);
 
     // Can't get a radio button changed event, so detect the change like this.
     if (activeBlade != activeBladeOld) {  // Reset this input box when you switch blades
@@ -322,25 +341,25 @@ void showCustomizeScreen(GLFWwindow* window, Texture& backgroundTexture)
 
     // Arrays for mass, radius, etc.
 
-    ImGui::PushItemWidth(600);  // Note: You can limit width of the sliders like this
+    PushItemWidth(600);  // Note: You can limit width of the sliders like this
 
-    ImGui::Text("Profile");
-    if (ImGui::BeginCombo("##empty", profileItems[activeProfileItem[activeBlade]].c_str())) {
+    Text("Profile");
+    if (BeginCombo("##empty", profileItems[activeProfileItem[activeBlade]].c_str())) {
         for (int i = 0; i < (int)profileItems.size(); i++) {
             bool isSelected = (activeProfileItem[activeBlade] == i);
-            if (ImGui::Selectable(profileItems[i].c_str(), isSelected)) {
+            if (Selectable(profileItems[i].c_str(), isSelected)) {
                 activeProfileItem[activeBlade] = i;
                 UICustomScreenProfileSelected(i);
             }
             if (isSelected) {
-                ImGui::SetItemDefaultFocus();
+                SetItemDefaultFocus();
             }
         }
-        ImGui::EndCombo();
+        EndCombo();
     }
 
-    ImGui::SameLine();
-    if (ImGui::Button("Save Profile As...")) {
+    SameLine();
+    if (Button("Save Profile As...")) {
         newProfileName[0] = '\0';
         showPromptForProfile = true;
     }
@@ -348,41 +367,41 @@ void showCustomizeScreen(GLFWwindow* window, Texture& backgroundTexture)
 
     // NOTE: Moment of Inertia limits are in GRAMS here.  See Units.txt.
 
-    ImGui::NewLine();
-    ImGui::Text("Layer (top)");
-    ImGui::SliderFloat("Mass (g)##layer", &layerMass[activeBlade], 1.0f, 99.0f, "%.1f");
-    ImGui::SliderFloat("Moment of Inertia (g*m**2)##layer", &layerMomentOfInertia[activeBlade], 3.0e-3f, 1.6e-2f, "%.9f");
-    ImGui::SliderFloat("Coefficient of Restitution##layer", &layerCoefficientOfRestitution[activeBlade], 0.0f, 0.5f, "%.3f");
+    NewLine();
+    Text("Layer (top)");
+    SliderFloat("Mass (g)##layer", &layerMass[activeBlade], 1.0f, 99.0f, "%.1f");
+    SliderFloat("Moment of Inertia (g*m**2)##layer", &layerMomentOfInertia[activeBlade], 3.0e-3f, 1.6e-2f, "%.9f");
+    SliderFloat("Coefficient of Restitution##layer", &layerCoefficientOfRestitution[activeBlade], 0.0f, 0.5f, "%.3f");
     // TODO: WHAT ARE THE RANGES FOR THESE?
-    ImGui::SliderFloat("Recoil Distribution Mean##layer", &layerRecoilDistributionMean[activeBlade], 0.1f, 1.0f, "%.3f");
-    ImGui::SliderFloat("Recoil Distribution StdDev##layer", &layerRecoilDistributionStdDev[activeBlade], 0.1f, 1.0f, "%.3f");
+    SliderFloat("Recoil Distribution Mean##layer", &layerRecoilDistributionMean[activeBlade], 0.1f, 1.0f, "%.3f");
+    SliderFloat("Recoil Distribution StdDev##layer", &layerRecoilDistributionStdDev[activeBlade], 0.1f, 1.0f, "%.3f");
 
-    ImGui::Text("Disc (middle)");
-    ImGui::SliderFloat("Mass (g)##disc", &discMass[activeBlade], 1.0f, 99.0f, "%.1f");
-    ImGui::SliderFloat("Moment of Inertia (g*m**2)##disc", &discMomentOfInertia[activeBlade], 2.3e-3f, 2.025e-2f, "%.9f");
+    Text("Disc (middle)");
+    SliderFloat("Mass (g)##disc", &discMass[activeBlade], 1.0f, 99.0f, "%.1f");
+    SliderFloat("Moment of Inertia (g*m**2)##disc", &discMomentOfInertia[activeBlade], 2.3e-3f, 2.025e-2f, "%.9f");
 
-    ImGui::Text("Driver (bottom)");
-    ImGui::SliderFloat("Mass (g)##driver", &driverMass[activeBlade], 1.0f, 99.0f, "%.1f");
-    ImGui::SliderFloat("Moment of Inertia (g*m**2)##driver", &driverMomentOfInertia[activeBlade], 7.5e-6f, 2.0e-5f, "%.9f");
-    ImGui::SliderFloat("Coefficient of Friction##driver", &driverCoefficientOfFriction[activeBlade], 0.1f, 0.6f, "%.3f");
+    Text("Driver (bottom)");
+    SliderFloat("Mass (g)##driver", &driverMass[activeBlade], 1.0f, 99.0f, "%.1f");
+    SliderFloat("Moment of Inertia (g*m**2)##driver", &driverMomentOfInertia[activeBlade], 7.5e-6f, 2.0e-5f, "%.9f");
+    SliderFloat("Coefficient of Friction##driver", &driverCoefficientOfFriction[activeBlade], 0.1f, 0.6f, "%.3f");
 
-    ImGui::PopItemWidth();
+    PopItemWidth();
 
     // Center the buttons below the image
 
     float button_start_y = 650.0f;
-    ImGui::SetCursorPos(ImVec2(windowCenterX - 150 - 20, button_start_y));
-    if (ImGui::Button("OK", ImVec2(150, 30))) {
+    SetCursorPos(ImVec2(windowCenterX - 150 - 20, button_start_y));
+    if (Button("OK", ImVec2(150, 30))) {
         UICustomSettingsSave(data);
         data->showCustomizeScreen = false;
     }
 
-    ImGui::SetCursorPos(ImVec2(windowCenterX + 20, button_start_y));
-    if (ImGui::Button("Cancel", ImVec2(150, 30))) {
+    SetCursorPos(ImVec2(windowCenterX + 20, button_start_y));
+    if (Button("Cancel", ImVec2(150, 30))) {
         data->showCustomizeScreen = false;
     }
 
-    ImGui::End();
+    End();
 }
 
 // TODO: Any way to make this logic easier to read?
@@ -399,7 +418,7 @@ void showHomeScreen(GLFWwindow *window, Texture &homeScreenTexture, Texture &bac
 
     // Calculate the size required to fit all elements plus some padding
     ImVec2 padding = ImVec2(50.0f, 50.0f);
-    ImVec2 textSize = ImGui::CalcTextSize("Welcome to BattleBeyz!");
+    ImVec2 textSize = CalcTextSize("Welcome to BattleBeyz!");
     ImVec2 imageSize = ImVec2((float)img_width, (float)img_height);
 
     const char* buttonText[] = { "Start Game", "Customize Beyblades", "About" };
@@ -420,23 +439,21 @@ void showHomeScreen(GLFWwindow *window, Texture &homeScreenTexture, Texture &bac
     // Calculate total width required
     float totalWidth = std::max({ textSize.x, imageSize.x, maxButtonWidth }) + padding.x * 2;
 
-    ImGui::SetNextWindowSize(ImVec2(totalWidth, totalHeight));
-    ImGui::SetNextWindowPos(ImVec2((*windowWidth - totalWidth) / 2.0f, (*windowHeight - totalHeight) / 2.0f));
-    ImGui::Begin("Home Screen", nullptr,
-                 ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
-                 ImGuiWindowFlags_NoTitleBar);
+    SetNextWindowSize(ImVec2(totalWidth, totalHeight));
+    SetNextWindowPos(ImVec2((*windowWidth - totalWidth) / 2.0f, (*windowHeight - totalHeight) / 2.0f));
+    Begin("Home Screen", nullptr, MinimalWindow);
 
     // Centering helper
     float windowCenterX = totalWidth / 2.0f;
 
     // Center the text at the top
-    ImGui::SetCursorPos(ImVec2(windowCenterX - textSize.x / 2.0f, padding.y));
-    ImGui::Text("Welcome to BattleBeyz!");
+    SetCursorPos(ImVec2(windowCenterX - textSize.x / 2.0f, padding.y));
+    Text("Welcome to BattleBeyz!");
 
     // Center the image below the text
     if (homeScreenTexture.ID != 0) {
-        ImGui::SetCursorPos(ImVec2(windowCenterX - img_width / 2.0f, padding.y + textSize.y + 20));
-        ImGui::Image((void *) (intptr_t) homeScreenTexture.ID, ImVec2((float)img_width, (float)img_height));
+        SetCursorPos(ImVec2(windowCenterX - img_width / 2.0f, padding.y + textSize.y + 20));
+        Image((void *) (intptr_t) homeScreenTexture.ID, ImVec2((float)img_width, (float)img_height));
     }
 
     // Center the buttons below the image
@@ -445,8 +462,8 @@ void showHomeScreen(GLFWwindow *window, Texture &homeScreenTexture, Texture &bac
     for (int i = 0; i < buttonCount; i++) {
         ImVec2 buttonSize = calculateButtonSize(buttonText[i]);
 
-        ImGui::SetCursorPos(ImVec2(windowCenterX - buttonSize.x / 2.0f, button_start_y + i * 40));
-        if (ImGui::Button(buttonText[i], buttonSize)) {
+        SetCursorPos(ImVec2(windowCenterX - buttonSize.x / 2.0f, button_start_y + i * 40));
+        if (Button(buttonText[i], buttonSize)) {
             if (i == 0) {
                 data->showHomeScreen = false;
                 data->showInfoScreen = true;
@@ -462,7 +479,7 @@ void showHomeScreen(GLFWwindow *window, Texture &homeScreenTexture, Texture &bac
         }
     }
 
-    ImGui::End();
+    End();
 }
 
 /**
@@ -473,12 +490,12 @@ void showHomeScreen(GLFWwindow *window, Texture &homeScreenTexture, Texture &bac
 void drawInfoScreen(GLFWwindow* window) {
     auto* data = static_cast<GameControl*>(glfwGetWindowUserPointer(window));
 
-    ImGui::SetNextWindowSize(ImVec2(500, 400), ImGuiCond_FirstUseEver);
-    ImGui::Begin("Settings and Launch Menu", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+    SetNextWindowSize(ImVec2(500, 400), ImGuiCond_FirstUseEver);
+    Begin("Settings and Launch Menu", nullptr);
 
     // Pause button
-    ImGui::SameLine();
-    if (ImGui::Button(data->currentState == ProgramState::PAUSED ? "Resume" : "Pause")) {
+    SameLine();
+    if (Button(data->currentState == ProgramState::PAUSED ? "Resume" : "Pause")) {
         data->currentState = (data->currentState == ProgramState::PAUSED) ? ProgramState::ACTIVE : ProgramState::PAUSED;
 
         std::string status;
@@ -499,24 +516,24 @@ void drawInfoScreen(GLFWwindow* window) {
     }
 
     // Exit button
-    ImGui::SameLine();
+    SameLine();
     renderExitButton(window);
 
     // Home Button
-    ImGui::SameLine();
-    if (ImGui::Button("Home")) {
+    SameLine();
+    if (Button("Home")) {
         data->showHomeScreen = true;
         data->showInfoScreen = false;
         UISetRunState(false, "Idle");
     }
 
-    ImGui::Separator();
+    Separator();
 
     if (runStateIsError) {
-        ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "%s", runState.c_str());
+        TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "%s", runState.c_str());
     }
     else {
-        ImGui::Text("%s", runState.c_str());
+        Text("%s", runState.c_str());
     }
 
     std::vector<Beyblade*> beyblades = data->physicsWorld->getBeyblades();
@@ -527,42 +544,42 @@ void drawInfoScreen(GLFWwindow* window) {
         // TODO: Sliders look silly here.  Just display as text, but how to center it?
 
         // Each Beyblade has its own collapsible header that can be expanded/collapsed independently
-        if (ImGui::CollapsingHeader(beyblades[i]->getName().data())) {
-            ImGui::Text("Velocity");  // Was "Initial Velocity"
+        if (CollapsingHeader(beyblades[i]->getName().data())) {
+            Text("Velocity");  // Was "Initial Velocity"
             glm::vec3 initialVelocity = beybladeBody->getVelocity();
-            ImGui::SliderFloat("X##V", &initialVelocity.x, -100.0f, 100.0f);
-            ImGui::SliderFloat("Y##V", &initialVelocity.y, -100.0f, 100.0f);
-            ImGui::SliderFloat("Z##V", &initialVelocity.z, -100.0f, 100.0f);
+            SliderFloat("X##V", &initialVelocity.x, -100.0f, 100.0f);
+            SliderFloat("Y##V", &initialVelocity.y, -100.0f, 100.0f);
+            SliderFloat("Z##V", &initialVelocity.z, -100.0f, 100.0f);
 
-            ImGui::Text("Center");
+            Text("Center");
             glm::vec3 initialCenter = beybladeBody->getCenter();
-            ImGui::SliderFloat("X##CTR", &initialCenter.x, -100.0f, 100.0f);
-            ImGui::SliderFloat("Y##CTR", &initialCenter.y, -100.0f, 100.0f);
-            ImGui::SliderFloat("Z##CTR", &initialCenter.z, -100.0f, 100.0f);
+            SliderFloat("X##CTR", &initialCenter.x, -100.0f, 100.0f);
+            SliderFloat("Y##CTR", &initialCenter.y, -100.0f, 100.0f);
+            SliderFloat("Z##CTR", &initialCenter.z, -100.0f, 100.0f);
 
-            ImGui::Text("Angular Velocity");
+            Text("Angular Velocity");
             glm::vec3 initialAngularVelocity = beybladeBody->getAngularVelocity();
-            ImGui::SliderFloat("X##AV", &initialAngularVelocity.x, -100.0f, 100.0f);
-            ImGui::SliderFloat("Y##AV", &initialAngularVelocity.y, -100.0f, 100.0f);
-            ImGui::SliderFloat("Z##AV", &initialAngularVelocity.z, -100.0f, 100.0f);
+            SliderFloat("X##AV", &initialAngularVelocity.x, -100.0f, 100.0f);
+            SliderFloat("Y##AV", &initialAngularVelocity.y, -100.0f, 100.0f);
+            SliderFloat("Z##AV", &initialAngularVelocity.z, -100.0f, 100.0f);
 
-            if (ImGui::Button("Apply Launch Settings")) {
+            if (Button("Apply Launch Settings")) {
                 beybladeBody->setInitialLaunch(initialCenter, initialVelocity, initialAngularVelocity);
             }
         }
     }
 
-    if (ImGui::Button("Launch")) {
+    if (Button("Launch")) {
 
     }
 
     // Color editor
-    //ImGui::ColorEdit3("background color", *imguiColor);
+    //ColorEdit3("background color", *imguiColor);
 
     // Checkbox to toggle showCamera
-    ImGui::Checkbox("Bound Camera", &data->boundCamera);
+    Checkbox("Bound Camera", &data->boundCamera);
 
-    ImGui::End();
+    End();
 }
 
 void showLoadingScreen(GLFWwindow* window, Texture& backgroundTexture, const char* message) {
@@ -574,16 +591,16 @@ void showLoadingScreen(GLFWwindow* window, Texture& backgroundTexture, const cha
     setupBackground(window, backgroundTexture);
 
     // Set the size and position of the loading window
-    ImGui::SetNextWindowSize(ImVec2(windowWidth, windowHeight));
-    ImGui::SetNextWindowPos(ImVec2(0, 0));
-    ImGui::Begin("Loading Screen", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar);
+    SetNextWindowSize(ImVec2(windowWidth, windowHeight));
+    SetNextWindowPos(ImVec2(0, 0));
+    Begin("Loading Screen", nullptr, MinimalWindow);
 
     // Center the loading message
-    ImVec2 textSize = ImGui::CalcTextSize(message);
-    ImGui::SetCursorPos(ImVec2((windowWidth - textSize.x) / 2.0f, (windowHeight - textSize.y) / 2.0f));
-    ImGui::Text(message);
+    ImVec2 textSize = CalcTextSize(message);
+    SetCursorPos(ImVec2((windowWidth - textSize.x) / 2.0f, (windowHeight - textSize.y) / 2.0f));
+    Text(message);
 
-    ImGui::End();
+    End();
 }
 
 void showOptionsScreen(GLFWwindow* window) {
@@ -597,12 +614,12 @@ void showOptionsScreen(GLFWwindow* window) {
     ImVec2 optionsWindowPos = ImVec2((windowWidth - optionsWindowSize.x) / 2, (windowHeight - optionsWindowSize.y) / 2);
 
     // Set window position and size, and disable moving
-    ImGui::SetNextWindowPos(optionsWindowPos, ImGuiCond_Always);
-    ImGui::SetNextWindowSize(optionsWindowSize);
+    SetNextWindowPos(optionsWindowPos, ImGuiCond_Always);
+    SetNextWindowSize(optionsWindowSize);
 
-    ImGui::Begin("Options", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
+    Begin("Options", nullptr, MinimalWindow);
 
-    ImVec2 windowCenter = ImGui::GetWindowSize();
+    ImVec2 windowCenter = GetWindowSize();
     float windowCenterX = windowCenter.x / 2.0f;
 
     if (centerButton(windowCenterX, "Settings")) {
@@ -617,7 +634,7 @@ void showOptionsScreen(GLFWwindow* window) {
     // Reuse renderExitButton without color options
     renderExitButton(window);
 
-    ImGui::End();
+    End();
 }
 
 /**
@@ -711,7 +728,7 @@ static void UICustomScreenInit(GameControl* gc)
     // There must be at least TWO blades!  You might have more in the future,
     // although the customization UI is probably incomplete.
 
-    auto blades = gc->physicsWorld->getBeyblades();
+    std::vector<Beyblade*> blades = gc->physicsWorld->getBeyblades();
     for (size_t i = 0; i < blades.size(); i++) {
         activeProfileItem.push_back(defaultProfileIndex);
 
@@ -753,7 +770,7 @@ static void UICustomSettingsSave(GameControl* gc)
 
     extern char profileName[2][MAX_PROFILE_NAME_LENGTH];
 
-    auto blades = gc->physicsWorld->getBeyblades();
+    std::vector<Beyblade*> blades = gc->physicsWorld->getBeyblades();
     if (discMass.size() == blades.size()) {  // We were initialized and state looks sane
         for (size_t i = 0; i < blades.size(); i++) {
             Beyblade* b = blades[i];
@@ -789,17 +806,17 @@ static void UIPromptForProfile()
     extern bool showPromptForProfile;
 
     if (showPromptForProfile) {
-        ImGui::OpenPopup("Save Profile##title");
+        OpenPopup("Save Profile##title");
     }
 
     // Create a popup window
-    if (ImGui::BeginPopupModal("Save Profile##title", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
+    if (BeginPopupModal("Save Profile##title", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
         // Display a text input field for the file name
-        ImGui::InputText("Profile Name##text", newProfileName, MAX_PROFILE_NAME_LENGTH);
+        InputText("Profile Name##text", newProfileName, MAX_PROFILE_NAME_LENGTH);
 
         // Display buttons to confirm or cancel the input
 
-        if (ImGui::Button("OK", ImVec2(120, 0))) {
+        if (Button("OK", ImVec2(120, 0))) {
             if (newProfileName[0] != '\0') {  // [Re]write the profiles, and add or replace the screen data.
                 UIProfileCreateSectionFromScreen(newProfileName);
 
@@ -816,17 +833,17 @@ static void UIPromptForProfile()
             }
 
             showPromptForProfile = false;
-            ImGui::CloseCurrentPopup();
+            CloseCurrentPopup();
         }
 
-        ImGui::SameLine();
+        SameLine();
 
-        if (ImGui::Button("Cancel", ImVec2(120, 0))) {
+        if (Button("Cancel", ImVec2(120, 0))) {
             showPromptForProfile = false;
-            ImGui::CloseCurrentPopup();
+            CloseCurrentPopup();
         }
 
-        ImGui::EndPopup();
+        EndPopup();
     }
 }
 

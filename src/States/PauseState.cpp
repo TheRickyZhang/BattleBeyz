@@ -1,5 +1,5 @@
 #include "PauseState.h"
-#include "../GameEngine.h"
+#include "GameEngine.h"
 
 void PauseState::init() {}
 

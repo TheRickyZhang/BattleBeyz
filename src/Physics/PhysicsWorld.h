@@ -15,7 +15,6 @@
 #include "Utils.h"
 #include "RigidBody.h"
 #include "ShaderProgram.h"
-#include "Physics.h"
 
 class PhysicsWorld {
 public:

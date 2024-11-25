@@ -2,7 +2,7 @@
 
 // Might need to only define in cpp file?
 #define TINYOBJLOADER_IMPLEMENTATION
-#include "../tiny_obj_loader.h"
+#include "tiny_obj_loader.h"
 
 /**
 * NEWMESH Load the model files.

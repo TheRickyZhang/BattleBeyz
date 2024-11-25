@@ -1,5 +1,5 @@
 #include "CustomizeState.h"
-#include "../GameEngine.h"
+#include "GameEngine.h"
 #include "StateIdentifiers.h"
 #include "ProfileManager.h"
 
@@ -18,7 +18,7 @@ void CustomizeState::update(float deltaTime) {}
 void CustomizeState::draw() {
     // Precompute values for layout
     // Note that padding for FRAME and ITEM need to be considered
-    float windowWidth = game->windowWidth;
+    float windowWidth = (float)game->windowWidth;
     float frameSpacing = ImGui::GetStyle().FramePadding.x;
     float spacing = ImGui::GetStyle().ItemSpacing.x;
     float leftTextWidth = std::max(ImGui::CalcTextSize("Profile").x, ImGui::CalcTextSize("Beyblade").x) + frameSpacing * 2;
@@ -53,7 +53,7 @@ void CustomizeState::draw() {
         currentProfileName = "No Profile Selected";
     }
 
-    std::cout << int(currentPopup) << std::endl;
+    // 2024-11-18 std::cout << int(currentPopup) << std::endl;
 
     // Cover full screen
     ImGui::SetNextWindowPos(ImVec2(0, 0));
@@ -78,6 +78,7 @@ void CustomizeState::draw() {
             if (ImGui::Selectable(profile->getName().c_str(), isSelected)) {
                 game->pm.setActiveProfile(profile->getId());
                 currentProfileName = profile->getName();
+                prevbladeBody = nullptr;  // 2024-11-18 On next draw, fill in the values for this blade.
             }
             if (isSelected) {
                 ImGui::SetItemDefaultFocus();
@@ -144,23 +145,41 @@ void CustomizeState::draw() {
     }
     ImGui::Text("Customize Your Beyblade");
 
+    // 2024-11-18 TODO:
+    //      UI Controls should be set the the current value at initial display and when you change blades.
+    //      Need to update total mass, too (see below).
+    //      "Reset" button is weird.  It sets the value to the current value. Maybe ok if we do above.
+    //      Don't use "^" in text -- it is not in the font.  Use m**2 instead of m^2.
+
+    if (beybladeBody != nullptr && beybladeBody != prevbladeBody) {  // 2024-11-18 Set display values to the live values.
+        tempLayerMass = (float)beybladeBody->getLayerMass();  // 2024-11-18
+        tempLayerMOI = (float)beybladeBody->getLayerMomentOfInertia();
+        tempDriverCOF = (float)beybladeBody->getDriverCOF();
+        prevbladeBody = beybladeBody;
+    }
+
     // Lines 5-(n-1): Sliders for adjusting variables
     ImGui::SliderFloat("Layer Mass (kg)", &tempLayerMass, 0.010f, 0.099f, "%.3f");
-    ImGui::SliderFloat("Layer Moment of Inertia (kg/m^2)", &tempLayerMOI, 0.000003f, 0.000016f, "%.9f");
+    ImGui::SliderFloat("Layer Moment of Inertia (kg/m**2)", &tempLayerMOI, 0.000003f, 0.000016f, "%.9f");  // 2024-11-18 "^" is not in the font.
     ImGui::SliderFloat("Driver Coefficient of Friction", &tempDriverCOF, 0.1f, 0.6f, "%.3f");
 
     // Line n: [Update]      [Reset]
     if (ImGui::Button("Update")) {
-        beybladeBody->setLayerMass(tempLayerMass);
-        beybladeBody->setLayerMomentOfInertia(tempLayerMOI);
-        beybladeBody->setDriverCOF(tempDriverCOF);
+        if (beybladeBody != nullptr) {  // 2024-11018
+            beybladeBody->setLayerMass(tempLayerMass); // 2024-11-18 TODO: Make this automatically update total mass??
+            beybladeBody->setMass(tempLayerMass + beybladeBody->getDiscMass() + beybladeBody->getDriverMass());  // 2024-11-18 Update total mass, too.
+            beybladeBody->setLayerMomentOfInertia(tempLayerMOI);
+            beybladeBody->setDriverCOF(tempDriverCOF);
+        }
     }
     ImGui::SameLine();
     ImGui::SetCursorPosX(ImGui::CalcTextSize("Update").x + 2*spacing + 2*frameSpacing);
     if (ImGui::Button("Reset")) {
-        tempLayerMass = (float)beybladeBody->getLayerMass();
-        tempLayerMOI = (float)beybladeBody->getLayerMomentOfInertia();
-        tempDriverCOF = (float)beybladeBody->getDriverCOF();
+        if (beybladeBody != nullptr) {  // 2024-11018
+            tempLayerMass = (float)beybladeBody->getLayerMass();
+            tempLayerMOI = (float)beybladeBody->getLayerMomentOfInertia();
+            tempDriverCOF = (float)beybladeBody->getDriverCOF();
+        }
     }
 
     // Open popups based on currentPopup

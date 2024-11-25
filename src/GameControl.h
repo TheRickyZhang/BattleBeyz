@@ -24,7 +24,6 @@ struct GameControl {
     glm::mat4* projection;
     ShaderProgram* shader;
     ShaderProgram* backgroundShader;
-    CameraState* cameraState;
     QuadRenderer* quadRenderer;
     bool showHomeScreen;
     bool showInfoScreen;
@@ -49,7 +48,7 @@ struct GameControl {
     mINI::INIStructure* iniData;
 
     GameControl(int* width, int* height, float ratio, glm::mat4* proj, ShaderProgram* sh, ShaderProgram* background,
-        CameraState* camState, QuadRenderer* quadRend, bool showHome, bool showInfo,
+        QuadRenderer* quadRend, bool showHome, bool showInfo,
         bool showCustomize, bool showAbout, ImFont* defaultF, ImFont* titleF, ImFont* attackF,
         bool boundCam, ProgramState programState, bool _debugMode, PhysicsWorld* physicsWorld)
         : windowWidth(width),
@@ -58,7 +57,6 @@ struct GameControl {
         projection(proj),
         shader(sh),
         backgroundShader(background),
-        cameraState(camState),
         quadRenderer(quadRend),
         showHomeScreen(showHome),
         showInfoScreen(showInfo),

@@ -10,18 +10,9 @@
 * Constructor.
 */
 BoundingBox::BoundingBox() :
-    min(glm::vec3(FLT_MAX)), max(glm::vec3(FLT_MIN)) {
+    min(glm::vec3(-1e6)), max(glm::vec3(1e6)) {
     setupBuffers();
 }
-
-BoundingBox::BoundingBox(float min, float max)
-        : min(glm::vec3(min)), max(glm::vec3(max)) {
-    setupBuffers();
-}
-
-/**
-* Alternate constructor.
-*/
 
 BoundingBox::BoundingBox(const glm::vec3& min, const glm::vec3& max)
         : min(min), max(max) {
@@ -95,6 +86,9 @@ glm::vec3 BoundingBox::closestPointInside(const glm::vec3& point) const {
     }
     else if (point.z > max.z) {
         adjustedPoint.z = max.z;
+    }
+    if (adjustedPoint != point) {
+        std::cout << min.x << " " << min.y << " " << min.z << " " << max.x << " " << max.y << " " << max.z << std::endl;
     }
     return adjustedPoint;
 }

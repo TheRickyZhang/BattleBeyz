@@ -57,7 +57,6 @@ int main() {
 
     auto stadiumTexture = new Texture("./assets/textures/Hexagon.jpg", "texture1");
     
-    std::cout << "HUH" << std::endl;
     /* ----------------------OBJECT SETUP-------------------------- */
 
     //setupBuffers(tetrahedronVAO, tetrahedronVBO, tetrahedronEBO, tetrahedronVertices,
@@ -84,7 +83,9 @@ int main() {
 
     // Create the Stadium object
 
+    // TODO: Why does this stadiumPosition not affect where the actual stadium rendered? (At default 0, 0, 0)
     glm::vec3 stadiumPosition = glm::vec3(0.0f, 1.0f, 0.0f);
+
     glm::vec3 stadiumColor = glm::vec3(0.2f, 0.2f, 0.2f);
     glm::vec3 ringColor = glm::vec3(1.0f, 0.0f, 0.0f);
     glm::vec3 crossColor = glm::vec3(0.0f, 0.0f, 1.0f);
@@ -106,29 +107,6 @@ int main() {
     // mesh to the BeybladdeBody constructor.
     // Also call mesh->initializeMesh() here.
 
-    //GLuint Bey1VAO = 0, Bey1VBO = 0, Bey1EBO = 0;
-    //std::string beyblade1Path = "./assets/models/TestBlade5.obj";
-    //auto meshBey1 = new BeybladeMesh(beyblade1Path, Bey1VAO, Bey1VBO, Bey1EBO, glm::vec3(1.0f, 1.0f, 1.0f));
-    //meshBey1->initializeMesh();
-
-    //// NEWMESH: TODO: remove radius and heigth from these objects, leaving just some physics coefficients.
-    //// Use default constructors for now
-    //Layer layer1;
-    //Disc disc1; 
-    //Driver driver1;
-    //auto rigidBey1 = new BeybladeBody(meshBey1, layer1, disc1, driver1);
-    //Beyblade* beyblade1 = new Beyblade(101, "Beyblade 1", rigidBey1, meshBey1);
-    //GLuint Bey2VAO = 0, Bey2VBO = 0, Bey2EBO = 0;
-    //std::string beyblade2Path = "./assets/models/TestBlade6.obj";
-    //auto meshBey2 = new BeybladeMesh(beyblade2Path, Bey2VAO, Bey2VBO, Bey2EBO, glm::vec3(1.0f, 1.0f, 1.0f));
-    //meshBey2->initializeMesh();
-    //Layer layer2;
-    //Disc disc2;
-    //Driver driver2;
-    //auto rigidBey2 = new BeybladeBody(meshBey2, layer2, disc2, driver2);
-    //Beyblade* beyblade2 = new Beyblade(102, "Beyblade 2", rigidBey2, meshBey2);
-
-
     // These might be null for now, quell errors
 
     Beyblade* beyblade1 = engine.pm.getActiveProfile()->getBeyblade(1).get();
@@ -148,6 +126,9 @@ int main() {
 
     /* ----------------------MAIN RENDERING LOOP-------------------------- */
 
+    // TODO: Move these declarations dynmically upon loading of ActiveState
+    engine.camera->setFollowingBey(beyblade1->getRigidBody());
+    engine.camera->setPanningVariables(stadium->getRigidBody());
     engine.pushState(GameStateType::LOADING);
 
     while (engine.running()) {
@@ -184,8 +165,8 @@ int main() {
 //#endif
 //
 //        // Update changing camera variables
-//        glm::vec3 cameraPos = cameraState->camera->Position;
-//        view = glm::lookAt(cameraState->camera->Position, cameraState->camera->Position + cameraState->camera->Front, cameraState->camera->Up);
+//        glm::vec3 cameraPos = camera->Position;
+//        view = glm::lookAt(camera->Position, camera->Position + camera->Front, camera->Up);
 //
 //        // Start the Dear ImGui frame
 //        ImGui_ImplOpenGL3_NewFrame();
@@ -256,22 +237,22 @@ int main() {
 //
 //            if (gameControl.debugMode) {
 //                physicsWorld->renderDebug(*objectShader);
-//                //mainCamera.body->renderDebug(*objectShader, cameraState->camera->Position);
-//                //stadium.body->renderDebug(*objectShader, cameraState->camera->Position);
+//                //mainCamera.body->renderDebug(*objectShader, camera->Position);
+//                //stadium.body->renderDebug(*objectShader, camera->Position);
 //            }
 //
 //            // TODO: Move this into info screen
 //            std::stringstream ss;
 //            ss << std::fixed << std::setprecision(1);
-//            ss << "X: " << cameraState->camera->Position.x << " "
-//                << "Y: " << cameraState->camera->Position.y << " "
-//                << "Z: " << cameraState->camera->Position.z << "   |   "
-//                << "Min" << cameraState->camera->body->boundingBoxes[0]->min.x << " " <<
-//                cameraState->camera->body->boundingBoxes[0]->min.y << " " <<
-//                cameraState->camera->body->boundingBoxes[0]->min.z << " "
-//                << "Max" << cameraState->camera->body->boundingBoxes[0]->max.x << " " <<
-//                cameraState->camera->body->boundingBoxes[0]->max.y << " " <<
-//                cameraState->camera->body->boundingBoxes[0]->max.z;
+//            ss << "X: " << camera->Position.x << " "
+//                << "Y: " << camera->Position.y << " "
+//                << "Z: " << camera->Position.z << "   |   "
+//                << "Min" << camera->body->boundingBoxes[0]->min.x << " " <<
+//                camera->body->boundingBoxes[0]->min.y << " " <<
+//                camera->body->boundingBoxes[0]->min.z << " "
+//                << "Max" << camera->body->boundingBoxes[0]->max.x << " " <<
+//                camera->body->boundingBoxes[0]->max.y << " " <<
+//                camera->body->boundingBoxes[0]->max.z;
 //            std::string cameraPosStr = ss.str();
 //            std::replace(cameraPosStr.begin(), cameraPosStr.end(), '-', ';');
 //

@@ -98,19 +98,10 @@ bool GameEngine::init(const char* title, int width, int height) {
     physicsWorld = new PhysicsWorld();
 
     // Camera and initial view initialization
-    glm::vec3 initialCameraPos(5.0f, 2.4f, 0.0f);
-    glm::vec3 lookAtPoint(0.0f, 1.0f, 0.0f);
-    glm::vec3 frontVector = glm::normalize(lookAtPoint - initialCameraPos);
-    float initialYaw = glm::degrees(std::atan2(frontVector.z, frontVector.x));
-    float initialPitch = glm::degrees(std::atan2(frontVector.y, glm::length(glm::vec2(frontVector.x, frontVector.z))));
+    glm::vec3 initialCameraPos(2.0f, 1.5f, 0.0f);
+    glm::vec3 lookAtPoint(0.0f, 0.0f, 0.0f);
 
-    Camera* mainCamera = new Camera (initialCameraPos, initialYaw, initialPitch, 0.0f, physicsWorld, BoundingBox(-30.0f, 30.0f));
-    cameraState = new CameraState(mainCamera, 400.0, 300.0); // LOOK: Are these dimensions supposed to be hardcoded?
-
-    if (cameraState->camera->position == glm::vec3(0.0f)) {
-        throw std::exception("reweaer");
-    }
-
+    camera = new Camera(initialCameraPos, lookAtPoint, physicsWorld, windowWidth / 2.0f, windowHeight / 2.0f);
 
     model = glm::mat4(1.0f);
     view = glm::lookAt(initialCameraPos, lookAtPoint, glm::vec3(0.0f, 1.0f, 0.0f));
@@ -220,6 +211,7 @@ bool GameEngine::init(const char* title, int width, int height) {
     imguiColor[2] = 0.8f;
 
     quadRenderer = new QuadRenderer();
+    messageLog = new MessageLog();
 
     isRunning = true;
     return true;
@@ -238,7 +230,7 @@ void GameEngine::initTimers() {
     timers.push_back(Timer(0.1f, true, -1.0f));
     timerCallbacks.push_back([this]() {
         std::stringstream ss;
-        ss << std::fixed << std::setprecision(1) << "X: " << cameraState->camera->position.x << " Y: " << cameraState->camera->position.y << " Z: " << cameraState->camera->position.z;
+        ss << std::fixed << std::setprecision(1) << "X: " << camera->position.x << " Y: " << camera->position.y << " Z: " << camera->position.z;
     });
 }
 
@@ -350,6 +342,9 @@ void GameEngine::draw() {
         textRenderer->renderText(coordsText, 10.0f, 20.0f, 0.5f, glm::vec3(1.0f, 1.0f, 1.0f));
     }
 
+    // Display log
+    messageLog->render();
+
     // END IMGUI FRAME: renders to screen
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -369,7 +364,7 @@ void GameEngine::cleanup() {
     delete backgroundShader;
     delete textRenderer;
     delete physicsWorld;
-    delete cameraState;
+    delete camera;
 
     delete iniData;
     delete iniFile;

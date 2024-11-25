@@ -1,5 +1,5 @@
-#include "../UI.h"
-#include "../GameEngine.h"
+#include "UI.h"
+#include "GameEngine.h"
 #include "HomeState.h"
 #include "StateIdentifiers.h"
 #include <algorithm>

@@ -18,6 +18,12 @@
 #include <stb_image.h>
 #include "Texture.h"
 
+const ImGuiWindowFlags MinimalWindow = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize; // No decorations, navigation, moving, or resizing
+const ImGuiWindowFlags OverlayWindow = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_AlwaysAutoResize; // No decorations, background, inputs; auto-resizes
+const ImGuiWindowFlags StaticWindow = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse; // Fixed position/size, no decorations, cannot move/resize/collapse
+const ImGuiWindowFlags ScrollingWindow = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_HorizontalScrollbar; // No decorations, no collapse, horizontal scrollbar
+const ImGuiWindowFlags NormalWindow = ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse; // Auto-resizes, cannot collapse
+
 // Handy general ImGui rendering functions
 void centerWrappedText(float windowCenterX, float wrapWidth, const char* text);
 void textWithLink(const char* text, const char* url);
@@ -42,6 +48,9 @@ void showHomeScreen(GLFWwindow* window, Texture& homeScreenTexture, Texture& bac
 void drawInfoScreen(GLFWwindow* window);
 void showLoadingScreen(GLFWwindow* window, Texture& backgroundTexture, const char* message = "Loading...");
 void showOptionsScreen(GLFWwindow* window);
+
+//Segments the screen nicely with fractions and 1-based indexing
+void SetWindowPositionAndSize(int numRows, int numCols, int row, int col, int rowSize = 1, int colSize = 1);
 
 static void UICustomScreenProfileSelected(int selectedItemIndex);
 static void UICustomScreenInit(GameControl* gc);

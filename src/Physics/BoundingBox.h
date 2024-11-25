@@ -18,7 +18,6 @@ public:
     GLuint VAO{}, VBO{}, EBO{};
 
     BoundingBox();
-    BoundingBox(float min, float max);
     BoundingBox(const glm::vec3& min, const glm::vec3& max);
     ~BoundingBox();
 
