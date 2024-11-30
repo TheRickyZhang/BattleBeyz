@@ -8,6 +8,7 @@
 #include <optional>
 #include <mutex>
 
+struct Layer; struct Disc; struct Driver;
 class Profile {
 public:
     static constexpr size_t MAX_BEYBLADES_PER_PROFILE = 50;
@@ -20,7 +21,7 @@ public:
     std::string getName() const { return name; }
 
     // When using a server, user serverAPI.createBeyblade(profileId, name) to create a new beyblade
-    bool createBeyblade(const std::string& name);
+    bool createBeyblade(const std::string& name, bool isTemplate=false);
     bool addBeyblade(std::shared_ptr<Beyblade> beyblade);
     bool deleteBeyblade(int beybladeId);
 

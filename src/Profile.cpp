@@ -1,7 +1,7 @@
 #include "Profile.h"
 
 // SERVER: (need globally unique beybladeIds across multiple different profiles)
-bool Profile::createBeyblade(const std::string& name) {
+bool Profile::createBeyblade(const std::string& name, bool isTemplate) {
     std::cout << "Attempting to create Beyblade: " << name << std::endl;
     std::lock_guard<std::mutex> lock(mtx);
     if (beybladesOwned.size() >= MAX_BEYBLADES_PER_PROFILE) {
@@ -15,8 +15,13 @@ bool Profile::createBeyblade(const std::string& name) {
         return false;
     }
 
-    auto beyblade = std::make_shared<Beyblade>(nextBladeID, name);
-
+    std::shared_ptr<Beyblade> beyblade;
+    if (isTemplate) {
+        beyblade = std::make_shared<Beyblade>(nextBladeID, name, true);
+    }
+    else {
+        beyblade = std::make_shared<Beyblade>(nextBladeID, name);
+    }
 
     beybladesOwned.push_back(beyblade);
     if (!activeBeybladeId.has_value()) {
@@ -69,7 +74,7 @@ bool Profile::deleteBeyblade(int beybladeId) {
 std::shared_ptr<Beyblade> Profile::getBeyblade(int beybladeId) const {
     std::lock_guard<std::mutex> lock(mtx);
     auto it = getBeybladeIterator(beybladeId);
-    for (auto bey : beybladesOwned) {
+    for (std::shared_ptr<Beyblade> bey : beybladesOwned) {
         std::cout << bey->getName() << "," << bey->getId() << " ";
     }
     std::cout << "|" << beybladeId << std::endl;

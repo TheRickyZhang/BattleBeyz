@@ -23,6 +23,7 @@ include_directories(${PROJECT_SOURCE_DIR}/lib/imgui-1.90.8)
 include_directories(${PROJECT_SOURCE_DIR}/lib/imgui-1.90.8/backends)
 
 # Include the src/ directory and all its subdirectories
+include_directories(${PROJECT_SOURCE_DIR}/assets)
 include_directories(${PROJECT_SOURCE_DIR}/src)
 include_directories(${PROJECT_SOURCE_DIR}/src/Camera)
 include_directories(${PROJECT_SOURCE_DIR}/src/GameObjects)
@@ -32,6 +33,7 @@ include_directories(${PROJECT_SOURCE_DIR}/src/Physics)
 include_directories(${PROJECT_SOURCE_DIR}/src/Rendering)
 include_directories(${PROJECT_SOURCE_DIR}/src/RigidBodies)
 include_directories(${PROJECT_SOURCE_DIR}/src/States)
+
 
 # Specify ImGui source files
 set(IMGUI_SOURCES
@@ -48,7 +50,7 @@ add_compile_definitions(_USE_MATH_DEFINES)
 add_compile_definitions(GLM_ENABLE_EXPERIMENTAL)
 
 # Add source files
-file(GLOB_RECURSE SOURCES "src/*.cpp" ${IMGUI_SOURCES})
+file(GLOB_RECURSE SOURCES "src/*.cpp" "assets/*.cpp" ${IMGUI_SOURCES})
 
 # Add GLFW
 set(GLFW_DIR ${PROJECT_SOURCE_DIR}/lib/glfw-3.4)
@@ -72,10 +74,9 @@ set(LIBS glfw glew32s ${OPENGL_LIBRARIES} freetype glu32 opengl32)
 #### file(COPY ${PROJECT_SOURCE_DIR}/assets DESTINATION ${CMAKE_BINARY_DIR})
 
 # Add our own sources
-file(GLOB_RECURSE MAIN_SOURCES src/*.cpp src/*.h)
-
+# file(GLOB_RECURSE MAIN_SOURCES src/*.cpp src/*.h)
 # Combine sources
-set(SOURCES ${MAIN_SOURCES} ${IMGUI_SOURCES})
+# set(SOURCES ${MAIN_SOURCES} ${IMGUI_SOURCES})
 
 # Create source groups to appear in our Visual Studio project.
 foreach(_source IN ITEMS ${SOURCES})

@@ -22,16 +22,31 @@
 #include <utility>
 #include <memory>
 #include <iomanip>
+#include "BeybladeTemplate.h"
+#include "Utils.h"
+#include <stdexcept>
 
-// Note this beyblade id is GLOBALLY UNIQUE
 class Beyblade {
     friend class BeybladeMesh;
     friend class BeybladeBody;
 public:
-    Beyblade(int id, const std::string& name) :
-        id(id), rigidBody(new BeybladeBody()), mesh(new BeybladeMesh()), name(name) {}
-    Beyblade(int id, std::string name, BeybladeBody* rigidBody, BeybladeMesh* mesh) :
-        id(id), name(name), rigidBody(rigidBody), mesh(mesh) {}
+    // Note this beyblade id is GLOBALLY UNIQUE
+    Beyblade(int id, const std::string& name, bool isTemplate = false) :
+        id(id), name(name), isTemplate(isTemplate) {
+        if (isTemplate) {
+            setTemplateIndices(0, 0, 0);
+            rigidBody = new BeybladeBody(templateLayers[0].part, templateDiscs[0].part, templateDrivers[0].part);
+            // TODO: Implement a combineMesh function. Requires all obj files to be standardized, centered and aligned correctly. Then combine them
+            mesh = new BeybladeMesh();
+            //mesh = combineMesh(templateLayers[0].modelPath, templateDiscs[0].modelPath, templateDrivers[0].modelPath);
+        }
+        else {
+            rigidBody = new BeybladeBody();
+            mesh = new BeybladeMesh();
+        }
+    }
+    //Beyblade(int id, std::string name, BeybladeBody* rigidBody, BeybladeMesh* mesh) :
+    //    id(id), name(name), rigidBody(rigidBody), mesh(mesh), isTemplate(true) {}
     ~Beyblade();
 
     void render(ShaderProgram& shader);
@@ -41,8 +56,18 @@ public:
     std::string setName() const { return name; }
     BeybladeBody* getRigidBody() const { return rigidBody; }
     BeybladeMesh* getMesh() const { return mesh; }
-
     void setName(const std::string& name) { Beyblade::name = name; }
+
+    void setTemplateIndices(int layer, int disc, int driver) {
+        if (!isTemplate) throw std::runtime_error("Cannot set template indices on a custom Beyblade!");
+        templateIndices[0] = layer;
+        templateIndices[1] = disc;
+        templateIndices[2] = driver;
+    }
+
+    bool isTemplate = false;
+    int templateIndices[3] = { -1, -1, -1 };  // ONLY used by templated beyblades
+
 protected:
 
 private:

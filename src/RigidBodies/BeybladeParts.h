@@ -18,6 +18,7 @@
  * RotationalDragCoefficient: dragCoefficient*averageRadiusExtending, should be between 0.001 and 0.015
  */
 struct Layer {
+    // TODO: Alter constructor to take in the mean and stddev
     Layer(double radius, double height,
         RandomDistribution* recoilDistribution,
         double coefficientOfRestitution,
@@ -33,6 +34,7 @@ struct Layer {
         rotationalDragCoefficient(rotationalDragCoefficient),
         mass(mass),
         momentOfInertia(momentOfInertia) {}
+
     Layer() : 
         radius(0.025),
         height(0.01),
@@ -41,7 +43,6 @@ struct Layer {
         mass(0.022),
         momentOfInertia(0.5 * 0.022 * 0.025 * 0.025)
 {
-        // TODO: defines recoilDistribution twice! Alter constructor to take in the mean and stddev
         recoilDistributionMean = 1.0;
         recoileDistributionStdDev = 0.1;
         recoilDistribution = new RandomDistribution(recoilDistributionMean, recoileDistributionStdDev);

@@ -1,8 +1,9 @@
 #include "CustomizeState.h"
-#include "GameEngine.h"
 #include "StateIdentifiers.h"
 #include "ProfileManager.h"
+#include "UI.h"
 
+using namespace std;
 void CustomizeState::init() {}
 
 void CustomizeState::cleanup() {}
@@ -14,36 +15,93 @@ void CustomizeState::resume() {}
 void CustomizeState::handleEvents() {}
 
 void CustomizeState::update(float deltaTime) {}
-
+// Draw Method
 void CustomizeState::draw() {
-    // Precompute values for layout
-    // Note that padding for FRAME and ITEM need to be considered
-    float windowWidth = (float)game->windowWidth;
-    float frameSpacing = ImGui::GetStyle().FramePadding.x;
-    float spacing = ImGui::GetStyle().ItemSpacing.x;
-    float leftTextWidth = std::max(ImGui::CalcTextSize("Profile").x, ImGui::CalcTextSize("Beyblade").x) + frameSpacing * 2;
+    // Precompute layout parameters
+    float windowWidth, frameSpacing, spacing, leftTextWidth;
+    float rightButton1X, rightButton2X, dropdownLeftX, dropdownWidth;
+    precomputeLayout(windowWidth, frameSpacing, spacing, leftTextWidth, rightButton1X, rightButton2X, dropdownLeftX, dropdownWidth);
+
+    // Initialize data for rendering
+    std::vector<std::shared_ptr<Profile>> profiles;
+    std::vector<std::shared_ptr<Beyblade>> beyblades;
+    shared_ptr<Beyblade> beyblade = nullptr;
+    initializeData(profiles, beyblades, beyblade);
+
+    // Cover full screen
+    SetWindowPositionAndSize(1, 1, 1, 1);
+
+    // Begin main window
+    ImGui::Begin("Customize Menu");
+
+    // Draw "Back to Home" button
+    if (ImGui::Button("Back to Home")) {
+        game->changeState(GameStateType::HOME);
+        ImGui::End();  // Ensures proper window closure
+        return;
+    }
+
+    // Draw Profile Section
+    drawProfileSection(profiles, dropdownLeftX, dropdownWidth, rightButton1X, rightButton2X);
+
+    // Draw Beyblade Section if a profile is active
+    if (game->pm.getActiveProfile()) {
+        drawBeybladeSection(beyblades, dropdownLeftX, dropdownWidth, rightButton1X, rightButton2X);
+    }
+
+    // Draw Customize Section
+    if (!beyblade->getRigidBody()) {
+        if (game->pm.getActiveProfile()) {
+            ImGui::Text("No Beyblades to Customize");
+        }
+        else {
+            ImGui::Text("Current Beyblade not selected");
+        }
+    }
+    else if (beyblade->isTemplate) {
+        drawTemplateCustomizeSection(beyblade);
+    }
+    else {
+        drawManualCustomizeSection(beyblade);
+    }
+
+    // Handle Popups
+    drawPopups();
+
+    // End main window
+    ImGui::End();
+}
+
+// Precompute layout parameters
+void CustomizeState::precomputeLayout(float& windowWidth, float& frameSpacing, float& spacing,
+    float& leftTextWidth, float& rightButton1X, float& rightButton2X,
+    float& dropdownLeftX, float& dropdownWidth) {
+    windowWidth = static_cast<float>(game->windowWidth);
+    frameSpacing = ImGui::GetStyle().FramePadding.x;
+    spacing = ImGui::GetStyle().ItemSpacing.x;
+    leftTextWidth = std::max(ImGui::CalcTextSize("Profile").x, ImGui::CalcTextSize("Beyblade").x) + frameSpacing * 2;
     float rightButton2Width = ImGui::CalcTextSize("Delete##profile").x + frameSpacing * 2;
     float rightButton1Width = ImGui::CalcTextSize("Create New").x + frameSpacing * 2;
-    float rightButton1X = windowWidth - rightButton1Width - rightButton2Width - 2*spacing;
-    float rightButton2X = windowWidth - rightButton2Width - spacing;
-    float dropdownLeftX = leftTextWidth + spacing;
+    rightButton1X = windowWidth - rightButton1Width - rightButton2Width - 2 * spacing;
+    rightButton2X = windowWidth - rightButton2Width - spacing;
+    dropdownLeftX = leftTextWidth + spacing;
     float dropdownRightEdge = rightButton1X - spacing;
-    float dropdownWidth = dropdownRightEdge - dropdownLeftX;
+    dropdownWidth = dropdownRightEdge - dropdownLeftX;
+}
 
-    // Initialization for helpful data
-    std::vector<std::shared_ptr<Profile>> profiles = game->pm.getAllProfiles();
-    std::vector<std::shared_ptr<Beyblade>> beyblades;
-    BeybladeBody* beybladeBody = nullptr;
-
+// Initialize data for rendering
+// TODO: This data only needs to be recomputed on initialization or change in dropdown selection. However the performance is not very important now
+void CustomizeState::initializeData(std::vector<std::shared_ptr<Profile>>& profiles,
+    std::vector<std::shared_ptr<Beyblade>>& beyblades,
+    shared_ptr<Beyblade>& beyblade) {
+    profiles = game->pm.getAllProfiles();
     auto activeProfile = game->pm.getActiveProfile();
     if (activeProfile) {
-        //currentProfileName = activeProfile->getName().c_str();
         beyblades = activeProfile->getAllBeyblades();
         currentProfileName = activeProfile->getName();
         if (!beyblades.empty()) {
-            auto activeBeyblade = activeProfile->getActiveBeyblade();
-            beybladeBody = activeBeyblade->getRigidBody();
-            currentBeybladeName = activeBeyblade->getName();
+            beyblade = activeProfile->getActiveBeyblade();
+            currentBeybladeName = beyblade->getName();
         }
         else {
             currentBeybladeName = "No Beyblade Selected";
@@ -52,33 +110,23 @@ void CustomizeState::draw() {
     else {
         currentProfileName = "No Profile Selected";
     }
+}
 
-    // 2024-11-18 std::cout << int(currentPopup) << std::endl;
-
-    // Cover full screen
-    ImGui::SetNextWindowPos(ImVec2(0, 0));
-    ImGui::SetNextWindowSize(ImGui::GetIO().DisplaySize);
-
-    // Line 1
-    ImGui::Begin("Customize Menu");
-    if (ImGui::Button("Back to Home")) {
-        game->changeState(GameStateType::HOME);
-        ImGui::End();  // 2024-11-03 Added these two lines, fixes crash problem.
-        return;
-    }
-
+// Draw Profile Section
+void CustomizeState::drawProfileSection(const std::vector<std::shared_ptr<Profile>>& profiles,
+    float dropdownLeftX, float dropdownWidth, float rightButton1X, float rightButton2X) {
     // Line 2: [Profile] <{Profile Dropdown}...> [Create New] [Delete]
     ImGui::Text("Profile");
     ImGui::SameLine();
     ImGui::SetCursorPosX(dropdownLeftX);
     ImGui::SetNextItemWidth(dropdownWidth);
     if (ImGui::BeginCombo("##ProfileCombo", currentProfileName.c_str())) {
-        for (auto& profile : profiles) {
+        for (const auto& profile : profiles) {
             bool isSelected = (game->pm.getActiveProfile() == profile);
             if (ImGui::Selectable(profile->getName().c_str(), isSelected)) {
                 game->pm.setActiveProfile(profile->getId());
                 currentProfileName = profile->getName();
-                prevbladeBody = nullptr;  // 2024-11-18 On next draw, fill in the values for this blade.
+                prevbladeBody = nullptr;  // Refresh beyblade data on next draw
             }
             if (isSelected) {
                 ImGui::SetItemDefaultFocus();
@@ -86,109 +134,212 @@ void CustomizeState::draw() {
         }
         ImGui::EndCombo();
     }
+
+    // Create New Profile Button
     ImGui::SameLine();
     ImGui::SetCursorPosX(rightButton1X);
     if (ImGui::Button("Create New##profile")) {
         currentPopup = PopupState::NEW_PROFILE;
         ImGui::OpenPopup("New Profile");
     }
+
+    // Delete Profile Button
     ImGui::SameLine();
     ImGui::SetCursorPosX(rightButton2X);
     if (ImGui::Button("Delete##profile")) {
         currentPopup = PopupState::DELETE_PROFILE;
         ImGui::OpenPopup("Confirm Profile Deletion");
     }
+}
 
+// Draw Beyblade Section
+void CustomizeState::drawBeybladeSection(const std::vector<std::shared_ptr<Beyblade>>& beyblades,
+    float dropdownLeftX, float dropdownWidth,
+    float rightButton1X, float rightButton2X) {
     // Line 3: [Beyblade] <{Beyblade Dropdown}...> [Create New] [Delete]
-    if (game->pm.getActiveProfile()) {
-        ImGui::Text("Beyblade");
-        ImGui::SameLine();
-        ImGui::SetCursorPosX(dropdownLeftX);
-        ImGui::SetNextItemWidth(dropdownWidth);
-        if (ImGui::BeginCombo("##BeybladeCombo", currentBeybladeName.c_str())) {
-            for (const auto& beyblade : beyblades) {
-                bool isSelected = (beyblade == activeProfile->getActiveBeyblade());
-                if (ImGui::Selectable(beyblade->getName().c_str(), isSelected)) {
-                    activeProfile->setActiveBeyblade(beyblade->getId());
-                    currentBeybladeName = beyblade->getName();
-                }
-                if (isSelected) {
-                    ImGui::SetItemDefaultFocus();
-                }
+    ImGui::Text("Beyblade");
+    ImGui::SameLine();
+    ImGui::SetCursorPosX(dropdownLeftX);
+    ImGui::SetNextItemWidth(dropdownWidth);
+    if (ImGui::BeginCombo("##BeybladeCombo", currentBeybladeName.c_str())) {
+        for (const auto& beyblade : beyblades) {
+            bool isSelected = (beyblade == game->pm.getActiveProfile()->getActiveBeyblade());
+            if (ImGui::Selectable(beyblade->getName().c_str(), isSelected)) {
+                game->pm.getActiveProfile()->setActiveBeyblade(beyblade->getId());
+                currentBeybladeName = beyblade->getName();
             }
-            ImGui::EndCombo();
+            if (isSelected) {
+                ImGui::SetItemDefaultFocus();
+            }
         }
-        ImGui::SameLine();
-        ImGui::SetCursorPosX(rightButton1X);
-        if (ImGui::Button("Create New##blade")) {
-            currentPopup = PopupState::NEW_BEYBLADE;
-            ImGui::OpenPopup("New Beyblade");
-        }
-        ImGui::SameLine();
-        ImGui::SetCursorPosX(rightButton2X);
-        if (ImGui::Button("Delete##blade")) {
-            currentPopup = PopupState::DELETE_BEYBLADE;
-            ImGui::OpenPopup("Confirm Beyblade Deletion");
-        }
+        ImGui::EndCombo();
     }
-       
-    // Line 4: Customize Your Beyblade || No Beyblades To Customize || Current Beyblade Not Selected
-    if (beyblades.empty()) {
-        ImGui::Text("No Beyblades to Customize");
-        ImGui::End();
-        return;
+
+    // Create New Beyblade Button
+    ImGui::SameLine();
+    ImGui::SetCursorPosX(rightButton1X);
+    if (ImGui::Button("Create New##blade")) {
+        currentPopup = PopupState::NEW_BEYBLADE;
+        ImGui::OpenPopup("New Beyblade");
     }
-    if (currentBeybladeName.empty()) {
-        ImGui::Text("Current Beyblade not selected");
-        ImGui::End();
-        return;
+
+    // Delete Beyblade Button
+    ImGui::SameLine();
+    ImGui::SetCursorPosX(rightButton2X);
+    if (ImGui::Button("Delete##blade")) {
+        currentPopup = PopupState::DELETE_BEYBLADE;
+        ImGui::OpenPopup("Confirm Beyblade Deletion");
     }
+}
+
+// Line 4: Customize Your Beyblade || No Beyblades To Customize || Current Beyblade Not Selected
+void CustomizeState::drawManualCustomizeSection(shared_ptr<Beyblade> beyblade) {
+    BeybladeBody* beybladeBody = beyblade->getRigidBody();
+
     ImGui::Text("Customize Your Beyblade");
-
-    // 2024-11-18 TODO:
-    //      UI Controls should be set the the current value at initial display and when you change blades.
-    //      Need to update total mass, too (see below).
-    //      "Reset" button is weird.  It sets the value to the current value. Maybe ok if we do above.
-    //      Don't use "^" in text -- it is not in the font.  Use m**2 instead of m^2.
-
-    if (beybladeBody != nullptr && beybladeBody != prevbladeBody) {  // 2024-11-18 Set display values to the live values.
-        tempLayerMass = (float)beybladeBody->getLayerMass();  // 2024-11-18
-        tempLayerMOI = (float)beybladeBody->getLayerMomentOfInertia();
-        tempDriverCOF = (float)beybladeBody->getDriverCOF();
+    // Update temporary variables if beyblade has changed
+    if (beybladeBody != prevbladeBody) {
+        tempLayerMass = static_cast<float>(beybladeBody->getLayerMass());
+        tempLayerMOI = static_cast<float>(beybladeBody->getLayerMomentOfInertia());
+        tempDriverCOF = static_cast<float>(beybladeBody->getDriverCOF());
         prevbladeBody = beybladeBody;
     }
 
-    // Lines 5-(n-1): Sliders for adjusting variables
+    // Line 5-(n-1): Sliders for Adjusting Variables
     ImGui::SliderFloat("Layer Mass (kg)", &tempLayerMass, 0.010f, 0.099f, "%.3f");
-    ImGui::SliderFloat("Layer Moment of Inertia (kg/m**2)", &tempLayerMOI, 0.000003f, 0.000016f, "%.9f");  // 2024-11-18 "^" is not in the font.
+    ImGui::SliderFloat("Layer Moment of Inertia (kg/m**2)", &tempLayerMOI, 0.000003f, 0.000016f, "%.9f");
     ImGui::SliderFloat("Driver Coefficient of Friction", &tempDriverCOF, 0.1f, 0.6f, "%.3f");
 
-    // Line n: [Update]      [Reset]
+    // Line n: Update and Reset Buttons
     if (ImGui::Button("Update")) {
-        if (beybladeBody != nullptr) {  // 2024-11018
-            beybladeBody->setLayerMass(tempLayerMass); // 2024-11-18 TODO: Make this automatically update total mass??
-            beybladeBody->setMass(tempLayerMass + beybladeBody->getDiscMass() + beybladeBody->getDriverMass());  // 2024-11-18 Update total mass, too.
+        if (beybladeBody != nullptr) {
+            beybladeBody->setLayerMass(tempLayerMass);
+            beybladeBody->setMass(tempLayerMass + beybladeBody->getDiscMass() + beybladeBody->getDriverMass());
             beybladeBody->setLayerMomentOfInertia(tempLayerMOI);
             beybladeBody->setDriverCOF(tempDriverCOF);
         }
     }
     ImGui::SameLine();
-    ImGui::SetCursorPosX(ImGui::CalcTextSize("Update").x + 2*spacing + 2*frameSpacing);
+    float updateButtonWidth = ImGui::CalcTextSize("Update").x + 2 * ImGui::GetStyle().ItemSpacing.x + 2 * ImGui::GetStyle().FramePadding.x;
+    ImGui::SetCursorPosX(ImGui::GetCursorPosX() + updateButtonWidth);
     if (ImGui::Button("Reset")) {
-        if (beybladeBody != nullptr) {  // 2024-11018
-            tempLayerMass = (float)beybladeBody->getLayerMass();
-            tempLayerMOI = (float)beybladeBody->getLayerMomentOfInertia();
-            tempDriverCOF = (float)beybladeBody->getDriverCOF();
+        if (beybladeBody != nullptr) {
+            tempLayerMass = static_cast<float>(beybladeBody->getLayerMass());
+            tempLayerMOI = static_cast<float>(beybladeBody->getLayerMomentOfInertia());
+            tempDriverCOF = static_cast<float>(beybladeBody->getDriverCOF());
+        }
+    }
+}
+
+void CustomizeState::drawTemplateCustomizeSection(shared_ptr<Beyblade> beyblade) {
+    ImGui::Text("Choose your parts (Layer, Disc, Driver)");
+    /*
+    *  Layer  |  Info
+    *  Disc   |  Info
+    *  Driver |  Info
+    */
+    ImGui::Columns(2, nullptr, true);
+
+    ImGui::BeginChild("SelectionColumn", ImVec2(0, 0), true);
+    ImGui::Text("Select Parts");
+    // **Layer, Disc, Driver Selection**
+    if (ImGui::CollapsingHeader("Layers")) {
+        for (int i = 0; i < templateLayers.size(); ++i) {
+            bool isSelected = (tempSelectedLayer == i);
+            if (ImGui::Selectable((templateLayers[i].name + "##layer" + std::to_string(i)).c_str(), isSelected)) {
+                tempSelectedLayer = i;
+            }
+        }
+    }
+    if (ImGui::CollapsingHeader("Discs")) {
+        for (int i = 0; i < templateDiscs.size(); ++i) {
+            bool isSelected = (tempSelectedDisc == i);
+            if (ImGui::Selectable((templateDiscs[i].name + "##disc" + std::to_string(i)).c_str(), isSelected)) {
+                tempSelectedDisc = i;
+            }
+        }
+    }
+    if (ImGui::CollapsingHeader("Drivers")) {
+        for (size_t i = 0; i < templateDrivers.size(); ++i) {
+            bool isSelected = (tempSelectedDriver == i);
+            if (ImGui::Selectable((templateDrivers[i].name + "##driver" + std::to_string(i)).c_str(), isSelected)) {
+                tempSelectedDriver = i;
+            }
+        }
+    }
+    ImGui::EndChild();
+
+    ImGui::NextColumn();
+    ImGui::BeginChild("InfoColumn", ImVec2(0, 0), true);
+    ImGui::Text("Part Details");
+
+    // **Display Layer, Disc, Driver Details**
+    if (tempSelectedLayer >= 0 && tempSelectedLayer < static_cast<int>(templateLayers.size())) {
+        const auto& layer = templateLayers[tempSelectedLayer].part;
+        ImGui::Separator();
+        ImGui::Text("Name: %s", templateLayers[tempSelectedLayer].name.c_str());
+        ImGui::Text("Model Path: %s", templateLayers[tempSelectedLayer].modelPath.c_str());
+        ImGui::Text("Mass: %.3f kg", layer.mass);
+    }
+    if (tempSelectedDisc >= 0 && tempSelectedDisc < static_cast<int>(templateDiscs.size())) {
+        const auto& disc = templateDiscs[tempSelectedDisc].part;
+        ImGui::Separator();
+        ImGui::Text("Name: %s", templateDiscs[tempSelectedDisc].name.c_str());
+        ImGui::Text("Model Path: %s", templateDiscs[tempSelectedDisc].modelPath.c_str());
+        ImGui::Text("Mass: %.3f kg", disc.mass);
+    }
+    if (tempSelectedDriver >= 0 && tempSelectedDriver < static_cast<int>(templateDrivers.size())) {
+        const auto& driver = templateDrivers[tempSelectedDriver].part;
+        ImGui::Separator();
+        ImGui::Text("Name: %s", templateDrivers[tempSelectedDriver].name.c_str());
+        ImGui::Text("Model Path: %s", templateDrivers[tempSelectedDriver].modelPath.c_str());
+        ImGui::Text("Mass: %.3f kg", driver.mass);
+    }
+
+    ImGui::EndChild();
+
+    // **Update and Reset Buttons**
+    ImGui::Columns(1); // Reset to single column
+    if (ImGui::Button("Update")) {
+        // Validate selections
+        if (tempSelectedLayer >= 0 && tempSelectedLayer < static_cast<int>(templateLayers.size()) &&
+            tempSelectedDisc >= 0 && tempSelectedDisc < static_cast<int>(templateDiscs.size()) &&
+            tempSelectedDriver >= 0 && tempSelectedDriver < static_cast<int>(templateDrivers.size())) {
+
+            // Update Beyblade's template indices
+            beyblade->templateIndices[0] = tempSelectedLayer;
+            beyblade->templateIndices[1] = tempSelectedDisc;
+            beyblade->templateIndices[2] = tempSelectedDriver;
+
+            // TODO: Update Body and Mesh based on newly selected parts
+            // beyblade->update(tempSelectedLayer, tempSelectedDisc, tempSelectedDriver)
+
+            ImGui::TextColored(ImVec4(0, 1, 0, 1), "Beyblade updated successfully!");
+        }
+        else {
+            ImGui::TextColored(ImVec4(1, 0, 0, 1), "Invalid selection! Please choose valid parts.");
         }
     }
 
-    // Open popups based on currentPopup
+    ImGui::SameLine();
+
+    if (ImGui::Button("Reset")) {
+        tempSelectedLayer = beyblade->templateIndices[0];
+        tempSelectedDisc = beyblade->templateIndices[1];
+        tempSelectedDriver = beyblade->templateIndices[2];
+        ImGui::TextColored(ImVec4(0, 1, 0, 1), "Selections and properties have been reset.");
+    }
+}
+
+// Draw Popups
+void CustomizeState::drawPopups() {
+    // New Profile Popup
     if (currentPopup == PopupState::NEW_PROFILE && ImGui::BeginPopupModal("New Profile", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
-        ImGui::OpenPopup("New Profile");
         ImGui::InputText("##ProfileName", newProfileName, IM_ARRAYSIZE(newProfileName));
+
         if (ImGui::Button("Submit")) {
-            game->pm.createProfile(newProfileName);  // Use createProfile to handle profile creation
-            game->pm.setActiveProfile(game->pm.getAllProfiles().back()->getId());  // Set the last profile created as active
+            game->pm.createProfile(newProfileName);
+            game->pm.setActiveProfile(game->pm.getAllProfiles().back()->getId());
             newProfileName[0] = '\0';
             currentPopup = PopupState::NONE;
             ImGui::CloseCurrentPopup();
@@ -202,15 +353,30 @@ void CustomizeState::draw() {
         ImGui::EndPopup();
     }
 
+    // New Beyblade Popup
     if (currentPopup == PopupState::NEW_BEYBLADE && ImGui::BeginPopupModal("New Beyblade", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
-        ImGui::OpenPopup("New Beyblade");
+        ImGui::Text("Choose your type");
+        if (ImGui::RadioButton("Manual", !isTemplate)) {
+            isTemplate = false;
+        }
+        if (ImGui::RadioButton("Template", isTemplate)) {
+            isTemplate = true;
+        }
+
         ImGui::Text("Enter a name for the new Beyblade:");
         ImGui::InputText("##BeybladeName", newBeybladeName, IM_ARRAYSIZE(newBeybladeName));
-        std::string beybladeNameStr(newBeybladeName);
         if (ImGui::Button("Submit")) {
-            // Add the new beyblade to the active profile and set it as selected
-            activeProfile->createBeyblade(beybladeNameStr);
-            activeProfile->setActiveBeyblade(activeProfile->getAllBeyblades().back()->getId());  // Set last beyblade as active
+            std::string beybladeNameStr(newBeybladeName);
+
+            if (auto activeProfile = game->pm.getActiveProfile()) {
+                if (isTemplate) {
+                    activeProfile->createBeyblade(beybladeNameStr, true);
+                }
+                else {
+                    activeProfile->createBeyblade(beybladeNameStr);
+                }
+                activeProfile->setActiveBeyblade(activeProfile->getAllBeyblades().back()->getId());
+            }
             newBeybladeName[0] = '\0';
             currentPopup = PopupState::NONE;
             ImGui::CloseCurrentPopup();
@@ -224,9 +390,8 @@ void CustomizeState::draw() {
         ImGui::EndPopup();
     }
 
-    // Confirmation Popup for deleting a profile
+    // Confirm Profile Deletion Popup
     if (currentPopup == PopupState::DELETE_PROFILE && ImGui::BeginPopupModal("Confirm Profile Deletion", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
-        ImGui::OpenPopup("Delete Profile");
         ImGui::Text("Are you sure you want to delete the profile: %s", currentProfileName.c_str());
         if (ImGui::Button("Yes")) {
             if (!game->pm.deleteProfile(game->pm.getActiveProfile()->getId())) {
@@ -243,9 +408,8 @@ void CustomizeState::draw() {
         ImGui::EndPopup();
     }
 
-    // Confirmation Popup for deleting a beyblade
+    // Confirm Beyblade Deletion Popup
     if (currentPopup == PopupState::DELETE_BEYBLADE && ImGui::BeginPopupModal("Confirm Beyblade Deletion", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
-        ImGui::OpenPopup("Delete Beyblade");
         if (auto activeProfile = game->pm.getActiveProfile()) {
             ImGui::Text("Are you sure you want to delete the Beyblade: %s", currentBeybladeName.c_str());
             if (ImGui::Button("Yes")) {
@@ -263,7 +427,4 @@ void CustomizeState::draw() {
         }
         ImGui::EndPopup();
     }
-
-
-    ImGui::End();
 }
