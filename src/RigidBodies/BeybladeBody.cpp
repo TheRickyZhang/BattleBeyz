@@ -76,11 +76,34 @@ glm::vec3 BeybladeBody::getBottomPosition() const {
     return bottomPosition;
 }
 
+/**
+* Reset physics data before start of new game.
+*/
+
+void BeybladeBody::resetPhysics()
+{
+    // Added 2024-11-18
+    baseCenter = _initialBaseCenter;
+    velocity = _initialVelocity;
+    angularVelocity = _initialAngularVelocity;
+
+    glm::vec3 zeroes{ 0 };
+    accumulatedAcceleration = zeroes;
+    accumulatedAngularAcceleration = zeroes;
+    accumulatedVelocity = zeroes;
+}
+
 void BeybladeBody::setInitialLaunch(glm::vec3 initialCenter, glm::vec3 initialVelocity, glm::vec3 initialAngularVelocity)
 {
     baseCenter = initialCenter;
     velocity = initialVelocity;
     angularVelocity = initialAngularVelocity;
+
+    // Save some values for restart.  2024-11-18
+
+    _initialBaseCenter = baseCenter;
+    _initialVelocity = velocity;
+    _initialAngularVelocity = angularVelocity;
 }
 
 // IMPROVE: Gets rough bounding box based on current dimensions

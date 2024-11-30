@@ -64,7 +64,15 @@ void ActiveState::init()
     //beyblade1->getRigidBody()->setInitialLaunch(initialPosition1, initialVelocity1, initialAngularVelocity);
     //beyblade2->getRigidBody()->setInitialLaunch(initialPosition2, initialVelocity2, initialAngularVelocity);
 
-    beyblades.push_back(beyblade1);
+    // 2024-11-18. Reset various things before [re]starting the game.
+
+    physicsWorld->resetPhysics();
+    beyblades.clear();
+
+    beyblade1->getRigidBody()->resetPhysics();
+    beyblade2->getRigidBody()->resetPhysics();
+
+    beyblades.push_back(beyblade1);  // TODO: 2024-11-18.  Is the extra vector really necessary?
     beyblades.push_back(beyblade2);
 
     for (Stadium* stadium : stadiums) physicsWorld->addStadium(stadium);

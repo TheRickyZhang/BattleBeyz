@@ -26,6 +26,11 @@ public:
     void removeBeyblade(Beyblade* body);
     void removeStadium(Stadium* body);
 
+    void resetPhysics() { // 2024-11-18.  Clear before game restart.
+        beyblades.clear();
+        stadiums.clear();
+    };
+
     void update(float deltaTime);
     void renderDebug(ShaderProgram &shader) const;
 #if 0

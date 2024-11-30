@@ -70,6 +70,7 @@ public:
 	BoundingBox getBoundingBox() const;
 
 	// Setters  // NEWUI adds several members.
+	void resetPhysics(); // 2024-11-18
 	void setInitialLaunch(glm::vec3 initialCenter, glm::vec3 initialVelocity, glm::vec3 initialAngularVelocity);
 	void setDiscMass(double _mass) { disc.mass = _mass; }
 	void setDiscMomentOfInertia(double _moi) { disc.momentOfInertia = _moi; }
@@ -115,7 +116,8 @@ public:
 	std::vector<BoundingBox*> boundingBoxes{};
 private:
 	// Global Position
-	glm::vec3 baseCenter{};
+	glm::vec3 baseCenter {};
+	glm::vec3 _initialBaseCenter;  // 2024-11-18 Saved for use by restart
 
 	// Parts - Access individual variables through these!
 	Disc disc;
@@ -124,13 +126,17 @@ private:
 
 	// Linear Physics
 	double mass;
-	glm::vec3 velocity{};
-	glm::vec3 acceleration{};
+	glm::vec3 velocity {};
+	glm::vec3 _initialVelocity;  // 2024-11-18 Saved for use by restart
+
+	glm::vec3 acceleration {};
 
 	// Rotational Physics
 	double momentOfInertia;  // This is the total for all parts
 	glm::vec3 angularVelocity{ 0.0, 1.0, 0.0 };
-	glm::vec3 angularAcceleration{};
+	glm::vec3 _initialAngularVelocity;  // 2024-11-18 Saved for use by restart
+
+	glm::vec3 angularAcceleration {};
 	double linearDragTerm; // Sum of Cd*A for parts 
 	double angularDragTerm; // Sum of Cd*A*r^2 for parts
 
