@@ -11,6 +11,7 @@ void ActiveState::init()
 
     PhysicsWorld* physicsWorld = game->physicsWorld;
 
+    // TODO: Use quadrender instead
     floor = new QuadRenderer(100.0f);
     //GLuint floorVAO, floorVBO, floorEBO; // TOLOOK: Make infinite? Like pass in world position and calculate positioning dynamically in the shader
     float floorVertices[] = {
@@ -29,6 +30,7 @@ void ActiveState::init()
     // TODO: this should add stadiums dynamically in future, but use default single one for now
     StadiumBody* rigidBody = new StadiumBody();
     StadiumMesh* stadiumMesh = new StadiumMesh();
+    rigidBody->center = glm::vec3(0.0f, 2.0f, 0.0f);
     Stadium* stadium1 = new Stadium(rigidBody, stadiumMesh, "Stadium 1");
     stadiums.push_back(stadium1);
 

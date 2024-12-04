@@ -74,7 +74,8 @@ void Camera::update(float deltaTime) {
             std::cout << "Uninitialized Bey" << std::endl;
         }
         else {
-            position = followingBey->getCenter() + heightAbove;
+            position = followingBey->getCenter();
+            position.y += heightAbove;
         }
     }
     else if (activeMode == CameraMode::PANNING) {
