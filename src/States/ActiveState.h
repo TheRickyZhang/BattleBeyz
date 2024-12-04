@@ -3,6 +3,7 @@
 #include "GameState.h"
 #include "Stadium.h"
 #include "Beyblade.h"
+#include "QuadRenderer.h"
 
 class ActiveState : public GameState {
 public:
@@ -26,6 +27,7 @@ private:
     float imguiColor[3] = { 0.45f, 0.55f, 0.60f };
 
     GLuint floorVAO, floorVBO, floorEBO; // TODO: floor class? Right now assum only one floor;
+    QuadRenderer* floor{};
     std::vector<Stadium*> stadiums;
     std::vector<Beyblade*> beyblades;
 

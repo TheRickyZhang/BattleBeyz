@@ -11,7 +11,7 @@ void ActiveState::init()
 
     PhysicsWorld* physicsWorld = game->physicsWorld;
 
-    // Initialize objects for the physics world
+    floor = new QuadRenderer(100.0f);
     //GLuint floorVAO, floorVBO, floorEBO; // TOLOOK: Make infinite? Like pass in world position and calculate positioning dynamically in the shader
     float floorVertices[] = {
         // Positions        // Normals       // TexCoords // Colors
@@ -20,14 +20,11 @@ void ActiveState::init()
         30.0f, 0.0f,  30.0f, 0.0f, 1.0f, 0.0f, 4.0f, 4.0f, 0.5f, 0.5f, 0.5f,
         -30.0f, 0.0f,  30.0f, 0.0f, 1.0f, 0.0f, 0.0f, 4.0f, 0.5f, 0.5f, 0.5f,
     };
-
     unsigned int floorIndices[] = {
             0, 1, 2,
             2, 3, 0
     };
     setupBuffers(floorVAO, floorVBO, floorEBO, floorVertices, sizeof(floorVertices), floorIndices, sizeof(floorIndices));
-
-    GLuint stadiumVAO = 0, stadiumVBO = 0, stadiumEBO = 0;
 
     // TODO: this should add stadiums dynamically in future, but use default single one for now
     StadiumBody* rigidBody = new StadiumBody();
@@ -40,32 +37,12 @@ void ActiveState::init()
     // NEWMESH: remove radius and heigth from these objects, leaving just some physics coefficients.
     // TODO: Ensure that the VAOs / VBOs are handled withing the mesh objects properly (ex we can probably remove passing in 0 parameters)
 
-    //std::string beyblade1Path = "./assets/models/TestBlade5.obj";
-    //auto meshBey1 = new BeybladeMesh(beyblade1Path, 0, 0, 0, vec3(1.0f, 1.0f, 1.0f));
-    //Layer layer1; Disc disc1; Driver driver1;
-    //auto rigidBey1 = new BeybladeBody(meshBey1, layer1, disc1, driver1);
-    //Beyblade* beyblade1 = new Beyblade(101, "Beyblade 1", rigidBey1, meshBey1);
-
-    //std::string beyblade2Path = "./assets/models/TestBlade6.obj";
-    //auto meshBey2 = new BeybladeMesh(beyblade2Path, 0, 0, 0, vec3(1.0f, 1.0f, 1.0f));
-    //Layer layer2; Disc disc2; Driver driver2;
-    //auto rigidBey2 = new BeybladeBody(meshBey2, layer2, disc2, driver2);
-    //Beyblade* beyblade2 = new Beyblade(102, "Beyblade 2", rigidBey2, meshBey2);
-
     // These might be null for now, quell errors
     Beyblade* beyblade1 = game->pm.getActiveProfile()->getBeyblade(1).get();
     Beyblade* beyblade2 = game->pm.getActiveProfile()->getBeyblade(2).get();
 
-    //vec3 initialPosition1 = vec3(0.0f, 2.0f, 0.5f);
-    //vec initialPosition2 = vec3(0.0f, 2.0f, -0.5f);
-    //vec3 initialVelocity1 = vec3(0.0f, 0.0f, -0.2f);
-    //vec3 initialVelocity2 = vec3(0.2f, 0.0f, 0.1f);
-    //vec3 initialAngularVelocity = vec3(0.0f, -450.0f, 0.0f);
-    //beyblade1->getRigidBody()->setInitialLaunch(initialPosition1, initialVelocity1, initialAngularVelocity);
-    //beyblade2->getRigidBody()->setInitialLaunch(initialPosition2, initialVelocity2, initialAngularVelocity);
-
     // 2024-11-18. Reset various things before [re]starting the game.
-
+    // TODO: Screen to modify initial conditions (launch location, angle, speed) beforehand so resetPhysics() works
     physicsWorld->resetPhysics();
     beyblades.clear();
 
@@ -77,10 +54,14 @@ void ActiveState::init()
 
     for (Stadium* stadium : stadiums) physicsWorld->addStadium(stadium);
     for (Beyblade* beyblade : beyblades) physicsWorld->addBeyblade(beyblade);
+
+    if(!beyblades.empty()) game->camera->setFollowingBey(beyblades[0]->getRigidBody());
+    if(!stadiums.empty()) game->camera->setPanningVariables(stadiums[0]->getRigidBody());
 }
 
 void ActiveState::cleanup()
 {
+    delete floor;
 }
 
 void ActiveState::pause() {}
@@ -182,9 +163,11 @@ void ActiveState::draw() {
     tm.getTexture("floor")->use(); // SHould use texture, used to be small hexagon pattern
     glBindVertexArray(floorVAO);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+    //floor->render();
 
     // update and render the stadium (uses this texture)
-    for(auto stadium : stadiums) stadium->render(*objectShader);  // render(shader, light color=white, light position)
+    for(auto stadium : stadiums) stadium->render(*objectShader);
+
     for (auto beyblade : beyblades) beyblade->render(*objectShader);
 
     // Render the position

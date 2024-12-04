@@ -30,7 +30,7 @@ public:
 
     // Default parameters: 1.2 meters radius is quite large
 	StadiumBody::StadiumBody() :
-        center(glm::vec3(0.0)), radius(1.2f), curvature(0.10), scaledCurvature(0.10/1.2), coefficientOfFriction(0.35) {}
+        center(glm::vec3(0.0f, 0.0f, 0.0f)), radius(1.2f), curvature(0.10), scaledCurvature(0.10/1.2), coefficientOfFriction(0.35) {}
 
 	bool isInside(double x, double z) const;
 	const double getRadius() const { return radius; }

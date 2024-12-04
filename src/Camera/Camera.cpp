@@ -20,7 +20,7 @@ Camera::Camera(const vec3& pos, const vec3& viewPoint, PhysicsWorld* world, doub
 }
 
 void Camera::setPanningVariables(StadiumBody* stadiumBody) {
-    radius = 1.5f * stadiumBody->getRadius();
+    radius = 1.5f * (float)stadiumBody->getRadius();
     viewCenter = stadiumBody->getCenter();
     rotationCenter = viewCenter; rotationCenter.y += stadiumBody->getYLocal(radius) + heightAbove;
     currentAngle = 0;
@@ -73,7 +73,9 @@ void Camera::update(float deltaTime) {
         if (followingBey == nullptr) {
             std::cout << "Uninitialized Bey" << std::endl;
         }
-        position = followingBey->getCenter() + heightAbove;
+        else {
+            position = followingBey->getCenter() + heightAbove;
+        }
     }
     else if (activeMode == CameraMode::PANNING) {
         // Update position

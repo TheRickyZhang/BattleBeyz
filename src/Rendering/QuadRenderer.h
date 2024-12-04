@@ -9,10 +9,8 @@
 
 class QuadRenderer {
 public:
-    QuadRenderer();
+    QuadRenderer(float vecScale = 1.0f);
     ~QuadRenderer();
-
-    void setup();
     void render() const;
 
 private:

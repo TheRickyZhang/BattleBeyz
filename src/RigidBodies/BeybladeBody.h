@@ -112,8 +112,15 @@ public:
 	// Updators: these are the ones that significantly change the values of the body!
 	void applyAccumulatedChanges(double deltaTime);
 	void update(double deltaTime);
-
 	std::vector<BoundingBox*> boundingBoxes{};
+
+	bool getModified() {  // 2024-12-03 for UI interactions
+		return modified;
+	}
+	void setModified(bool _modified = true) {  // 2024-12-03 for UI interaction
+		modified = _modified;
+	}
+
 private:
 	// Global Position
 	glm::vec3 baseCenter {};
@@ -147,4 +154,6 @@ private:
 	// Accumulated delta Acceleration to be applied at cycle end (for forces like friction and inclined plane that do depend on time)
 	glm::vec3 accumulatedAcceleration {};
 	glm::vec3 accumulatedAngularAcceleration{};
+
+	bool modified;							// 2024-12-03 Settings modified in customzation screen.
 };

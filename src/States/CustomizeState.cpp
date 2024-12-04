@@ -206,19 +206,45 @@ void CustomizeState::drawManualCustomizeSection(shared_ptr<Beyblade> beyblade) {
     }
 
     // Line 5-(n-1): Sliders for Adjusting Variables
-    ImGui::SliderFloat("Layer Mass (kg)", &tempLayerMass, 0.010f, 0.099f, "%.3f");
-    ImGui::SliderFloat("Layer Moment of Inertia (kg/m**2)", &tempLayerMOI, 0.000003f, 0.000016f, "%.9f");
-    ImGui::SliderFloat("Driver Coefficient of Friction", &tempDriverCOF, 0.1f, 0.6f, "%.3f");
+    //
+    // 2024-12-03 Catch when value changes
+
+    if (ImGui::SliderFloat("Layer Mass (kg)", &tempLayerMass, 0.010f, 0.099f, "%.3f")) {
+        if (beybladeBody) {
+            beybladeBody->setModified();
+        }
+    };
+    if (ImGui::SliderFloat("Layer Moment of Inertia (kg/m**2)", &tempLayerMOI, 0.000003f, 0.000016f, "%.9f")) {
+        if (beybladeBody) {
+            beybladeBody->setModified();
+        }
+    }
+    if (ImGui::SliderFloat("Driver Coefficient of Friction", &tempDriverCOF, 0.1f, 0.6f, "%.3f")) {
+        if (beybladeBody) {
+            beybladeBody->setModified();
+        }
+    }
 
     // Line n: Update and Reset Buttons
+
+    const ImVec4& buttonModified = ImVec4(0.6f, 0.0f, 0.0f, 1.0f);  // 2024-12-03 Show Update button in red if blade has been changed
+    bool modified = beybladeBody->getModified();
+    if (modified) {
+        ImGui::PushStyleColor(ImGuiCol_Button, buttonModified);
+    }
     if (ImGui::Button("Update")) {
         if (beybladeBody != nullptr) {
             beybladeBody->setLayerMass(tempLayerMass);
             beybladeBody->setMass(tempLayerMass + beybladeBody->getDiscMass() + beybladeBody->getDriverMass());
             beybladeBody->setLayerMomentOfInertia(tempLayerMOI);
             beybladeBody->setDriverCOF(tempDriverCOF);
+            beybladeBody->setModified(false);
         }
     }
+    if (modified) {  // 2024-12-03  Restore colors
+        ImGui::PopStyleColor();
+    }
+
     ImGui::SameLine();
     float updateButtonWidth = ImGui::CalcTextSize("Update").x + 2 * ImGui::GetStyle().ItemSpacing.x + 2 * ImGui::GetStyle().FramePadding.x;
     ImGui::SetCursorPosX(ImGui::GetCursorPosX() + updateButtonWidth);
@@ -227,6 +253,7 @@ void CustomizeState::drawManualCustomizeSection(shared_ptr<Beyblade> beyblade) {
             tempLayerMass = static_cast<float>(beybladeBody->getLayerMass());
             tempLayerMOI = static_cast<float>(beybladeBody->getLayerMomentOfInertia());
             tempDriverCOF = static_cast<float>(beybladeBody->getDriverCOF());
+            beybladeBody->setModified(false);  // 2024-12-03
         }
     }
 }
@@ -260,7 +287,7 @@ void CustomizeState::drawTemplateCustomizeSection(shared_ptr<Beyblade> beyblade)
         }
     }
     if (ImGui::CollapsingHeader("Drivers")) {
-        for (size_t i = 0; i < templateDrivers.size(); ++i) {
+        for (int i = 0; i < (int)templateDrivers.size(); ++i) {
             bool isSelected = (tempSelectedDriver == i);
             if (ImGui::Selectable((templateDrivers[i].name + "##driver" + std::to_string(i)).c_str(), isSelected)) {
                 tempSelectedDriver = i;

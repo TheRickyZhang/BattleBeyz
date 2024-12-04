@@ -9,13 +9,6 @@
 * Constructor.
 */
 
-//Beyblade::Beyblade(BeybladeBody* rigidBody, BeybladeMesh* mesh, std::string name)
-//        : rigidBody(rigidBody), mesh(mesh), name(name)
-//{
-//    // NEWMESH: NOW DONE IN MAIN CODE:
-//    // mesh->initializeMesh();
-//}
-
 /**
 * Destructor.
 */

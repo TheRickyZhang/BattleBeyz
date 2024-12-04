@@ -6,11 +6,17 @@
 #include <iostream>
 #include "BoundingBox.h"
 
+using namespace std;
 /**
 * Constructor.
 */
 BoundingBox::BoundingBox() :
-    min(glm::vec3(-1e6)), max(glm::vec3(1e6)) {
+    min(glm::vec3(-1e6)), max(glm::vec3(1e6))
+{
+    // 2024-12-03 CAUTION: You must initialize the bounds.  The values set here
+    // allow you to immediately check for min/max values of the object that
+    // you are bounding.
+
     setupBuffers();
 }
 
@@ -88,7 +94,8 @@ glm::vec3 BoundingBox::closestPointInside(const glm::vec3& point) const {
         adjustedPoint.z = max.z;
     }
     if (adjustedPoint != point) {
-        std::cout << min.x << " " << min.y << " " << min.z << " " << max.x << " " << max.y << " " << max.z << std::endl;
+        std::cout << "Old: " << point.x << " " << point.y << " " << point.z << " " << point.x << " " << point.y << " " << point.z << std::endl;
+        std::cout << "New: " << min.x << " " << min.y << " " << min.z << " " << max.x << " " << max.y << " " << max.z << std::endl;
     }
     return adjustedPoint;
 }

@@ -17,6 +17,8 @@ BeybladeBody::BeybladeBody(Layer layer, Disc disc, Driver driver) :
     double angularDiscCAr2 = disc.rotationalDragCoefficient * disc.height * disc.radius * disc.radius;
     double angularDriverCAr2 = driver.rotationalDragCoefficient * driver.height * driver.radius * driver.radius;
     angularDragTerm = 0.5 * (angularLayerCAr2 + angularDiscCAr2 + angularDriverCAr2);
+
+    modified = false;  // 2024-12-03
 }
 
 BeybladeBody::BeybladeBody() : BeybladeBody(Layer(), Disc(), Driver()) {}
@@ -55,6 +57,8 @@ BeybladeBody::BeybladeBody(BeybladeMesh* mesh, Layer _layer, Disc _disc, Driver 
     double angularDiscCAr2 = disc.rotationalDragCoefficient * mesh->heightDisc * mesh->radiusDisc * mesh->radiusDisc;
     double angularDriverCAr2 = driver.rotationalDragCoefficient * mesh->heightDriver * mesh->radiusDriver * mesh->radiusDriver;
     angularDragTerm = 0.5*(angularLayerCAr2 + angularDiscCAr2 + angularDriverCAr2);
+
+    modified = false;  // 2024-12-03
 }
 
 //NEWMESH: NO BeybladeBody::BeybladeBody() : BeybladeBody(Layer(), Disc(), Driver()) {}
