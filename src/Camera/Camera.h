@@ -28,7 +28,7 @@ enum struct CameraMode {
 
 class Camera {
 public:
-    Camera(const glm::vec3& position, const glm::vec3& viewPoint, PhysicsWorld* world, double x, double y, BoundingBox box = BoundingBox(glm::vec3(FLT_MIN), glm::vec3(FLT_MAX)));
+    Camera(const glm::vec3& position, const glm::vec3& viewPoint, PhysicsWorld* world, double x, double y, BoundingBox box = BoundingBox(glm::vec3(-1e6), glm::vec3(1e6)));
 
     // Must call these before changing the mode (initial only works in free UNTIL attached to beybalde/stadium)
     void setFollowingBey(BeybladeBody* bey) { followingBey = bey; }

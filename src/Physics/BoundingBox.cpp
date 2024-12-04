@@ -11,7 +11,7 @@ using namespace std;
 * Constructor.
 */
 BoundingBox::BoundingBox() :
-    min(glm::vec3(-1e6)), max(glm::vec3(1e6))
+    min(glm::vec3(1e6)), max(glm::vec3(-1e6))
 {
     // 2024-12-03 CAUTION: You must initialize the bounds.  The values set here
     // allow you to immediately check for min/max values of the object that

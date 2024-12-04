@@ -98,7 +98,7 @@ void BeybladeMesh::loadModel(const std::string& path) {
     std::vector<BoundingBox> shapeBounds;  // min and max bounds for each shape
 
     for (const auto& shape : shapes) {
-        BoundingBox bb(glm::vec3(1e6), glm::vec3(-1e6));
+        BoundingBox bb(glm::vec3(1e6), glm::vec3(FLT_MIN));
 
         for (size_t faceIndex = 0; faceIndex < shape.mesh.indices.size() / 3; ++faceIndex) {
             int materialIndex = shape.mesh.material_ids[faceIndex];
