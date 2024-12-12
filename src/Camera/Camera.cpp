@@ -43,7 +43,7 @@ mat4 Camera::getViewMatrix() const {
 */
 
 vec3 Camera::applyCollisions(const vec3& currPos, vec3& nextPos) const {
-    for (const Beyblade* beyblade : physicsWorld->getBeyblades()) {
+    for (Beyblade* beyblade : physicsWorld->getBeyblades()) {
         BoundingBox beybladeBoundary = beyblade->getRigidBody()->getBoundingBox();
         BoundingBox cameraBoundary(nextPos - vec3(0.5f), nextPos + vec3(0.5f));
         if (BoundingBox::intersect(cameraBoundary, beybladeBoundary)) {

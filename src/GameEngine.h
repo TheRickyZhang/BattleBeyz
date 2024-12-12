@@ -125,5 +125,7 @@ private:
     std::vector<std::unique_ptr<GameState>> stateStack;
     GLFWwindow* window;
     bool isRunning;
+    bool debugScreenActive = false;
 
+    void handleGlobalEvents();
 };

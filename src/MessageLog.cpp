@@ -21,8 +21,9 @@ bool MessageLog::isOpen() const {
     return visible;
 }
 
-void MessageLog::addMessage(const std::string& text, MessageType type) {
+void MessageLog::addMessage(const std::string& text, MessageType type, bool showLog) {
     messageLog.emplace_back(text, type);
+    if (showLog) open();
 }
 
 // Displays the message log on screen with all the messages

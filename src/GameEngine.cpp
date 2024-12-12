@@ -299,6 +299,8 @@ void GameEngine::handleEvents() {
     // Poll GLFW events (handles window events, input events, etc.)
     glfwPollEvents();
 
+    handleGlobalEvents();
+
     if (!stateStack.empty()) {
         stateStack.back()->handleEvents();
     }
@@ -325,25 +327,31 @@ void GameEngine::draw() {
         stateStack.back()->draw();
     }
 
-    // Show FPS for performance
-    std::stringstream ss; 
-    ss << std::fixed << std::setprecision(1) << "FPS: " << ImGui::GetIO().Framerate;
-    std::string fpsText = ss.str();
-
+    // Update window width on change
     if (windowWidth != lastWidth || windowHeight != lastHeight) {
         textRenderer->resize(windowWidth, windowHeight);
         lastWidth = windowWidth;
         lastHeight = windowHeight;
     }
-    textRenderer->renderText(fpsText, 0.0f, windowHeight - 20.0f, 0.5f, glm::vec3(1.0f, 1.0f, 1.0f));
-
-    // Show coordinates if in beyblade space
-    if (stateStack.back()->getStateType() == GameStateType::ACTIVE) {
-        textRenderer->renderText(coordsText, 10.0f, 20.0f, 0.5f, glm::vec3(1.0f, 1.0f, 1.0f));
-    }
 
     // Display log
     messageLog->render();
+
+    if (debugScreenActive) {
+        // Render faded background
+        ImDrawList* drawList = ImGui::GetForegroundDrawList();
+        drawList->AddRectFilled(ImVec2(0, 0), ImVec2(float(windowWidth), float(windowHeight)),IM_COL32(0, 0, 0, 150));
+        ImGui::Begin("Debug Screen", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize);
+        ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
+        ImGui::Text("Window Size: %dx%d", windowWidth, windowHeight);
+        double mouseX, mouseY; glfwGetCursorPos(window, &mouseX, &mouseY);
+        ImGui::Text("Mouse Position: (%.1f, %.1f)", mouseX, mouseY);
+        if (!stateStack.empty() && stateStack.back()->getStateType() == GameStateType::ACTIVE) {
+            ImGui::Text("Coordinates: %s", coordsText.c_str());
+        }
+        ImGui::Text("OpenGL Version: %s", glGetString(GL_VERSION));
+        ImGui::End();
+    }
 
     // END IMGUI FRAME: renders to screen
     ImGui::Render();
@@ -414,37 +422,12 @@ void GameEngine::framebufferSizeCallback(GLFWwindow* window, int width, int heig
     engine->objectShader->setUniformMat4("projection", engine->projection);
 }
 
-/*------------------------------------Statis input callbacks-----------------------------------------------------------*/
-
-// Static input callbacks
-//void GameEngine::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
-//    ImGui_ImplGlfw_KeyCallback(window, key, scancode, action, mods);
-//    auto* engine = static_cast<GameEngine*>(glfwGetWindowUserPointer(window));
-//    if (engine) {
-//        bool isPressed = (action == GLFW_PRESS || action == GLFW_REPEAT);
-//        engine->inputManager.setKey(key, isPressed);
-//        engine->inputManager.setModifiers(mods);
-//    }
-//}
-//
-//void GameEngine::mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
-//    auto* engine = static_cast<GameEngine*>(glfwGetWindowUserPointer(window));
-//    if (engine) {
-//        bool isPressed = (action == GLFW_PRESS);
-//        engine->inputManager.setMouseButton(button, isPressed);
-//    }
-//}
-//
-//void GameEngine::cursorPositionCallback(GLFWwindow* window, double xPos, double yPos) {
-//    auto* engine = static_cast<GameEngine*>(glfwGetWindowUserPointer(window));
-//    if (engine) {
-//        engine->inputManager.setMousePosition(xPos, yPos);
-//    }
-//}
-//
-//void GameEngine::scrollCallback(GLFWwindow* window, double xOffset, double yOffset) {
-//    auto* engine = static_cast<GameEngine*>(glfwGetWindowUserPointer(window));
-//    if (engine) {
-//        engine->inputManager.setScrollOffset(xOffset, yOffset);
-//    }
-//}
+void GameEngine::handleGlobalEvents() {
+    if (inputManager.keyJustPressed(GLFW_KEY_F9)) {
+        messageLog->toggle();
+    }
+    if (inputManager.keyJustPressed(GLFW_KEY_F3)) {
+        debugScreenActive = !debugScreenActive;
+    }
+    // TODO: Add more global events
+}

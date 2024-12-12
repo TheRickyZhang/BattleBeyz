@@ -55,8 +55,8 @@ bool ProfileManager::addProfile(std::shared_ptr<Profile> profile) {
 bool ProfileManager::deleteProfile(int profileId) {
     std::lock_guard<std::mutex> lock(mtx);
     auto it = getProfileIterator(profileId);
-    if (it == profiles.end()) {
-        std::cerr << "Error: Profile with ID " << profileId << " not found." << std::endl;
+    if (profiles.size() <= 1 || it == profiles.end()) {
+        // std::cerr << "Error: Profile with ID " << profileId << " not found." << std::endl;
         return false;
     }
 

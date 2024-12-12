@@ -139,8 +139,6 @@ void ActiveState::draw() {
         game->changeState(GameStateType::HOME);
         ImGui::End();
         return;
-        //TODO: Is there any better way to do this than adding end and return here? Otehrwise crash. Also does not preserve state correctly
-        // 2024-11-03.  Huh?  Why not leave here?  The 
     }
 
     glEnable(GL_DEPTH_TEST);
@@ -187,15 +185,6 @@ void ActiveState::draw() {
         game->lastHeight = game->windowHeight;
     }
 
-    //float textWidth = ImGui::CalcTextSize(positionText.data()).x;
-    game->textRenderer->renderText(
-        positionText,
-        game->windowWidth - 300.0f,
-        game->windowHeight - 20.0f,
-        0.5f,
-        vec3(1.0f, 1.0f, 1.0f)
-    );
-
     if (game->debugMode) {
         game->physicsWorld->renderDebug(*objectShader);
     }
@@ -204,9 +193,10 @@ void ActiveState::draw() {
         drawInfoScreen();
     }
 
-    ImGui::Text("Use WASDQE for camera movement");
-    ImGui::Text("Use Right Click Hold + Drag for camera rotation");
-    ImGui::Text("Use the scroll wheel to control moving speed");
+    ImGui::Text("WASDQE: camera movement");
+    ImGui::Text("Right Click + Drag: camera rotation");
+    ImGui::Text("Scroll wheel: movement speed");
+    ImGui::Text("Position: ", positionText.c_str());
     ImGui::End();
 }
 
@@ -270,18 +260,15 @@ void ActiveState::drawInfoScreen() {
     CameraMode currentMode = game->camera->activeMode;
     if (ImGui::RadioButton("Free", currentMode == CameraMode::FREE)) {
         game->camera->changeCameraMode(CameraMode::FREE);
-        game->messageLog->open();
-        game->messageLog->addMessage("Camera changed to free", MessageType::NORMAL);
+        game->messageLog->addMessage("Camera changed to free", MessageType::NORMAL, true);
     }
     if (ImGui::RadioButton("Attached", currentMode == CameraMode::ATTACHED)) {
         game->camera->changeCameraMode(CameraMode::ATTACHED);
-        game->messageLog->open();
-        game->messageLog->addMessage("Camera attached to bey" + std::string(game->pm.getActiveProfile()->getName()), MessageType::NORMAL);
+        game->messageLog->addMessage("Camera attached to bey" + std::string(game->pm.getActiveProfile()->getName()), MessageType::NORMAL, true);
     }
     if (ImGui::RadioButton("Panning", currentMode == CameraMode::PANNING)) {
         game->camera->changeCameraMode(CameraMode::PANNING);
-        game->messageLog->open();
-        game->messageLog->addMessage("Camera changed to pan", MessageType::NORMAL);
+        game->messageLog->addMessage("Camera changed to pan", MessageType::NORMAL, true);
     }
 
     ImGui::End();

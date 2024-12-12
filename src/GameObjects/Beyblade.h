@@ -31,39 +31,19 @@ class Beyblade {
     friend class BeybladeBody;
 public:
     // Note this beyblade id is GLOBALLY UNIQUE
-    Beyblade(int id, const std::string& name, bool isTemplate = false) :
-        id(id), name(name), isTemplate(isTemplate) {
-        if (isTemplate) {
-            setTemplateIndices(0, 0, 0);
-            rigidBody = new BeybladeBody(templateLayers[0].part, templateDiscs[0].part, templateDrivers[0].part);
-            // TODO: Implement a combineMesh function. Requires all obj files to be standardized, centered and aligned correctly. Then combine them
-            mesh = new BeybladeMesh();
-            //mesh = combineMesh(templateLayers[0].modelPath, templateDiscs[0].modelPath, templateDrivers[0].modelPath);
-        }
-        else {
-            rigidBody = new BeybladeBody();
-            mesh = new BeybladeMesh();
-        }
-    }
+    Beyblade(int id, const std::string& name, bool isTemplate = false);
     //Beyblade(int id, std::string name, BeybladeBody* rigidBody, BeybladeMesh* mesh) :
     //    id(id), name(name), rigidBody(rigidBody), mesh(mesh), isTemplate(true) {}
-    ~Beyblade();
 
     void render(ShaderProgram& shader);
 
     int getId() const { return id; }
     std::string getName() const { return name; }
-    std::string setName() const { return name; }
-    BeybladeBody* getRigidBody() const { return rigidBody; }
-    BeybladeMesh* getMesh() const { return mesh; }
+    BeybladeBody* getRigidBody() { return rigidBody.get(); }
+    BeybladeMesh* getMesh() { return mesh.get(); }
     void setName(const std::string& name) { Beyblade::name = name; }
 
-    void setTemplateIndices(int layer, int disc, int driver) {
-        if (!isTemplate) throw std::runtime_error("Cannot set template indices on a custom Beyblade!");
-        templateIndices[0] = layer;
-        templateIndices[1] = disc;
-        templateIndices[2] = driver;
-    }
+    void update(int layerIndex, int discIndex, int driverIndex);
 
     bool isTemplate = false;
     int templateIndices[3] = { -1, -1, -1 };  // ONLY used by templated beyblades
@@ -73,6 +53,8 @@ protected:
 private:
     const int id; // Globally unique, will be managed by centralized server
     std::string name;
-    BeybladeBody* rigidBody;
-    BeybladeMesh* mesh;
+    std::unique_ptr<BeybladeBody> rigidBody;
+    std::unique_ptr<BeybladeMesh> mesh;
+
+    void setTemplateIndices(int layerIndex, int discIndex, int driverIndex);
 };

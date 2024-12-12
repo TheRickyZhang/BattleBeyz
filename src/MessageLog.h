@@ -17,7 +17,7 @@ public:
     void toggle();
     bool isOpen() const;
 
-    void addMessage(const std::string& text, MessageType type);
+    void addMessage(const std::string& text, MessageType type = MessageType::NORMAL, bool showLog = false);
     void render();
 private:
     bool visible;

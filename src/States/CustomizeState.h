@@ -39,22 +39,19 @@ private:
         float& leftTextWidth, float& rightButton1X, float& rightButton2X,
         float& dropdownLeftX, float& dropdownWidth);
 
-    void initializeData(std::vector<std::shared_ptr<Profile>>& profiles,
-        std::vector<std::shared_ptr<Beyblade>>& beyblades,
-        std::shared_ptr<Beyblade>& beyblade);
+    void initializeData(std::vector<std::shared_ptr<Profile>>& profiles, std::shared_ptr<Profile>& profile,
+        std::vector<std::shared_ptr<Beyblade>>& beyblades, std::shared_ptr<Beyblade>& beyblade);
 
-    void drawProfileSection(const std::vector<std::shared_ptr<Profile>>& profiles,
-        float dropdownLeftX, float dropdownWidth,
-        float rightButton1X, float rightButton2X);
+    std::shared_ptr<Profile> drawProfileSection(const std::vector<std::shared_ptr<Profile>>& profiles, const std::shared_ptr<Profile>& activeProfile,
+        float dropdownLeftX, float dropdownWidth, float rightButton1X, float rightButton2X);
 
-    void drawBeybladeSection(const std::vector<std::shared_ptr<Beyblade>>& beyblades,
-        float dropdownLeftX, float dropdownWidth,
-        float rightButton1X, float rightButton2X);
+    std::shared_ptr<Beyblade> CustomizeState::drawBeybladeSection(const std::vector<std::shared_ptr<Beyblade>>& beyblades, const std::shared_ptr<Beyblade>& activeBeyblade,
+        const std::shared_ptr<Profile>& profile, float dropdownLeftX, float dropdownWidth, float rightButton1X, float rightButton2X);
 
     void drawManualCustomizeSection(std::shared_ptr<Beyblade> beyblade);
     void drawTemplateCustomizeSection(std::shared_ptr<Beyblade> beyblade);
 
-    void drawPopups();
+    void drawPopups(const std::shared_ptr<Profile>& profile, const std::shared_ptr<Beyblade>& beyblade);
 
     // Member Variables
     PopupState currentPopup = PopupState::NONE;
