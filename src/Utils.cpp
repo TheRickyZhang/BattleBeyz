@@ -4,6 +4,9 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "Utils.h"
+#include <algorithm>
+#include <cmath>
+#include <functional>
 
 /**
 * Convert screen to world coordinates.  TODO: Params.
@@ -102,4 +105,12 @@ void cleanup(GLFWwindow* window) {
 
 void printVec3(const std::string& label, const glm::vec3& v) {
     std::cout << label << ": " << v.x << ", " << v.y << ", " << v.z << std::endl;
+}
+
+int floatToDiscreteInt(float val, float mn, float mx) {
+    return std::clamp(static_cast<int>(std::round(1.0f + ((val - mn) / (mx - mn)) * 9.0f)), 1, 10);
+}
+
+float discreteIntToFloat(int val, float mn, float mx) {
+    return mn + ((val - 1) / 9.0f) * (mx - mn);
 }

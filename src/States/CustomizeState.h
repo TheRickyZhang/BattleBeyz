@@ -71,7 +71,7 @@ private:
     int tempSelectedDriver = -1;
 
     // Manual
-    float tempLayerMass = 0.020f;
-    float tempLayerMOI = 0.7f * 0.027f * 0.018f * 0.018f;
-    float tempDriverCOF = 0.22f;
+    //float tempLayerMass = 0.020f;
+    //float tempLayerMOI = 0.7f * 0.027f * 0.018f * 0.018f;
+    //float tempDriverCOF = 0.22f;
 };

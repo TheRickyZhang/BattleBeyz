@@ -151,6 +151,44 @@ void centerColoredText(float windowCenterX, const ImVec4& color, const char* tex
     TextColored(color, "%s", text);
 }
 
+void DrawDiscreteFloatControl(const char* parameterText, float maxTextSize, const char* prefix, float& value, float minVal, float maxVal, float step, float stepFast, const char* format, std::function<void()> onModified) {
+    float spacing = ImGui::GetStyle().ItemSpacing.x, padding = ImGui::GetStyle().WindowPadding.x;
+    float availableWidth = ImGui::GetContentRegionAvail().x - maxTextSize - 2 * padding - 2 * spacing;
+    float sliderWidth = availableWidth * 0.65f;
+    float inputWidth = availableWidth * 0.35f;
+
+    // Unique identifier from parameter text
+    std::string sliderLabel = std::string("##slider_") + prefix + parameterText;
+    std::string inputLabel = std::string("##input_") + prefix + parameterText;
+
+    // [--Label--|------Slider------|--Input--]
+    ImGui::BeginGroup();
+
+    ImGui::Text(parameterText);
+    ImGui::SameLine();
+    ImGui::SetCursorPosX(maxTextSize + padding + spacing);
+
+    ImGui::PushItemWidth(sliderWidth);
+    int discrete = floatToDiscreteInt(value, minVal, maxVal);
+    if (ImGui::SliderInt(sliderLabel.c_str(), &discrete, 1, 10)) {
+        value = discreteIntToFloat(discrete, minVal, maxVal);
+        onModified();
+    }
+    ImGui::PopItemWidth();
+    ImGui::SameLine();
+
+    ImGui::PushItemWidth(inputWidth);
+    if (ImGui::InputFloat(inputLabel.c_str(), &value, step, stepFast, format, ImGuiInputTextFlags_CharsDecimal)) {
+        value = std::clamp(value, minVal, maxVal);
+        discrete = floatToDiscreteInt(value, minVal, maxVal);
+        onModified();
+    }
+    ImGui::PopItemWidth();
+
+    ImGui::EndGroup();
+}
+
+
 float getMaxWidth(const std::vector<std::string>& text) {
     float maxWidth = 0.0f;
     for (int i = 0; i < text.size(); i++) {
@@ -746,8 +784,8 @@ static void UICustomScreenInit(GameControl* gc)
         driverCoefficientOfFriction.push_back((float)bb->getDriverCOF());
         layerCoefficientOfRestitution.push_back((float)bb->getLayerCOR());
 
-        layerRecoilDistributionMean.push_back((float)bb->getLayerRecoilDistributionMean());
-        layerRecoilDistributionStdDev.push_back((float)bb->getLayerRecoilDistributionStdDev());
+        layerRecoilDistributionMean.push_back((float)bb->getLayerRecoilDistribution().getMean());
+        layerRecoilDistributionStdDev.push_back((float)bb->getLayerRecoilDistribution().getStdDev());
     }
 }
 
@@ -874,8 +912,8 @@ static void UIProfileCreateSectionFromDefaults(const char* profileName, Disc& di
         { "layerCoefficientOfRestitution", std::to_string(layer.coefficientOfRestitution) },
         { "layerMass",  std::to_string(layer.mass) },
         { "layerMomentOfInertia", std::to_string(layer.momentOfInertia) },
-        { "layerRecoilDistributionMean", std::to_string(layer.recoilDistributionMean) },
-        { "layerRecoilDistributionStdDev", std::to_string(layer.recoileDistributionStdDev) }
+        { "layerRecoilDistributionMean", std::to_string(layer.recoilDistribution.getMean()) },
+        { "layerRecoilDistributionStdDev", std::to_string(layer.recoilDistribution.getStdDev()) }
         });
 }
 

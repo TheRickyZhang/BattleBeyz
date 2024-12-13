@@ -33,29 +33,48 @@ public:
 	// Simple getters.
 	// RZ:  Theoretically good style, but there are too many!  Just make the variables public!
 
-	double getAngularDragTerm() const { return angularDragTerm; }
-	glm::vec3 getAngularVelocity() const { return angularVelocity; }
-	glm::vec3 getCenter() const { return baseCenter; }
+	// Getters per part
+	float getLayerCOR() const { return layer.coefficientOfRestitution; }
+	float getLayerHeight() const { return driver.height; }
+	float getLayerMass() const { return layer.mass; };
+	float getLayerMomentOfInertia() const { return layer.momentOfInertia; }
+	float getLayerRadius() const { return layer.radius; }
+	RandomDistribution getLayerRecoilDistribution() const { return layer.recoilDistribution; }
+
+	void setLayerCoefficientOfRestitution(float _cor) { layer.coefficientOfRestitution = _cor; }
+	void setLayerMass(float _mass) { layer.mass = _mass; }
+	void setLayerMomentOfInertia(float _moi) { layer.momentOfInertia = _moi; }
+	void setLayerRecoilDistribution(float mean, float stddev) {
+		layer.recoilDistribution.setMean(mean);
+		layer.recoilDistribution.setStdDev(stddev);
+	}
+
 	double getDiscHeight() const { return disc.height; }
 	double getDiscMass() const { return disc.mass;  };
 	double getDiscMomentOfInertia() const { return disc.momentOfInertia; }
 	double getDiscRadius() const { return disc.radius; }
+
 	double getDriverCOF() const { return driver.coefficientOfFriction; }
 	double getDriverHeight() const { return driver.height; }
 	double getDriverMass() const { return driver.mass; };
 	double getDriverMomentOfInertia() const { return driver.momentOfInertia; }
 	double getDriverRadius() const { return driver.radius; }
-	double getLayerCOR() const { return layer.coefficientOfRestitution; }
-	double getLayerHeight() const { return driver.height; }
-	double getLayerMass() const { return layer.mass; };
-	double getLayerMomentOfInertia() const { return layer.momentOfInertia; }
-	double getLayerRadius() const { return layer.radius; }
-	double getLayerRecoilDistributionMean() const { return layer.recoilDistributionMean; }
-	double getLayerRecoilDistributionStdDev() const { return layer.recoileDistributionStdDev; }
-	double getLinearDragTerm() const { return linearDragTerm; }
+
+	void setDiscMass(double _mass) { disc.mass = _mass; }
+	void setDiscMomentOfInertia(double _moi) { disc.momentOfInertia = _moi; }
+	void setDriverCOF(double _cof) { driver.coefficientOfFriction = _cof; }
+	void setDriverMass(double _mass) { driver.mass = _mass; }
+	void setDriverMomentOfInertia(double _moi) { driver.momentOfInertia = _moi; }
+
+	// Getters entire object
+	glm::vec3 getCenter() const { return baseCenter; }
+	glm::vec3 getVelocity() const { return velocity; }
+	glm::vec3 getAngularVelocity() const { return angularVelocity; }
+
 	double getMass() const { return mass; } // Total mass
 	double getMomentOfInertia() const { return momentOfInertia; }
-	glm::vec3 getVelocity() const { return velocity; }
+	double getLinearDragTerm() const { return linearDragTerm; }
+	double getAngularDragTerm() const { return angularDragTerm; }
 
 
 	// TODO: Need to distinguish between the top and bottom of the driver, or driverRadiusTop and driverRadiusBottom
@@ -72,22 +91,13 @@ public:
 	// Setters  // NEWUI adds several members.
 	void resetPhysics(); // 2024-11-18
 	void setInitialLaunch(glm::vec3 initialCenter, glm::vec3 initialVelocity, glm::vec3 initialAngularVelocity);
-	void setDiscMass(double _mass) { disc.mass = _mass; }
-	void setDiscMomentOfInertia(double _moi) { disc.momentOfInertia = _moi; }
-	void setDriverCOF(double _cof) { driver.coefficientOfFriction = _cof;  }
-	void setDriverMass(double _mass) { driver.mass = _mass; }
-	void setDriverMomentOfInertia(double _moi) { driver.momentOfInertia = _moi; }
-	void setLayerCoefficientOfRestitution(double _cor) { layer.coefficientOfRestitution = _cor; }
-	void setLayerMass(double _mass) { layer.mass = _mass; }
-	void setLayerMomentOfInertia(double _moi) { layer.momentOfInertia = _moi; }
-	void setLayerRecoilDistribution(double mean, double stddev) {
-		layer.recoilDistributionMean = mean;
-		layer.recoileDistributionStdDev = stddev;
-		delete layer.recoilDistribution;
-		layer.recoilDistribution = new RandomDistribution(mean, stddev);
-	}
+
 	void setMass(double _mass) { mass = _mass; }  // Total mass
 	void setMomentOfInertia(double _totalMOI) { momentOfInertia = _totalMOI; }
+	void updateFromParts() {
+		setMass(layer.mass + disc.mass + driver.mass);
+		setMomentOfInertia(layer.momentOfInertia + disc.momentOfInertia + driver.momentOfInertia);
+	}
 
 	// Adjustors
 	void addCenterY(double addY) { baseCenter.y += static_cast<float>(addY); }
@@ -122,26 +132,26 @@ public:
 	}
 
 private:
-	// Global Position
-	glm::vec3 baseCenter {};
-	glm::vec3 _initialBaseCenter;  // 2024-11-18 Saved for use by restart
-
 	// Parts - Access individual variables through these!
 	Disc disc;
 	Driver driver;
 	Layer layer;
 
+	// Global Position
+	glm::vec3 baseCenter {};
+	glm::vec3 _initialBaseCenter{};  // 2024-11-18 Saved for use by restart
+
 	// Linear Physics
 	double mass;
 	glm::vec3 velocity {};
-	glm::vec3 _initialVelocity;  // 2024-11-18 Saved for use by restart
+	glm::vec3 _initialVelocity{};  // 2024-11-18 Saved for use by restart
 
 	glm::vec3 acceleration {};
 
 	// Rotational Physics
 	double momentOfInertia;  // This is the total for all parts
 	glm::vec3 angularVelocity{ 0.0, 1.0, 0.0 };
-	glm::vec3 _initialAngularVelocity;  // 2024-11-18 Saved for use by restart
+	glm::vec3 _initialAngularVelocity{};  // 2024-11-18 Saved for use by restart
 
 	glm::vec3 angularAcceleration {};
 	double linearDragTerm; // Sum of Cd*A for parts 

@@ -17,22 +17,43 @@
  */
 class RandomDistribution {
 public:
-    RandomDistribution(double mean, double stddev)
-        : rng(std::random_device{}())
+    RandomDistribution(float mean = 1.0, float stddev = 0.1)
+        : mean(mean),
+        stddev(stddev),
+        rng(std::random_device{}())
     {
-        double mu = std::log(mean * mean / std::sqrt(stddev * stddev + mean * mean));
-        double sigma = std::sqrt(std::log(1 + (stddev * stddev) / (mean * mean)));
-        distribution = std::lognormal_distribution<double>(mu, sigma);
+        setDistribution(mean, stddev);
     }
 
     /**
     * Samples the distribution. Only provides the "randomness" of the impact: actual recoil will depend on many other factors
     */
-    double sample() {
+    float sample() {
         return distribution(rng);
     }
 
+    float getMean()   const { return mean; }
+    float getStdDev() const { return stddev; }
+
+    void setMean(float m) {
+        mean = m;
+        setDistribution(mean, stddev);
+    }
+
+    void setStdDev(float s) {
+        stddev = s;
+        setDistribution(mean, stddev);
+    }
+
 private:
+    void setDistribution(float mean, float stddev) {
+        float mu = std::log(mean * mean / std::sqrt(stddev * stddev + mean * mean));
+        float sigma = std::sqrt(std::log(1 + (stddev * stddev) / (mean * mean)));
+        distribution = std::lognormal_distribution<float>(mu, sigma);
+    }
+
+    float mean;
+    float stddev;
     std::mt19937 rng;
-    std::lognormal_distribution<double> distribution;
+    std::lognormal_distribution<float> distribution;
 };

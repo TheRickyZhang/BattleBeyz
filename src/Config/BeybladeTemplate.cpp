@@ -4,11 +4,11 @@
 
 // Define templateLayers with TemplateFormat<Layer>
 std::vector<TemplateFormat<Layer>> templateLayers = {
-    {"Standard", LAYER_STANDARD_PATH, Layer(0.025, 0.01, new RandomDistribution(0.3, 0.1), 0.4, 0.9, 0.022, glm::vec3(0.0f), glm::vec3(0.0f), 1.2e-5)},
-    {"Wide",     LAYER_WIDE_PATH,     Layer(0.03,  0.01, new RandomDistribution(0.35, 0.12), 0.4, 1.0, 0.024, glm::vec3(0.0f), glm::vec3(0.0f), 1.6e-5)},
-    {"Tall",     LAYER_TALL_PATH,     Layer(0.025, 0.012, new RandomDistribution(0.28, 0.1),  0.5, 1.1, 0.023, glm::vec3(0.0f), glm::vec3(0.0f), 1.3e-5)},
-    {"Light",    LAYER_LIGHT_PATH,    Layer(0.025, 0.01, new RandomDistribution(0.3,  0.08), 0.3, 0.8, 0.018, glm::vec3(0.0f), glm::vec3(0.0f), 1.0e-5)},
-    {"Heavy",    LAYER_HEAVY_PATH,    Layer(0.025, 0.01, new RandomDistribution(0.4,  0.15), 0.6, 1.2, 0.035, glm::vec3(0.0f), glm::vec3(0.0f), 1.8e-5)}
+    {"Standard", LAYER_STANDARD_PATH, Layer(0.025, 0.01, 0.3, 0.1, 0.4, 0.9, 0.022, glm::vec3(0.0f), glm::vec3(0.0f), 1.2e-5)},
+    {"Wide",     LAYER_WIDE_PATH,     Layer(0.03,  0.01, 0.35, 0.12, 0.4, 1.0, 0.024, glm::vec3(0.0f), glm::vec3(0.0f), 1.6e-5)},
+    {"Tall",     LAYER_TALL_PATH,     Layer(0.025, 0.012, 0.28, 0.1,  0.5, 1.1, 0.023, glm::vec3(0.0f), glm::vec3(0.0f), 1.3e-5)},
+    {"Light",    LAYER_LIGHT_PATH,    Layer(0.025, 0.01, 0.3,  0.08, 0.3, 0.8, 0.018, glm::vec3(0.0f), glm::vec3(0.0f), 1.0e-5)},
+    {"Heavy",    LAYER_HEAVY_PATH,    Layer(0.025, 0.01, 0.4,  0.15, 0.6, 1.2, 0.035, glm::vec3(0.0f), glm::vec3(0.0f), 1.8e-5)}
 };
 
 // Define templateDiscs with TemplateFormat<Disc>

@@ -29,6 +29,9 @@ void checkGLError(const char* stmt, const char* fname, int line);
 void cleanup(GLFWwindow* window);
 void printVec3(const std::string& label, const glm::vec3& v);
 
+int floatToDiscreteInt(float val, float mn, float mx);
+float discreteIntToFloat(int val, float mn, float mx);
+
 enum ProgramState {
     LOADING,
     RENDERING,
@@ -52,3 +55,4 @@ struct CollisionAccelerations {
         linearAcceleration += increment.second;
     }
 };
+

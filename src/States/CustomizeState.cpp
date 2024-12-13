@@ -2,6 +2,7 @@
 #include "StateIdentifiers.h"
 #include "ProfileManager.h"
 #include "UI.h"
+#include "BeybladeConstants.h"
 
 using namespace std;
 
@@ -202,67 +203,51 @@ shared_ptr<Beyblade> CustomizeState::drawBeybladeSection(const vector<shared_ptr
 
 // Line 4: Customize Your Beyblade || No Beyblades To Customize || Current Beyblade Not Selected
 void CustomizeState::drawManualCustomizeSection(shared_ptr<Beyblade> beyblade) {
+    // We assume from prior checks that beybladeBody is never nullptr here
     BeybladeBody* beybladeBody = beyblade->getRigidBody();
 
     ImGui::Text("Customize Your Beyblade");
     // Update temporary variables if beyblade has changed
     if (beybladeBody != prevbladeBody) {
-        tempLayerMass = static_cast<float>(beybladeBody->getLayerMass());
-        tempLayerMOI = static_cast<float>(beybladeBody->getLayerMomentOfInertia());
-        tempDriverCOF = static_cast<float>(beybladeBody->getDriverCOF());
+        BeybladeParameter::assignToBeybladeBody(beybladeBody);
         prevbladeBody = beybladeBody;
     }
 
-    // Line 5-(n-1): Sliders for Adjusting Variables
-    //
-    // 2024-12-03 Catch when value changes
+    auto onModified = [&]() { beybladeBody->setModified(); };
 
-    if (ImGui::SliderFloat("Layer Mass (kg)", &tempLayerMass, 0.010f, 0.099f, "%.3f")) {
-        if (beybladeBody) {
-            beybladeBody->setModified();
-        }
-    };
-    if (ImGui::SliderFloat("Layer Moment of Inertia (kg/m**2)", &tempLayerMOI, 0.000003f, 0.000016f, "%.9f")) {
-        if (beybladeBody) {
-            beybladeBody->setModified();
-        }
+    for (BeybladeParameter& layer : layerParameters) {
+        DrawDiscreteFloatControl(layer.name.c_str(), getMaxLayerTextSize(), "layer", layer.currentValue, layer.minValue, layer.maxValue,
+                                layer.getStepSize(), layer.getFastStepSize(), layer.getDisplayFormat().c_str(), onModified);
     }
-    if (ImGui::SliderFloat("Driver Coefficient of Friction", &tempDriverCOF, 0.1f, 0.6f, "%.3f")) {
-        if (beybladeBody) {
-            beybladeBody->setModified();
-        }
+    ImGui::Dummy(ImVec2(0, 20));  ImGui::Separator(); ImGui::Dummy(ImVec2(0, 20));
+    for (BeybladeParameter& disc : discParameters) {
+        DrawDiscreteFloatControl(disc.name.c_str(), getMaxDiscTextSize(), "disc", disc.currentValue, disc.minValue, disc.maxValue,
+            disc.getStepSize(), disc.getFastStepSize(), disc.getDisplayFormat().c_str(), onModified);
+    }
+    ImGui::Dummy(ImVec2(0, 20));  ImGui::Separator(); ImGui::Dummy(ImVec2(0, 20));
+    for (BeybladeParameter& driver : driverParameters) {
+        DrawDiscreteFloatControl(driver.name.c_str(), getMaxDriverTextSize(), "driver", driver.currentValue, driver.minValue, driver.maxValue,
+            driver.getStepSize(), driver.getFastStepSize(), driver.getDisplayFormat().c_str(), onModified);
     }
 
     // Line n: Update and Reset Buttons
 
-    const ImVec4& buttonModified = ImVec4(0.6f, 0.0f, 0.0f, 1.0f);  // 2024-12-03 Show Update button in red if blade has been changed
+    // Show update button in red if there are active changes
+    const ImVec4& buttonModified = ImVec4(0.6f, 0.0f, 0.0f, 1.0f);
     bool modified = beybladeBody->getModified();
-    if (modified) {
-        ImGui::PushStyleColor(ImGuiCol_Button, buttonModified);
-    }
+    if (modified) ImGui::PushStyleColor(ImGuiCol_Button, buttonModified);
     if (ImGui::Button("Update")) {
-        if (beybladeBody != nullptr) {
-            beybladeBody->setLayerMass(tempLayerMass);
-            beybladeBody->setMass(tempLayerMass + beybladeBody->getDiscMass() + beybladeBody->getDriverMass());
-            beybladeBody->setLayerMomentOfInertia(tempLayerMOI);
-            beybladeBody->setDriverCOF(tempDriverCOF);
-            beybladeBody->setModified(false);
-        }
+        BeybladeParameter::assignToBeybladeBody(beybladeBody);
+        beybladeBody->setModified(false);
     }
-    if (modified) {  // 2024-12-03  Restore colors
-        ImGui::PopStyleColor();
-    }
+    if (modified) ImGui::PopStyleColor();
 
     ImGui::SameLine();
     float updateButtonWidth = ImGui::CalcTextSize("Update").x + 2 * ImGui::GetStyle().ItemSpacing.x + 2 * ImGui::GetStyle().FramePadding.x;
     ImGui::SetCursorPosX(ImGui::GetCursorPosX() + updateButtonWidth);
     if (ImGui::Button("Reset")) {
-        if (beybladeBody != nullptr) {
-            tempLayerMass = static_cast<float>(beybladeBody->getLayerMass());
-            tempLayerMOI = static_cast<float>(beybladeBody->getLayerMomentOfInertia());
-            tempDriverCOF = static_cast<float>(beybladeBody->getDriverCOF());
-            beybladeBody->setModified(false);  // 2024-12-03
-        }
+        BeybladeParameter::assignFromBeybladeBody(beybladeBody);
+        beybladeBody->setModified(false);
     }
 }
 

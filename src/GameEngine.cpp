@@ -3,6 +3,7 @@
 #include "Utils.h"
 #include "ShaderPath.h"
 #include "GameEngine.h"
+#include "BeybladeConstants.h"
 
 #include "States/StateFactory.h"
 
@@ -154,6 +155,7 @@ bool GameEngine::init(const char* title, int width, int height) {
     */
     inputManager = InputManager();
     glfwSetKeyCallback(window, [](GLFWwindow* window, int key, int scancode, int action, int mods) {
+        ImGui_ImplGlfw_KeyCallback(window, key, scancode, action, mods);
         GameEngine* engine = static_cast<GameEngine*>(glfwGetWindowUserPointer(window));
         if (engine) {
             bool isPressed = (action == GLFW_PRESS || action == GLFW_REPEAT);

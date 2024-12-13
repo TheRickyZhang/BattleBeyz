@@ -121,7 +121,7 @@ BoundingBox BeybladeBody::getBoundingBox() const {
 
 double BeybladeBody::sampleRecoil()
 {
-    return layer.recoilDistribution->sample();
+    return layer.recoilDistribution.sample();
 }
 
 std::optional<double> BeybladeBody::distanceOverlap(BeybladeBody* a, BeybladeBody* b) {

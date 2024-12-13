@@ -10,13 +10,15 @@
 #include <vector>
 #include <string>
 
+// NOTE: This ordering is necessary to not have a glew inclusion error
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 #include "GameControl.h"
+#include "Texture.h"
 #include <GLFW/glfw3.h>
 #include <stb_image.h>
-#include "Texture.h"
+#include <functional>
 
 const ImGuiWindowFlags MinimalWindow = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize; // No decorations, navigation, moving, or resizing
 const ImGuiWindowFlags OverlayWindow = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_AlwaysAutoResize; // No decorations, background, inputs; auto-resizes
@@ -38,10 +40,16 @@ bool sliderWithReset(const char* label, float* value, float min, float max, floa
 bool colorPickerWithReset(const char* label, ImVec4* color, const ImVec4& defaultColor);
 bool collapsingSectionWithToggle(const char* label, bool* isVisible);
 void centerColoredText(float windowCenterX, const ImVec4& color, const char* text);
+void DrawDiscreteFloatControl(const char* parameterText, float maxTextSize, const char* prefix, float& value, float minVal, float maxVal, float step, float stepFast, const char* format, std::function<void()> onModified);
 
 // Gets the maximum width of a list of strings (ensure all buttons are the same size)
 float getMaxWidth(const std::vector<std::string>& text);
 
+//Segments the screen nicely with fractions and 1-based indexing
+void SetWindowPositionAndSize(int numRows, int numCols, int row, int col, int rowSize = 1, int colSize = 1);
+
+
+// TODO: Outdated? 
 void showAboutScreen(GLFWwindow* window, Texture& backgroundTexture);
 void showCustomizeScreen(GLFWwindow* window, Texture& backgroundTexture);
 void showHomeScreen(GLFWwindow* window, Texture& homeScreenTexture, Texture& backgroundTexture);
@@ -49,8 +57,6 @@ void drawInfoScreen(GLFWwindow* window);
 void showLoadingScreen(GLFWwindow* window, Texture& backgroundTexture, const char* message = "Loading...");
 void showOptionsScreen(GLFWwindow* window);
 
-//Segments the screen nicely with fractions and 1-based indexing
-void SetWindowPositionAndSize(int numRows, int numCols, int row, int col, int rowSize = 1, int colSize = 1);
 
 static void UICustomScreenProfileSelected(int selectedItemIndex);
 static void UICustomScreenInit(GameControl* gc);

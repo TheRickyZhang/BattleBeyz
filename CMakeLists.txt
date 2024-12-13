@@ -33,6 +33,7 @@ include_directories(${PROJECT_SOURCE_DIR}/src/Physics)
 include_directories(${PROJECT_SOURCE_DIR}/src/Rendering)
 include_directories(${PROJECT_SOURCE_DIR}/src/RigidBodies)
 include_directories(${PROJECT_SOURCE_DIR}/src/States)
+include_directories(${PROJECT_SOURCE_DIR}/src/Config)
 
 
 # Specify ImGui source files
@@ -92,7 +93,7 @@ add_executable(BattleBeyz ${SOURCES})
 # Default runtime folder for debugging in Visual Studio:
 set_property(TARGET BattleBeyz PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}")
 
-# Set BattleyBeyz as the default startup project in Visual Studio
+# Set Battlebeyz as the default startup project in Visual Studio
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT BattleBeyz)
 
 # Link libraries

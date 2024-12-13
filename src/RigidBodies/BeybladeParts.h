@@ -9,54 +9,47 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/glm.hpp>
+#include <memory>
 
 /**
  * Contains physical properties of the top section of a Beyblade, important for collisions.
  * 
- * @param recoilDistribution: the distribution of recoil forces
  * @param coefficientOfRestitution: how much energy is conserverd in a collision
  * RotationalDragCoefficient: dragCoefficient*averageRadiusExtending, should be between 0.001 and 0.015
  */
 struct Layer {
-    // TODO: Alter constructor to take in the mean and stddev
-    Layer(double radius, double height,
-        RandomDistribution* recoilDistribution,
-        double coefficientOfRestitution,
-        double rotationalDragCoefficient,
-        double mass,
+    Layer(float radius, float height,
+        float recoilMean, float recoilStddev,
+        float coefficientOfRestitution,
+        float rotationalDragCoefficient,
+        float mass,
         glm::vec3 velocity,
         glm::vec3 acceleration,
-        double momentOfInertia) :
+        float momentOfInertia) :
         radius(radius),
         height(height),
-        recoilDistribution(recoilDistribution),
+        recoilDistribution(RandomDistribution(recoilMean, recoilStddev)),
         coefficientOfRestitution(coefficientOfRestitution),
         rotationalDragCoefficient(rotationalDragCoefficient),
         mass(mass),
         momentOfInertia(momentOfInertia) {}
 
-    Layer() : 
+    Layer() :
         radius(0.025),
         height(0.01),
         coefficientOfRestitution(0.8),
-        rotationalDragCoefficient(0.7*0.005),
+        rotationalDragCoefficient(0.7 * 0.005),
         mass(0.022),
-        momentOfInertia(0.5 * 0.022 * 0.025 * 0.025)
-{
-        recoilDistributionMean = 1.0;
-        recoileDistributionStdDev = 0.1;
-        recoilDistribution = new RandomDistribution(recoilDistributionMean, recoileDistributionStdDev);
-}
+        momentOfInertia(0.5 * 0.022 * 0.025 * 0.025),
+        recoilDistribution(RandomDistribution()) {}
 
-    double radius;
-    double height;
-    double mass;
-    double momentOfInertia;
-    double recoilDistributionMean;
-    double recoileDistributionStdDev;
-    double rotationalDragCoefficient;
-    RandomDistribution* recoilDistribution;
-    double coefficientOfRestitution;
+    float radius;
+    float height;
+    float mass;
+    float momentOfInertia;
+    float rotationalDragCoefficient;
+    RandomDistribution recoilDistribution; // NOTE: This is 5000 bytes so avoid copying layer directly, using unique_ptr<Layer> will be ideal
+    float coefficientOfRestitution;
 };
 
 /**
