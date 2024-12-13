@@ -35,12 +35,12 @@ struct Layer {
         momentOfInertia(momentOfInertia) {}
 
     Layer() :
-        radius(0.025),
-        height(0.01),
-        coefficientOfRestitution(0.8),
-        rotationalDragCoefficient(0.7 * 0.005),
-        mass(0.022),
-        momentOfInertia(0.5 * 0.022 * 0.025 * 0.025),
+        radius(0.025f),
+        height(0.01f),
+        coefficientOfRestitution(0.8f),
+        rotationalDragCoefficient(0.7f * 0.005f),
+        mass(0.022f),
+        momentOfInertia(0.5f * 0.022f * 0.025f * 0.025f),
         recoilDistribution(RandomDistribution()) {}
 
     float radius;
@@ -56,40 +56,40 @@ struct Layer {
  * Contains physical properties of the middle section of a Beyblade, not too important except for contributing weight.
  */
 struct Disc {
-    Disc(double radius, double height, double mass, double momentOfInertia, double rotationalDragCoefficient)
+    Disc(float radius, float height, float mass, float momentOfInertia, float rotationalDragCoefficient)
         : radius(radius), height(height), mass(mass), momentOfInertia(momentOfInertia), rotationalDragCoefficient(rotationalDragCoefficient) {}
     Disc()
-        : radius(0.018),
-        height(0.01),
-        mass(0.027),
-        momentOfInertia(0.7 * 0.027 * 0.018 * 0.018),
-        rotationalDragCoefficient(0.1*0.005) {}
-    double radius;
-    double height;
-    double mass;
-    double momentOfInertia;
-    double rotationalDragCoefficient;
+        : radius(0.018f),
+        height(0.01f),
+        mass(0.027f),
+        momentOfInertia(0.7f * 0.027f * 0.018f * 0.018f),
+        rotationalDragCoefficient(0.1f*0.005f) {}
+    float radius;
+    float height;
+    float mass;
+    float momentOfInertia;
+    float rotationalDragCoefficient;
 };
 
 /**
  *Contains physical properties of the bottom section of a Beyblade, important for friction and movement.
  */
 struct Driver {
-    Driver(double radius, double height, double mass, double momentOfInertia, double rotationalDragCoefficient, double coefficientOfFriction)
+    Driver(float radius, float height, float mass, float momentOfInertia, float rotationalDragCoefficient, float coefficientOfFriction)
         : radius(radius), height(height), mass(mass), momentOfInertia(momentOfInertia),
         rotationalDragCoefficient(rotationalDragCoefficient), coefficientOfFriction(coefficientOfFriction) {}
     Driver()
-        : radius(0.002),
-        height(0.015),
-        mass(0.005),
-        momentOfInertia(0.5 * 0.005 * 0.002 * 0.0015),
-        rotationalDragCoefficient(0.1*0.005),
-        coefficientOfFriction(0.22)
+        : radius(0.002f),
+        height(0.015f),
+        mass(0.005f),
+        momentOfInertia(0.5f * 0.005f * 0.002f * 0.0015f),
+        rotationalDragCoefficient(0.1f*0.005f),
+        coefficientOfFriction(0.22f)
 {}
-    double radius;
-    double height;
-    double mass;
-    double momentOfInertia;
-    double rotationalDragCoefficient;
-    double coefficientOfFriction;
+    float radius;
+    float height;
+    float mass;
+    float momentOfInertia;
+    float rotationalDragCoefficient;
+    float coefficientOfFriction;
 };

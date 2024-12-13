@@ -95,8 +95,10 @@ void ActiveState::handleEvents() {
     game->camera->update(game->deltaTime);
 
     if (inputManager.mouseButtonJustPressed(GLFW_MOUSE_BUTTON_LEFT)) {
-        double xpos, ypos;
-        glfwGetCursorPos(game->getWindow(), &xpos, &ypos);
+        float xpos, ypos; double dx, dy;
+        glfwGetCursorPos(game->getWindow(), &dx, &dy);
+        xpos = static_cast<float>(dx);
+        ypos = static_cast<float>(dy);
 
         // Calculate world ray and perform intersection check
         vec3 ray_world = screenToWorldCoordinates(game->getWindow(), xpos, ypos,

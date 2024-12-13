@@ -17,7 +17,7 @@
  */
 class RandomDistribution {
 public:
-    RandomDistribution(float mean = 1.0, float stddev = 0.1)
+    RandomDistribution(float mean = 1.0f, float stddev = 0.1f)
         : mean(mean),
         stddev(stddev),
         rng(std::random_device{}())
@@ -47,6 +47,12 @@ public:
 
 private:
     void setDistribution(float mean, float stddev) {
+        if (mean <= 0) {
+            throw std::invalid_argument("Mean must be positive.");
+        }
+        if (stddev <= 0) {
+            throw std::invalid_argument("Standard deviation must be positive.");
+        }
         float mu = std::log(mean * mean / std::sqrt(stddev * stddev + mean * mean));
         float sigma = std::sqrt(std::log(1 + (stddev * stddev) / (mean * mean)));
         distribution = std::lognormal_distribution<float>(mu, sigma);

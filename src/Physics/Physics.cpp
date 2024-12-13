@@ -13,17 +13,17 @@
 * @param airDensity                 [in] Air density.
 */
 
-void Physics::accumulateAirResistance(BeybladeBody* beyblade, double airDensity) {
+void Physics::accumulateAirResistance(BeybladeBody* beyblade, float airDensity) {
     // b = 1/2 * Cd * A * p
-    double linearDragConstant = beyblade->getLinearDragTerm() * airDensity;
-    double velocityMagnitude = glm::length(beyblade->getVelocity());
+    float linearDragConstant = beyblade->getLinearDragTerm() * airDensity;
+    float velocityMagnitude = glm::length(beyblade->getVelocity());
 
     // Adrag = (-b * v^2 / mass) * unit v
     glm::vec3 linearAirResistanceAcceleration = -dv3(linearDragConstant * velocityMagnitude / beyblade->getMass()) * beyblade->getVelocity();
 
     // b = 1/2 * Cd * A * r^2 * p
-    double angularDragConstant = beyblade->getAngularDragTerm() * airDensity;
-    double angularVelocityMagnitude = glm::length(beyblade->getAngularVelocity());
+    float angularDragConstant = beyblade->getAngularDragTerm() * airDensity;
+    float angularVelocityMagnitude = glm::length(beyblade->getAngularVelocity());
 
     // Adrag = (-b * w^2 / moi) * unit w
     glm::vec3 angularAirResistanceAcceleration = -dv3(angularDragConstant * angularVelocityMagnitude / beyblade->getMomentOfInertia()) * beyblade->getAngularVelocity();
@@ -53,23 +53,23 @@ void Physics::accumulateFriction(BeybladeBody* beyblade, StadiumBody* stadium) {
     // Unnecessary? Gets the rotation axis of the Bey (this may be different than the stadium)
     //glm::vec3 beybladeNormal = beyblade->getNormal();
 
-    double combinedCOF = (stadium->getCOF() + beyblade->getDriverCOF()) / 2;
+    float combinedCOF = (stadium->getCOF() + beyblade->getDriverCOF()) / 2;
     glm::vec3 beyBottomPosition = beyblade->getBottomPosition();
-    double stadiumY = stadium->getY(beyBottomPosition.x, beyBottomPosition.z);
+    float stadiumY = stadium->getY(beyBottomPosition.x, beyBottomPosition.z);
     glm::vec3 normalizedAngularVelocity = glm::normalize(beyblade->getAngularVelocity());
  
     // sin(theta) * direction
     glm::vec3 frictionDirectionAcceleration = -glm::cross(normalizedAngularVelocity, stadiumNormal);
-    double alignment = glm::dot(normalizedAngularVelocity, stadiumNormal);
+    float alignment = glm::dot(normalizedAngularVelocity, stadiumNormal);
 
-    double linearComponent = Physics::GRAVITY * combinedCOF * alignment;
-    double angularComponent = glm::length(beyblade->getAngularVelocity()) * combinedCOF * Physics::FRICTIONAL_VELOCITY_CONSTANT * alignment > 0 ? 1 : -1;
+    float linearComponent = Physics::GRAVITY * combinedCOF * alignment;
+    float angularComponent = glm::length(beyblade->getAngularVelocity()) * combinedCOF * Physics::FRICTIONAL_VELOCITY_CONSTANT * alignment > 0 ? 1.0f : -1.0f;
 
     // cl * (g * mu * cos(theta)
-    double traditionalAccelerationComponent = Physics::FRICTIONAL_ACCELERATION_CONSTANT * linearComponent;
+    float traditionalAccelerationComponent = Physics::FRICTIONAL_ACCELERATION_CONSTANT * linearComponent;
 
     // cv * (w * mu)
-    double velocityAccelarationComponent = Physics::FRICTIONAL_VELOCITY_CONSTANT * angularComponent;
+    float velocityAccelarationComponent = Physics::FRICTIONAL_VELOCITY_CONSTANT * angularComponent;
 
     // linear = (direction * sin(theta)) * (cl * (g * mu * cos(theta) + cv * (w * mu))
     glm::vec3 linearAcceleration = frictionDirectionAcceleration * dv3(traditionalAccelerationComponent + velocityAccelarationComponent);
@@ -97,13 +97,13 @@ void Physics::accumulateSlope(BeybladeBody* beyblade, StadiumBody* stadium)
     glm::vec3 beyBottomPosition = beyblade->getBottomPosition();
     glm::vec3 beybladeNormal = beyblade->getNormal();
     glm::vec3 stadiumNormal = stadium->getNormal(beyblade->getBottomPosition().x, beyblade->getBottomPosition().z);
-    double combinedCOF = (stadium->getCOF() + beyblade->getDriverCOF()) / 2;
+    float combinedCOF = (stadium->getCOF() + beyblade->getDriverCOF()) / 2;
 
     if (glm::dot(stadiumNormal, beybladeNormal) <= 0.001f) {
         return;
     }
     glm::vec3 crossProduct = glm::cross(stadiumNormal, beybladeNormal);
-    double sinOfAngle = glm::length(crossProduct) / (glm::length(stadiumNormal) * glm::length(beybladeNormal));
+    float sinOfAngle = glm::length(crossProduct) / (glm::length(stadiumNormal) * glm::length(beybladeNormal));
 
     // Check magnitudes here
     glm::vec3 unitDisplacement = glm::normalize(stadium->getCenter() - beyBottomPosition);
@@ -126,28 +126,28 @@ void Physics::accumulateSlope(BeybladeBody* beyblade, StadiumBody* stadium)
 * @param contactDistance            [in] Contact distance from collision detection logic.
 */
 
-void Physics::accumulateImpact(BeybladeBody* beyblade1, BeybladeBody* beyblade2, double contactDistance)
+void Physics::accumulateImpact(BeybladeBody* beyblade1, BeybladeBody* beyblade2, float contactDistance)
 {
     // Goes from bey1 to bey2
     glm::vec3 center1Tocenter2 = beyblade2->getCenter() - beyblade1->getCenter();
     glm::vec3 unitSeparation = glm::normalize(center1Tocenter2);
 
     // Resolve clipping
-    glm::vec3 displacement = dv3(0.5 * contactDistance) * unitSeparation;
+    glm::vec3 displacement = dv3(0.5f * contactDistance) * unitSeparation;
     beyblade1->addCenterXZ(-displacement.x, -displacement.z);
     beyblade2->addCenterXZ(displacement.x, displacement.z);
 
     glm::vec3 velocity1 = beyblade1->getVelocity();
     glm::vec3 velocity2 = beyblade2->getVelocity();
     glm::vec3 vDiff = velocity2 - velocity1;
-    double averageCOR = (beyblade1->getLayerCOR() + beyblade2->getLayerCOR()) / 2;
+    float averageCOR = (beyblade1->getLayerCOR() + beyblade2->getLayerCOR()) / 2;
 
-    double mass1 = beyblade1->getMass();
-    double mass2 = beyblade2->getMass();
+    float mass1 = beyblade1->getMass();
+    float mass2 = beyblade2->getMass();
 
     // Trust this known linear collison model works correctly
-    double impulseMagnitude = averageCOR * glm::dot(vDiff, unitSeparation) /
-        (1.0 / mass1 + 1.0 / mass2);
+    float impulseMagnitude = averageCOR * glm::dot(vDiff, unitSeparation) /
+        (1.0f / mass1 + 1.0f / mass2);
     glm::vec3 impulse = dv3(impulseMagnitude) * unitSeparation;
 
     glm::vec3 deltaVelocity1 = dv3(-impulseMagnitude / mass1) * unitSeparation;
@@ -161,38 +161,38 @@ void Physics::accumulateImpact(BeybladeBody* beyblade1, BeybladeBody* beyblade2,
     std::cout << "dv1" << glm::length(deltaVelocity1) << " dv2" << glm::length(deltaVelocity2) << std::endl;
 
     // Random effect with inherent attack power of beyblades built in
-    double randomMagnitude = (beyblade1->sampleRecoil() + beyblade2->sampleRecoil());
+    float randomMagnitude = (beyblade1->sampleRecoil() + beyblade2->sampleRecoil());
 
     // Gets relative velocity moving towards each other.
-    double linearCollisionSpeed = glm::dot(unitSeparation, velocity1) + glm::dot(-unitSeparation, velocity2);
+    float linearCollisionSpeed = glm::dot(unitSeparation, velocity1) + glm::dot(-unitSeparation, velocity2);
     if (linearCollisionSpeed < 0) std::cerr << "Linear collision speed is less than 0!" << std::endl;
 
     // Different cases for same-spin vs opposite-spin collisions
     bool sameSpinDirection = beyblade1->isSpinningClockwise() == beyblade2->isSpinningClockwise();
     if (sameSpinDirection) {
-        double angularSpeedDiff = beyblade1->getAngularVelocityMagnitude() + beyblade2->getAngularVelocityMagnitude();
+        float angularSpeedDiff = beyblade1->getAngularVelocityMagnitude() + beyblade2->getAngularVelocityMagnitude();
 
         // Predictive modeling using y = log(x) - x/500 based on expected values for x.
         // Increases from AngularSpeedDiff = 0 to 500 and gently decreases from 500 to 1000, modeling empirical data (AKA I just made it up)
-        double scalingFactor = 0.007 * (std::log(angularSpeedDiff + 1) - (angularSpeedDiff / 501)) * linearCollisionSpeed;
+        float scalingFactor = 0.007f * (std::log(angularSpeedDiff + 1.0f) - (angularSpeedDiff / 501.0f)) * linearCollisionSpeed;
 
         // CHECK whether this conversion from angular to linear is correct.
         // Just simply multiply by COR since moment of inertia vs mass already accounts for?
 
-        double recoilAngularImpulseMagnitude = randomMagnitude * scalingFactor;
+        float recoilAngularImpulseMagnitude = randomMagnitude * scalingFactor;
         std::cerr << "Angular implulse magnitude (should be less than 0.001): " << recoilAngularImpulseMagnitude << std::endl;
 
         beyblade1->accumulateAngularImpulseMagnitude(-recoilAngularImpulseMagnitude);
         beyblade2->accumulateAngularImpulseMagnitude(-recoilAngularImpulseMagnitude);
 
-        double recoilLinearImpulseMagnitude = recoilAngularImpulseMagnitude * averageCOR;
+        float recoilLinearImpulseMagnitude = recoilAngularImpulseMagnitude * averageCOR;
 
         beyblade1->accumulateImpulseMagnitude(-recoilLinearImpulseMagnitude);
         beyblade2->accumulateImpulseMagnitude(-recoilLinearImpulseMagnitude);
     }
     else {
         // TODO: Different case for opposite spin interactions
-        double angularSpeedDiff = beyblade1->getAngularVelocityMagnitude() + beyblade2->getAngularVelocityMagnitude();
+        float angularSpeedDiff = beyblade1->getAngularVelocityMagnitude() + beyblade2->getAngularVelocityMagnitude();
         std::cerr << "Opposite spin collisions have not been implemented yet";
     }
 }
@@ -208,11 +208,11 @@ void Physics::accumulateImpact(BeybladeBody* beyblade1, BeybladeBody* beyblade2,
 void Physics::preventStadiumClipping(BeybladeBody* beybladeBody, StadiumBody* stadiumBody)
 {
     glm::vec3 beyBottom = beybladeBody->getBottomPosition();
-    double stadiumY = stadiumBody->getY(beyBottom.x, beyBottom.z);
+    float stadiumY = stadiumBody->getY(beyBottom.x, beyBottom.z);
 
     // Beyblade is clipping into stadium. Push it out along y-axis.
     if (stadiumY > beyBottom.y) {
         beybladeBody->addCenterY(stadiumY - beyBottom.y);
-        beybladeBody->setVelocityY(0.0);
+        beybladeBody->setVelocityY(0.0f);
     }
 }

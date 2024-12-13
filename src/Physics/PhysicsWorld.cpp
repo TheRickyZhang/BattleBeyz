@@ -73,7 +73,7 @@ void PhysicsWorld::update(float deltaTime) {
             // Add air resistance
             Physics::accumulateAirResistance(beybladeBody, airDensity);
 
-            double stadiumY = stadiumBody->getY(beyBottom.x, beyBottom.z);
+            float stadiumY = stadiumBody->getY(beyBottom.x, beyBottom.z);
 
             // If the Beyblade is airborne by some significant amount, only apply gravity
             if (beyBottom.y - stadiumY > 0.005) {
@@ -93,7 +93,7 @@ void PhysicsWorld::update(float deltaTime) {
         for (size_t j = i + 1; j < beyblades.size(); ++j) {
             BeybladeBody* bey1 = beyblades[i]->getRigidBody();
             BeybladeBody* bey2 = beyblades[j]->getRigidBody();
-            std::optional<double> contactDistance = BeybladeBody::distanceOverlap(bey1, bey2);
+            std::optional<float> contactDistance = BeybladeBody::distanceOverlap(bey1, bey2);
 
             // Skip beys with no contact
             if (!contactDistance.has_value()) continue;

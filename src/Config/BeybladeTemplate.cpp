@@ -4,27 +4,27 @@
 
 // Define templateLayers with TemplateFormat<Layer>
 std::vector<TemplateFormat<Layer>> templateLayers = {
-    {"Standard", LAYER_STANDARD_PATH, Layer(0.025, 0.01, 0.3, 0.1, 0.4, 0.9, 0.022, glm::vec3(0.0f), glm::vec3(0.0f), 1.2e-5)},
-    {"Wide",     LAYER_WIDE_PATH,     Layer(0.03,  0.01, 0.35, 0.12, 0.4, 1.0, 0.024, glm::vec3(0.0f), glm::vec3(0.0f), 1.6e-5)},
-    {"Tall",     LAYER_TALL_PATH,     Layer(0.025, 0.012, 0.28, 0.1,  0.5, 1.1, 0.023, glm::vec3(0.0f), glm::vec3(0.0f), 1.3e-5)},
-    {"Light",    LAYER_LIGHT_PATH,    Layer(0.025, 0.01, 0.3,  0.08, 0.3, 0.8, 0.018, glm::vec3(0.0f), glm::vec3(0.0f), 1.0e-5)},
-    {"Heavy",    LAYER_HEAVY_PATH,    Layer(0.025, 0.01, 0.4,  0.15, 0.6, 1.2, 0.035, glm::vec3(0.0f), glm::vec3(0.0f), 1.8e-5)}
+    {"Standard", LAYER_STANDARD_PATH, Layer(0.025f, 0.01f, 0.3f, 0.1f, 0.4f, 0.9f, 0.022f, glm::vec3(0.0f), glm::vec3(0.0f), 1.2e-5f)},
+    {"Wide",     LAYER_WIDE_PATH,     Layer(0.03f,  0.01f, 0.35f, 0.12f, 0.4f, 1.0f, 0.024f, glm::vec3(0.0f), glm::vec3(0.0f), 1.6e-5f)},
+    {"Tall",     LAYER_TALL_PATH,     Layer(0.025f, 0.012f, 0.28f, 0.1f,  0.5f, 1.1f, 0.023f, glm::vec3(0.0f), glm::vec3(0.0f), 1.3e-5f)},
+    {"Light",    LAYER_LIGHT_PATH,    Layer(0.025f, 0.01f, 0.3f,  0.08f, 0.3f, 0.8f, 0.018f, glm::vec3(0.0f), glm::vec3(0.0f), 1.0e-5f)},
+    {"Heavy",    LAYER_HEAVY_PATH,    Layer(0.025f, 0.01f, 0.4f,  0.15f, 0.6f, 1.2f, 0.035f, glm::vec3(0.0f), glm::vec3(0.0f), 1.8e-5f)}
 };
 
 // Define templateDiscs with TemplateFormat<Disc>
 std::vector<TemplateFormat<Disc>> templateDiscs = {
-    {"Standard", DISC_STANDARD_PATH, Disc(0.018, 0.01, 0.027, 0.7*0.027*0.018*0.018, 0.1*0.005)},
-    {"Wide",     DISC_WIDE_PATH,     Disc(0.03,  0.01, 0.030, 0.7*(0.030*0.03*0.03), 0.12*0.006)},
-    {"Heavy",    DISC_HEAVY_PATH,    Disc(0.02,  0.012,0.035, 0.8*(0.035*0.02*0.02), 0.15*0.007)},
-    {"Light",    DISC_LIGHT_PATH,    Disc(0.015, 0.008,0.020, 0.6*(0.020*0.015*0.015), 0.08*0.004)},
-    {"Compact",  DISC_COMPACT_PATH,  Disc(0.017, 0.01, 0.025, 0.65*(0.025*0.017*0.017), 0.09*0.0045)}
+    {"Standard", DISC_STANDARD_PATH, Disc(0.018f, 0.01f, 0.027f, 0.7f * 0.027f * 0.018f * 0.018f, 0.1f * 0.005f)},
+    {"Wide",     DISC_WIDE_PATH,     Disc(0.03f,  0.01f, 0.030f, 0.7f * (0.030f * 0.03f * 0.03f), 0.12f * 0.006f)},
+    {"Heavy",    DISC_HEAVY_PATH,    Disc(0.02f,  0.012f, 0.035f, 0.8f * (0.035f * 0.02f * 0.02f), 0.15f * 0.007f)},
+    {"Light",    DISC_LIGHT_PATH,    Disc(0.015f, 0.008f, 0.020f, 0.6f * (0.020f * 0.015f * 0.015f), 0.08f * 0.004f)},
+    {"Compact",  DISC_COMPACT_PATH,  Disc(0.017f, 0.01f, 0.025f, 0.65f * (0.025f * 0.017f * 0.017f), 0.09f * 0.0045f)}
 };
 
 // Define templateDrivers with TemplateFormat<Driver>
 std::vector<TemplateFormat<Driver>> templateDrivers = {
-    {"Standard",       DRIVER_STANDARD_PATH,       Driver(0.002, 0.015, 0.005, 0.5*(0.005*0.002*0.0015), 0.1*0.005, 0.22)},
-    {"Wide",           DRIVER_WIDE_PATH,           Driver(0.0025,0.015, 0.006, 0.5*(0.006*0.0025*0.0015),0.12*0.006, 0.25)},
-    {"Tall",           DRIVER_TALL_PATH,           Driver(0.002, 0.02,  0.007, 0.6*(0.007*0.002*0.002), 0.1*0.007, 0.20)},
-    {"Light",          DRIVER_LIGHT_PATH,          Driver(0.0015,0.01,  0.004, 0.4*(0.004*0.0015*0.001),0.08*0.004, 0.18)},
-    {"High Friction",  DRIVER_HIGH_FRICTION_PATH,  Driver(0.002, 0.015, 0.005, 0.5*(0.005*0.002*0.0015),0.1*0.005, 0.35)}
+    {"Standard",       DRIVER_STANDARD_PATH,       Driver(0.002f, 0.015f, 0.005f, 0.5f * (0.005f * 0.002f * 0.0015f), 0.1f * 0.005f, 0.22f)},
+    {"Wide",           DRIVER_WIDE_PATH,           Driver(0.0025f, 0.015f, 0.006f, 0.5f * (0.006f * 0.0025f * 0.0015f), 0.12f * 0.006f, 0.25f)},
+    {"Tall",           DRIVER_TALL_PATH,           Driver(0.002f, 0.02f,  0.007f, 0.6f * (0.007f * 0.002f * 0.002f), 0.1f * 0.007f, 0.20f)},
+    {"Light",          DRIVER_LIGHT_PATH,          Driver(0.0015f, 0.01f,  0.004f, 0.4f * (0.004f * 0.0015f * 0.001f), 0.08f * 0.004f, 0.18f)},
+    {"High Friction",  DRIVER_HIGH_FRICTION_PATH,  Driver(0.002f, 0.015f, 0.005f, 0.5f * (0.005f * 0.002f * 0.0015f), 0.1f * 0.005f, 0.35f)}
 };

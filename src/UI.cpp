@@ -816,20 +816,20 @@ static void UICustomSettingsSave(GameControl* gc)
 
             // Duh: the setMass and setMOI funtions could calculate the totals!
 
-            bb->setDiscMass((double)discMass[i] / 1000.0);
-            bb->setDriverMass((double)driverMass[i] / 1000.0);
-            bb->setLayerMass((double)layerMass[i] / 1000.0);
-            bb->setMass((double)(discMass[i] + driverMass[i] + layerMass[i]) / 1000.0);
+            bb->setDiscMass(discMass[i] / 1000.0f);
+            bb->setDriverMass(driverMass[i] / 1000.0f);
+            bb->setLayerMass(layerMass[i] / 1000.0f);
+            bb->setMass((discMass[i] + driverMass[i] + layerMass[i]) / 1000.0f);
 
-            bb->setDiscMomentOfInertia((double)discMomentOfInertia[i] / 1000.0);
-            bb->setDriverMomentOfInertia((double)driverMomentOfInertia[i] / 1000.0);
-            bb->setLayerMomentOfInertia((double)layerMomentOfInertia[i] / 1000.0);
-            bb->setMomentOfInertia((double)(discMomentOfInertia[i] + driverMomentOfInertia[i] + layerMomentOfInertia[i]) / 1000.0);  // Total MOI
+            bb->setDiscMomentOfInertia(discMomentOfInertia[i] / 1000.0f);
+            bb->setDriverMomentOfInertia(driverMomentOfInertia[i] / 1000.0f);
+            bb->setLayerMomentOfInertia(layerMomentOfInertia[i] / 1000.0f);
+            bb->setMomentOfInertia((discMomentOfInertia[i] + driverMomentOfInertia[i] + layerMomentOfInertia[i]) / 1000.0f);  // Total MOI
 
-            bb->setDriverCOF((double)driverCoefficientOfFriction[i]);
-            bb->setLayerCoefficientOfRestitution((double)layerCoefficientOfRestitution[i]);
+            bb->setDriverCOF(driverCoefficientOfFriction[i]);
+            bb->setLayerCoefficientOfRestitution(layerCoefficientOfRestitution[i]);
 
-            bb->setLayerRecoilDistribution((double)layerRecoilDistributionMean[i], (double)layerRecoilDistributionStdDev[i]);
+            bb->setLayerRecoilDistribution(layerRecoilDistributionMean[i], layerRecoilDistributionStdDev[i]);
         }
     }
 }

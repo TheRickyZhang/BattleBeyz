@@ -22,7 +22,7 @@
 * @returns 3D world coordinates.
 */
 
-glm::vec3 screenToWorldCoordinates(GLFWwindow* window, double xpos, double ypos, const glm::mat4& view, const glm::mat4& projection) {
+glm::vec3 screenToWorldCoordinates(GLFWwindow* window, float xpos, float ypos, const glm::mat4& view, const glm::mat4& projection) {
     int width, height;
     glfwGetWindowSize(window, &width, &height);
 
@@ -43,17 +43,17 @@ glm::vec3 screenToWorldCoordinates(GLFWwindow* window, double xpos, double ypos,
 
 
 /**
-* Convert a double to a glm::vec3 for vector or matrix operations
+* Convert a float to a glm::vec3 for vector or matrix operations
 */
 
-glm::vec3 dv3(double d) {
+glm::vec3 dv3(float d) {
     return glm::vec3(float(d));
 }
 
 /**
 * Convert a magnitude to a glm::vec3 for vector operations
 */
-glm::vec3 getVecFromMagnitude(double magnitude, glm::vec3 vector3)
+glm::vec3 getVecFromMagnitude(float magnitude, glm::vec3 vector3)
 {
     glm::vec3 direction = glm::normalize(vector3);
     return direction * dv3(magnitude);

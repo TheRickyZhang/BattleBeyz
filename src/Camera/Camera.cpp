@@ -11,7 +11,7 @@ const vec3 Camera::worldUp = vec3(0.0f, 1.0f, 0.0f);
 * Constructor
 */
 
-Camera::Camera(const vec3& pos, const vec3& viewPoint, PhysicsWorld* world, double x, double y,
+Camera::Camera(const vec3& pos, const vec3& viewPoint, PhysicsWorld* world, float x, float y,
     BoundingBox box)
     : position(pos), physicsWorld(world), lastX(x), lastY(y), movementRange(box)
 {

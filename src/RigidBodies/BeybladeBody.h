@@ -49,40 +49,40 @@ public:
 		layer.recoilDistribution.setStdDev(stddev);
 	}
 
-	double getDiscHeight() const { return disc.height; }
-	double getDiscMass() const { return disc.mass;  };
-	double getDiscMomentOfInertia() const { return disc.momentOfInertia; }
-	double getDiscRadius() const { return disc.radius; }
+	float getDiscHeight() const { return disc.height; }
+	float getDiscMass() const { return disc.mass;  };
+	float getDiscMomentOfInertia() const { return disc.momentOfInertia; }
+	float getDiscRadius() const { return disc.radius; }
 
-	double getDriverCOF() const { return driver.coefficientOfFriction; }
-	double getDriverHeight() const { return driver.height; }
-	double getDriverMass() const { return driver.mass; };
-	double getDriverMomentOfInertia() const { return driver.momentOfInertia; }
-	double getDriverRadius() const { return driver.radius; }
+	float getDriverCOF() const { return driver.coefficientOfFriction; }
+	float getDriverHeight() const { return driver.height; }
+	float getDriverMass() const { return driver.mass; };
+	float getDriverMomentOfInertia() const { return driver.momentOfInertia; }
+	float getDriverRadius() const { return driver.radius; }
 
-	void setDiscMass(double _mass) { disc.mass = _mass; }
-	void setDiscMomentOfInertia(double _moi) { disc.momentOfInertia = _moi; }
-	void setDriverCOF(double _cof) { driver.coefficientOfFriction = _cof; }
-	void setDriverMass(double _mass) { driver.mass = _mass; }
-	void setDriverMomentOfInertia(double _moi) { driver.momentOfInertia = _moi; }
+	void setDiscMass(float _mass) { disc.mass = _mass; }
+	void setDiscMomentOfInertia(float _moi) { disc.momentOfInertia = _moi; }
+	void setDriverCOF(float _cof) { driver.coefficientOfFriction = _cof; }
+	void setDriverMass(float _mass) { driver.mass = _mass; }
+	void setDriverMomentOfInertia(float _moi) { driver.momentOfInertia = _moi; }
 
 	// Getters entire object
 	glm::vec3 getCenter() const { return baseCenter; }
 	glm::vec3 getVelocity() const { return velocity; }
 	glm::vec3 getAngularVelocity() const { return angularVelocity; }
 
-	double getMass() const { return mass; } // Total mass
-	double getMomentOfInertia() const { return momentOfInertia; }
-	double getLinearDragTerm() const { return linearDragTerm; }
-	double getAngularDragTerm() const { return angularDragTerm; }
+	float getMass() const { return mass; } // Total mass
+	float getMomentOfInertia() const { return momentOfInertia; }
+	float getLinearDragTerm() const { return linearDragTerm; }
+	float getAngularDragTerm() const { return angularDragTerm; }
 
 
 	// TODO: Need to distinguish between the top and bottom of the driver, or driverRadiusTop and driverRadiusBottom
-	double getDriverTopRadius() const { return 0.012; }
+	float getDriverTopRadius() const { return 0.012f; }
 	// TODO: Add linearDragCoefficient (low priority, currently assumed to be constant 0.9)
 
 	// Specialized getters
-	double getAngularVelocityMagnitude() const { return glm::length(angularVelocity); }
+	float getAngularVelocityMagnitude() const { return glm::length(angularVelocity); }
 	bool isSpinningClockwise() const { return angularVelocity.y < 0; }
 	glm::vec3 getNormal() const;
 	glm::vec3 getBottomPosition() const;
@@ -92,23 +92,23 @@ public:
 	void resetPhysics(); // 2024-11-18
 	void setInitialLaunch(glm::vec3 initialCenter, glm::vec3 initialVelocity, glm::vec3 initialAngularVelocity);
 
-	void setMass(double _mass) { mass = _mass; }  // Total mass
-	void setMomentOfInertia(double _totalMOI) { momentOfInertia = _totalMOI; }
+	void setMass(float _mass) { mass = _mass; }  // Total mass
+	void setMomentOfInertia(float _totalMOI) { momentOfInertia = _totalMOI; }
 	void updateFromParts() {
 		setMass(layer.mass + disc.mass + driver.mass);
 		setMomentOfInertia(layer.momentOfInertia + disc.momentOfInertia + driver.momentOfInertia);
 	}
 
 	// Adjustors
-	void addCenterY(double addY) { baseCenter.y += static_cast<float>(addY); }
-	void addCenterXZ(double addX, double addZ) { baseCenter.x += static_cast<float>(addX); baseCenter.z += static_cast<float>(addZ); }
-	void setCenterY(double addY) { baseCenter.y = static_cast<float>(addY); }
+	void addCenterY(float addY) { baseCenter.y += static_cast<float>(addY); }
+	void addCenterXZ(float addX, float addZ) { baseCenter.x += static_cast<float>(addX); baseCenter.z += static_cast<float>(addZ); }
+	void setCenterY(float addY) { baseCenter.y = static_cast<float>(addY); }
 	void setVelocity(glm::vec3 newVelocity) { velocity = newVelocity; }
-	void setVelocityY(double newY) { velocity.y = static_cast<float>(newY); }
+	void setVelocityY(float newY) { velocity.y = static_cast<float>(newY); }
 
 	// Used in collision calculations
-	double sampleRecoil();
-	static std::optional<double> distanceOverlap(BeybladeBody* a, BeybladeBody* b);
+	float sampleRecoil();
+	static std::optional<float> distanceOverlap(BeybladeBody* a, BeybladeBody* b);
 
 	// Accumulators
 	void accumulateVelocity(glm::vec3 addedVelocity);
@@ -116,12 +116,12 @@ public:
 	void accumulateAcceleration(glm::vec3 addedAcceleration);
 	void accumulateAngularAcceleration(glm::vec3 addedAngularAcceleration);
 
-	void accumulateImpulseMagnitude(double magnitude);
-	void accumulateAngularImpulseMagnitude(double magnitude);
+	void accumulateImpulseMagnitude(float magnitude);
+	void accumulateAngularImpulseMagnitude(float magnitude);
 
 	// Updators: these are the ones that significantly change the values of the body!
-	void applyAccumulatedChanges(double deltaTime);
-	void update(double deltaTime);
+	void applyAccumulatedChanges(float deltaTime);
+	void update(float deltaTime);
 	std::vector<BoundingBox*> boundingBoxes{};
 
 	bool getModified() {  // 2024-12-03 for UI interactions
@@ -142,20 +142,20 @@ private:
 	glm::vec3 _initialBaseCenter{};  // 2024-11-18 Saved for use by restart
 
 	// Linear Physics
-	double mass;
+	float mass;
 	glm::vec3 velocity {};
 	glm::vec3 _initialVelocity{};  // 2024-11-18 Saved for use by restart
 
 	glm::vec3 acceleration {};
 
 	// Rotational Physics
-	double momentOfInertia;  // This is the total for all parts
-	glm::vec3 angularVelocity{ 0.0, 1.0, 0.0 };
+	float momentOfInertia;  // This is the total for all parts
+	glm::vec3 angularVelocity{ 0.0f, 1.0f, 0.0f };
 	glm::vec3 _initialAngularVelocity{};  // 2024-11-18 Saved for use by restart
 
 	glm::vec3 angularAcceleration {};
-	double linearDragTerm; // Sum of Cd*A for parts 
-	double angularDragTerm; // Sum of Cd*A*r^2 for parts
+	float linearDragTerm; // Sum of Cd*A for parts 
+	float angularDragTerm; // Sum of Cd*A*r^2 for parts
 
 	// Accumulated delta velocity to be applied at cycle end (for instantaneous collisions, does not depend on deltaTime)
 	glm::vec3 accumulatedVelocity {};

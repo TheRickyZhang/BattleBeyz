@@ -24,32 +24,32 @@
  */
 class StadiumBody {
 public:
-	StadiumBody::StadiumBody(glm::vec3 center, double radius, double curvature, double coefficientOfFriction) :
+	StadiumBody::StadiumBody(glm::vec3 center, float radius, float curvature, float coefficientOfFriction) :
 		center(center), radius(radius), curvature(curvature), scaledCurvature(curvature / radius),
 		coefficientOfFriction(coefficientOfFriction) {}
 
     // Default parameters: 1.2 meters radius is quite large
 	StadiumBody::StadiumBody() :
-        center(glm::vec3(0.0f, 0.0f, 0.0f)), radius(1.2f), curvature(0.10), scaledCurvature(0.10/1.2), coefficientOfFriction(0.35) {}
+        center(glm::vec3(0.0f, 0.0f, 0.0f)), radius(1.2f), curvature(0.10f), scaledCurvature(0.10f/1.2f), coefficientOfFriction(0.35f) {}
 
-	bool isInside(double x, double z) const;
-	const double getRadius() const { return radius; }
-	const float getYLocal(double r) const;
-	const double getY(double x, double z) const;
-	const glm::vec3 getNormal(double x, double z) const;
+	bool isInside(float x, float z) const;
+	const float getRadius() const { return radius; }
+	const float getYLocal(float r) const;
+	const float getY(float x, float z) const;
+	const glm::vec3 getNormal(float x, float z) const;
 
 	glm::vec3 getCenter() const { return center; }
-	double getCOF() const { return coefficientOfFriction; }
+	float getCOF() const { return coefficientOfFriction; }
 
 	std::vector<BoundingBox*> boundingBoxes{};
 
 	// Dimensions
 	glm::vec3 center{};
-	double radius;
-	double curvature;
-	double scaledCurvature;
+	float radius;
+	float curvature;
+	float scaledCurvature;
 
 	// Contact Properties
-	double coefficientOfFriction;
+	float coefficientOfFriction;
 private:
 };

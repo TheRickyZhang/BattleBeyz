@@ -209,7 +209,7 @@ void CustomizeState::drawManualCustomizeSection(shared_ptr<Beyblade> beyblade) {
     ImGui::Text("Customize Your Beyblade");
     // Update temporary variables if beyblade has changed
     if (beybladeBody != prevbladeBody) {
-        BeybladeParameter::assignToBeybladeBody(beybladeBody);
+        BeybladeParameter::assignFromBeybladeBody(beybladeBody);
         prevbladeBody = beybladeBody;
     }
 

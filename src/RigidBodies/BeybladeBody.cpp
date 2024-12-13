@@ -7,16 +7,16 @@ BeybladeBody::BeybladeBody(Layer layer, Disc disc, Driver driver) :
 {
     // Sum 0.5 * Cd * A for each part
     // Use 0.9 for now using cylindrical approximation
-    double linearLayerCA = 0.9 * 2 * layer.height * layer.radius;
-    double linearDiscCA = 0.9 * 2 * disc.height * disc.radius;
-    double linearDriverCA = 0.9 * driver.height * driver.radius;
-    linearDragTerm = 0.5 * (linearLayerCA + linearDiscCA + linearDriverCA);
+    float linearLayerCA = 0.9f * 2 * layer.height * layer.radius;
+    float linearDiscCA = 0.9f * 2 * disc.height * disc.radius;
+    float linearDriverCA = 0.9f * driver.height * driver.radius;
+    linearDragTerm = 0.5f * (linearLayerCA + linearDiscCA + linearDriverCA);
 
     // Sum 0.5 * Cd*A * r^2 for each part (rotationalDragCoefficient*layerHeight is C * avg distance extending outwards)
-    double angularLayerCAr2 = layer.rotationalDragCoefficient * layer.height * layer.radius * layer.radius;
-    double angularDiscCAr2 = disc.rotationalDragCoefficient * disc.height * disc.radius * disc.radius;
-    double angularDriverCAr2 = driver.rotationalDragCoefficient * driver.height * driver.radius * driver.radius;
-    angularDragTerm = 0.5 * (angularLayerCAr2 + angularDiscCAr2 + angularDriverCAr2);
+    float angularLayerCAr2 = layer.rotationalDragCoefficient * layer.height * layer.radius * layer.radius;
+    float angularDiscCAr2 = disc.rotationalDragCoefficient * disc.height * disc.radius * disc.radius;
+    float angularDriverCAr2 = driver.rotationalDragCoefficient * driver.height * driver.radius * driver.radius;
+    angularDragTerm = 0.5f * (angularLayerCAr2 + angularDiscCAr2 + angularDriverCAr2);
 
     modified = false;  // 2024-12-03
 }
@@ -34,12 +34,12 @@ BeybladeBody::BeybladeBody(BeybladeMesh* mesh, Layer _layer, Disc _disc, Driver 
     //
     // NEWUI: TODO.  There are redundant COF and COR in the layer and driver.
 
-    acceleration = glm::vec3(0.0);
+    acceleration = glm::vec3(0.0f);
     // NEWUI coefficientOfFriction = 0.2; Now taken from the driver structure.
     // NEWUI coefficientOfRestitution = 0.8; Now taken from the layer structure.
     mass = layer.mass + disc.mass + driver.mass;
     momentOfInertia = layer.momentOfInertia + disc.momentOfInertia + driver.momentOfInertia;
-    velocity = glm::vec3(0.0);
+    velocity = glm::vec3(0.0f);
 
 
     // NEWMESH:  Use radii and heights from the mesh.  TODO: Remove radii and heights from Layer, etc.
@@ -47,16 +47,16 @@ BeybladeBody::BeybladeBody(BeybladeMesh* mesh, Layer _layer, Disc _disc, Driver 
     // Sum 0.5 * Cd * A for each part
     // Use 0.9 for now using cylindrical approximation
 
-    double linearLayerCA = 0.9 * 2 * mesh->heightLayer * mesh->radiusLayer;
-    double linearDiscCA = 0.9 * 2 * mesh->heightDisc * mesh->radiusDisc;
-    double linearDriverCA = 0.9 * mesh->heightDriver * mesh->heightDriver;
-    linearDragTerm = 0.5*(linearLayerCA + linearDiscCA + linearDriverCA);
+    float linearLayerCA = 0.9f * 2 * mesh->heightLayer * mesh->radiusLayer;
+    float linearDiscCA = 0.9f * 2 * mesh->heightDisc * mesh->radiusDisc;
+    float linearDriverCA = 0.9f * mesh->heightDriver * mesh->heightDriver;
+    linearDragTerm = 0.5f*(linearLayerCA + linearDiscCA + linearDriverCA);
 
     // Sum 0.5 * Cd*A * r^2 for each part (rotationalDragCoefficient*layerHeight is C * avg distance extending outwards)
-    double angularLayerCAr2 = layer.rotationalDragCoefficient * mesh->heightLayer * mesh->radiusLayer * mesh->radiusLayer;
-    double angularDiscCAr2 = disc.rotationalDragCoefficient * mesh->heightDisc * mesh->radiusDisc * mesh->radiusDisc;
-    double angularDriverCAr2 = driver.rotationalDragCoefficient * mesh->heightDriver * mesh->radiusDriver * mesh->radiusDriver;
-    angularDragTerm = 0.5*(angularLayerCAr2 + angularDiscCAr2 + angularDriverCAr2);
+    float angularLayerCAr2 = layer.rotationalDragCoefficient * mesh->heightLayer * mesh->radiusLayer * mesh->radiusLayer;
+    float angularDiscCAr2 = disc.rotationalDragCoefficient * mesh->heightDisc * mesh->radiusDisc * mesh->radiusDisc;
+    float angularDriverCAr2 = driver.rotationalDragCoefficient * mesh->heightDriver * mesh->radiusDriver * mesh->radiusDriver;
+    angularDragTerm = 0.5f*(angularLayerCAr2 + angularDiscCAr2 + angularDriverCAr2);
 
     modified = false;  // 2024-12-03
 }
@@ -119,12 +119,12 @@ BoundingBox BeybladeBody::getBoundingBox() const {
 
 /*--------------------------------------------Collision Calculations--------------------------------------------*/
 
-double BeybladeBody::sampleRecoil()
+float BeybladeBody::sampleRecoil()
 {
     return layer.recoilDistribution.sample();
 }
 
-std::optional<double> BeybladeBody::distanceOverlap(BeybladeBody* a, BeybladeBody* b) {
+std::optional<float> BeybladeBody::distanceOverlap(BeybladeBody* a, BeybladeBody* b) {
     if (!a || !b) {
         throw std::invalid_argument("Null pointer created in Beyblade::inContact");
     }
@@ -140,16 +140,16 @@ std::optional<double> BeybladeBody::distanceOverlap(BeybladeBody* a, BeybladeBod
         return std::nullopt;
     }
 
-    double diffX = aCenter.x - bCenter.x;
-    double diffZ = aCenter.z - bCenter.z;
-    double squaredDistance = diffX * diffX + diffZ * diffZ;
-    double radiiSum = a->getLayerRadius() + b->getLayerRadius();
+    float diffX = aCenter.x - bCenter.x;
+    float diffZ = aCenter.z - bCenter.z;
+    float squaredDistance = diffX * diffX + diffZ * diffZ;
+    float radiiSum = a->getLayerRadius() + b->getLayerRadius();
 
-    double overlapDistance = radiiSum * radiiSum - squaredDistance;
+    float overlapDistance = radiiSum * radiiSum - squaredDistance;
 
     // Checks for horizontal overlap based on xz coordinates with radii
     if (overlapDistance > 0) {
-        return std::optional<double>(sqrt(overlapDistance));
+        return std::optional<float>(sqrt(overlapDistance));
     }
     return std::nullopt;
 }
@@ -180,7 +180,7 @@ void BeybladeBody::accumulateAngularAcceleration(glm::vec3 addedAngularAccelerat
 /*--------------------------------------------Updators--------------------------------------------*/
 
 // Increases or decreases angular speed given angular impulse magnitude
-void BeybladeBody::accumulateAngularImpulseMagnitude(double magnitude)
+void BeybladeBody::accumulateAngularImpulseMagnitude(float magnitude)
 {
     // Spin should never be 0 so no need to check
     glm::vec3 deltaAngularImpulse = dv3(magnitude) * glm::normalize(angularVelocity);
@@ -189,7 +189,7 @@ void BeybladeBody::accumulateAngularImpulseMagnitude(double magnitude)
 }
 
 // Increases or decreases linear speed given linear impulse magnitude
-void BeybladeBody::accumulateImpulseMagnitude(double magnitude)
+void BeybladeBody::accumulateImpulseMagnitude(float magnitude)
 {
     if (glm::length(velocity) < std::numeric_limits<float>::epsilon()) {
         accumulateVelocity(glm::vec3(magnitude, 0.0, 0.0));
@@ -201,7 +201,7 @@ void BeybladeBody::accumulateImpulseMagnitude(double magnitude)
     accumulateVelocity(deltaVelocity);
 }
 
-void BeybladeBody::applyAccumulatedChanges(double deltaTime)
+void BeybladeBody::applyAccumulatedChanges(float deltaTime)
 {
 #if 0
     printVec3("Accumulated velocity", accumulatedVelocity);
@@ -219,7 +219,7 @@ void BeybladeBody::applyAccumulatedChanges(double deltaTime)
     accumulatedVelocity = accumulatedAngularVelocity = accumulatedAcceleration = accumulatedAngularAcceleration = glm::vec3(0.0);
 }
 
-void BeybladeBody::update(double deltaTime)
+void BeybladeBody::update(float deltaTime)
 {
     baseCenter += velocity * dv3(deltaTime);
 #if 0

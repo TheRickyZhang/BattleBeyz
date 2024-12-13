@@ -19,7 +19,7 @@
 class PhysicsWorld {
 public:
     // TODO: Move airDensityValue to Physics.h
-    PhysicsWorld(double airDensityValue = 0.8, double spinThreshold = 30) : airDensity(airDensityValue), SPIN_THRESHOLD(spinThreshold) {}
+    PhysicsWorld(float airDensityValue = 0.8f, float spinThreshold = 30.0f) : airDensity(airDensityValue), SPIN_THRESHOLD(spinThreshold) {}
 
     void addBeyblade(Beyblade* body);
     void addStadium(Stadium* body);
@@ -42,8 +42,8 @@ public:
 #endif
 
 private:
-    double airDensity;
+    float airDensity;
     std::vector<Beyblade*> beyblades;
     std::vector<Stadium*> stadiums;
-    const double SPIN_THRESHOLD = 30;
+    const float SPIN_THRESHOLD = 30.0f;
 };
