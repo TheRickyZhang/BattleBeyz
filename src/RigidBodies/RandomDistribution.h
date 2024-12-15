@@ -11,13 +11,16 @@
 #include <glm/glm.hpp>
 #include <random>
 
+#include "UnitsSystem.h"
+using namespace Units;
+
 /**
  * Represents a lognormal ditribution for use in calculating recoil strength. Scales both linear and angular impulse.
  * @param mean, stddev: the mean and standard deviation of the distribution. Scaled so still applies to lognormal distribution.
  */
 class RandomDistribution {
 public:
-    RandomDistribution(float mean = 1.0f, float stddev = 0.1f)
+    RandomDistribution(Scalar mean = Scalar(1.0f), Scalar stddev = Scalar(0.1f))
         : mean(mean),
         stddev(stddev),
         rng(std::random_device{}())
@@ -28,38 +31,38 @@ public:
     /**
     * Samples the distribution. Only provides the "randomness" of the impact: actual recoil will depend on many other factors
     */
-    float sample() {
-        return distribution(rng);
+    Scalar sample() {
+        return Scalar(distribution(rng));
     }
 
-    float getMean()   const { return mean; }
-    float getStdDev() const { return stddev; }
+    Scalar getMean()   const { return mean; }
+    Scalar getStdDev() const { return stddev; }
 
-    void setMean(float m) {
+    void setMean(Scalar m) {
         mean = m;
         setDistribution(mean, stddev);
     }
 
-    void setStdDev(float s) {
+    void setStdDev(Scalar s) {
         stddev = s;
         setDistribution(mean, stddev);
     }
 
 private:
-    void setDistribution(float mean, float stddev) {
-        if (mean <= 0) {
+    void setDistribution(Scalar mean, Scalar stddev) {
+        if (mean.value() <= 0) {
             throw std::invalid_argument("Mean must be positive.");
         }
-        if (stddev <= 0) {
+        if (stddev.value() <= 0) {
             throw std::invalid_argument("Standard deviation must be positive.");
         }
-        float mu = std::log(mean * mean / std::sqrt(stddev * stddev + mean * mean));
-        float sigma = std::sqrt(std::log(1 + (stddev * stddev) / (mean * mean)));
+        float mu = std::log(mean.value() * mean.value() / std::sqrt(stddev.value() * stddev.value() + mean.value() * mean.value()));
+        float sigma = std::sqrt(std::log(1 + (stddev.value() * stddev.value()) / (mean.value() * mean.value())));
         distribution = std::lognormal_distribution<float>(mu, sigma);
     }
 
-    float mean;
-    float stddev;
+    Scalar mean;
+    Scalar stddev;
     std::mt19937 rng;
     std::lognormal_distribution<float> distribution;
 };

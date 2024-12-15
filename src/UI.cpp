@@ -773,64 +773,19 @@ static void UICustomScreenInit(GameControl* gc)
         Beyblade* b = blades[i];
         BeybladeBody* bb = b->getRigidBody();
 
-        discMass.push_back((float)(bb->getDiscMass() * 1000.0));
-        driverMass.push_back((float)(bb->getDriverMass() * 1000.0));
-        layerMass.push_back((float)(bb->getLayerMass() * 1000.0));
+        discMass.push_back(bb->getDiscMass().value() * 1000.0f);
+        driverMass.push_back(bb->getDriverMass().value() * 1000.0f);
+        layerMass.push_back(bb->getLayerMass().value() * 1000.0f);
 
-        discMomentOfInertia.push_back((float)(bb->getDiscMomentOfInertia() * 1000.0));
-        driverMomentOfInertia.push_back((float)(bb->getDriverMomentOfInertia() * 1000.0));
-        layerMomentOfInertia.push_back((float)(bb->getLayerMomentOfInertia() * 1000.0));
+        discMomentOfInertia.push_back(bb->getDiscMomentOfInertia().value() * 1000.0f);
+        driverMomentOfInertia.push_back(bb->getDriverMomentOfInertia().value() * 1000.0f);
+        layerMomentOfInertia.push_back(bb->getLayerMomentOfInertia().value() * 1000.0f);
 
-        driverCoefficientOfFriction.push_back((float)bb->getDriverCOF());
-        layerCoefficientOfRestitution.push_back((float)bb->getLayerCOR());
+        driverCoefficientOfFriction.push_back(bb->getDriverCOF().value());
+        layerCoefficientOfRestitution.push_back(bb->getLayerCOR().value());
 
-        layerRecoilDistributionMean.push_back((float)bb->getLayerRecoilDistribution().getMean());
-        layerRecoilDistributionStdDev.push_back((float)bb->getLayerRecoilDistribution().getStdDev());
-    }
-}
-
-/**
-* Save Custom Screen dialog values in the live data.
-*/
-
-static void UICustomSettingsSave(GameControl* gc)
-{
-    extern std::vector<float> discMass;
-    extern std::vector<float> discMomentOfInertia;
-    extern std::vector<float> driverCoefficientOfFriction;
-    extern std::vector<float> driverMass;
-    extern std::vector<float> driverMomentofInertia;
-    extern std::vector<float> layerMass;
-    extern std::vector<float> layerCoefficientOfRestitution;
-    extern std::vector<float> layerMomentOfInertia;
-    extern std::vector<float> layerRecoilDistributionMean;
-    extern std::vector<float> layerRecoilDistributionStdDev;
-
-    extern char profileName[2][MAX_PROFILE_NAME_LENGTH];
-
-    std::vector<Beyblade*> blades = gc->physicsWorld->getBeyblades();
-    if (discMass.size() == blades.size()) {  // We were initialized and state looks sane
-        for (size_t i = 0; i < blades.size(); i++) {
-            Beyblade* b = blades[i];
-            BeybladeBody* bb = b->getRigidBody();
-
-            // Duh: the setMass and setMOI funtions could calculate the totals!
-
-            bb->setDiscMass(discMass[i] / 1000.0f);
-            bb->setDriverMass(driverMass[i] / 1000.0f);
-            bb->setLayerMass(layerMass[i] / 1000.0f);
-            bb->setMass((discMass[i] + driverMass[i] + layerMass[i]) / 1000.0f);
-
-            bb->setDiscMomentOfInertia(discMomentOfInertia[i] / 1000.0f);
-            bb->setDriverMomentOfInertia(driverMomentOfInertia[i] / 1000.0f);
-            bb->setLayerMomentOfInertia(layerMomentOfInertia[i] / 1000.0f);
-            bb->setMomentOfInertia((discMomentOfInertia[i] + driverMomentOfInertia[i] + layerMomentOfInertia[i]) / 1000.0f);  // Total MOI
-
-            bb->setDriverCOF(driverCoefficientOfFriction[i]);
-            bb->setLayerCoefficientOfRestitution(layerCoefficientOfRestitution[i]);
-
-            bb->setLayerRecoilDistribution(layerRecoilDistributionMean[i], layerRecoilDistributionStdDev[i]);
-        }
+        layerRecoilDistributionMean.push_back(bb->getLayerRecoilDistribution().getMean().value());
+        layerRecoilDistributionStdDev.push_back(bb->getLayerRecoilDistribution().getStdDev().value());
     }
 }
 
@@ -903,58 +858,25 @@ static void UIProfileCreateSectionFromDefaults(const char* profileName, Disc& di
 
     mINI::INIStructure& i = *gameControl->iniData;  // Easy-to-type reference
 
-    (*gameControl->iniData)[profileName].set({
-        { "discMass", std::to_string(disc.mass) },
-        { "discMomentOfInertia", std::to_string(disc.momentOfInertia) },
-        { "driverCoefficientOfFriction",  std::to_string(driver.coefficientOfFriction) },
-        { "driverMass",  std::to_string(driver.mass) },
-        { "driverMomentOfInertia", std::to_string(driver.momentOfInertia) },
-        { "layerCoefficientOfRestitution", std::to_string(layer.coefficientOfRestitution) },
-        { "layerMass",  std::to_string(layer.mass) },
-        { "layerMomentOfInertia", std::to_string(layer.momentOfInertia) },
-        { "layerRecoilDistributionMean", std::to_string(layer.recoilDistribution.getMean()) },
-        { "layerRecoilDistributionStdDev", std::to_string(layer.recoilDistribution.getStdDev()) }
-        });
-}
-
-/**
-* Create a new section from the active screen values.  Rewrites the ini file.
-*/
-
-static void UIProfileCreateSectionFromScreen(const std::string& profileName)
-{
-    extern int activeBlade;
-    extern GameControl* gameControl;
-
-    extern std::vector<float> discMass;
-    extern std::vector<float> discMomentOfInertia;
-    extern std::vector<float> driverCoefficientOfFriction;
-    extern std::vector<float> driverMass;
-    extern std::vector<float> driverMomentofInertia;
-    extern std::vector<float> layerCoefficientOfRestitution;
-    extern std::vector<float> layerMass;
-    extern std::vector<float> layerMomentOfInertia;
-    extern std::vector<float> layerRecoilDistributionMean;
-    extern std::vector<float> layerRecoilDistributionStdDev;
-
-    mINI::INIStructure& i = *gameControl->iniData;  // Easy-to-type reference
-
-    (*gameControl->iniData)[profileName].set({
-        { "discMass", std::to_string(discMass[activeBlade] / 1000.0) },
-        { "discMomentOfInertia", std::to_string(discMomentOfInertia[activeBlade] / 1000.0) },
-        { "driverCoefficientOfFriction",  std::to_string(driverCoefficientOfFriction[activeBlade]) },
-        { "driverMass",  std::to_string(driverMass[activeBlade] / 1000.0)  },
-        { "driverMomentOfInertia", std::to_string(driverMomentOfInertia[activeBlade] / 1000.0) },
-        { "layerCoefficientOfRestitution", std::to_string(layerCoefficientOfRestitution[activeBlade]) },
-        { "layerMass",  std::to_string(layerMass[activeBlade] / 1000.0) },
-        { "layerMomentOfInertia", std::to_string(layerMomentOfInertia[activeBlade] / 1000.0) },
-        { "layerRecoilDistributionMean", std::to_string(layerRecoilDistributionMean[activeBlade]) },
-        { "layerRecoilDistributionStdDev", std::to_string(layerRecoilDistributionStdDev[activeBlade]) }
-        });
-
+    /**
+    * Create a new section from the active screen values.  Rewrites the ini file.
+    */
     if (!gameControl->iniFile->write(*gameControl->iniData)) {
         std::cerr << "Failed to write profile file" << std::endl;  // TODO: Why did it fail?
     }
+    // 12/14/24" TODO: Migrate mINI or some other file system? gameControl is outdated
+    //(*gameControl->iniData)[profileName].set({
+    //    { "discMass", std::to_string(disc.mass) },
+    //    { "discMomentOfInertia", std::to_string(disc.momentOfInertia) },
+    //    { "driverCoefficientOfFriction",  std::to_string(driver.coefficientOfFriction) },
+    //    { "driverMass",  std::to_string(driver.mass) },
+    //    { "driverMomentOfInertia", std::to_string(driver.momentOfInertia) },
+    //    { "layerCoefficientOfRestitution", std::to_string(layer.coefficientOfRestitution) },
+    //    { "layerMass",  std::to_string(layer.mass) },
+    //    { "layerMomentOfInertia", std::to_string(layer.momentOfInertia) },
+    //    { "layerRecoilDistributionMean", std::to_string(layer.recoilDistribution.getMean()) },
+    //    { "layerRecoilDistributionStdDev", std::to_string(layer.recoilDistribution.getStdDev()) }
+    //    });
 }
 
 /**

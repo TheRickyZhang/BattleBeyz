@@ -14,6 +14,9 @@
 #include "MeshObjects/BeybladeMesh.h"  // NEWMESH Added this, changed constructor definitions.
 #include "Utils.h"
 
+#include "UnitsSystem.h"
+using namespace Units;
+
 /**
  * BeybladeBody. Contains all of the physical properties of a beyblade.
  * 
@@ -34,47 +37,47 @@ public:
 	// RZ:  Theoretically good style, but there are too many!  Just make the variables public!
 
 	// Getters per part
-	float getLayerCOR() const { return layer.coefficientOfRestitution; }
-	float getLayerHeight() const { return driver.height; }
-	float getLayerMass() const { return layer.mass; };
-	float getLayerMomentOfInertia() const { return layer.momentOfInertia; }
-	float getLayerRadius() const { return layer.radius; }
+	Meter getLayerHeight() const { return driver.height; }
+	Kilogram getLayerMass() const { return layer.mass; }
+	KgM2 getLayerMomentOfInertia() const { return layer.momentOfInertia; }
+	Meter getLayerRadius() const { return layer.radius; }
 	RandomDistribution getLayerRecoilDistribution() const { return layer.recoilDistribution; }
+	Scalar getLayerCOR() const { return layer.coefficientOfRestitution; }
 
-	void setLayerCoefficientOfRestitution(float _cor) { layer.coefficientOfRestitution = _cor; }
-	void setLayerMass(float _mass) { layer.mass = _mass; }
-	void setLayerMomentOfInertia(float _moi) { layer.momentOfInertia = _moi; }
-	void setLayerRecoilDistribution(float mean, float stddev) {
+	void setLayerCoefficientOfRestitution(Scalar _cor) { layer.coefficientOfRestitution = _cor; }
+	void setLayerMass(Kilogram _mass) { layer.mass = _mass; }
+	void setLayerMomentOfInertia(KgM2 _moi) { layer.momentOfInertia = _moi; }
+	void setLayerRecoilDistribution(Scalar mean, Scalar stddev) {
 		layer.recoilDistribution.setMean(mean);
 		layer.recoilDistribution.setStdDev(stddev);
 	}
 
-	float getDiscHeight() const { return disc.height; }
-	float getDiscMass() const { return disc.mass;  };
-	float getDiscMomentOfInertia() const { return disc.momentOfInertia; }
-	float getDiscRadius() const { return disc.radius; }
+	Meter getDiscHeight() const { return disc.height; }
+	Kilogram getDiscMass() const { return disc.mass; }
+	KgM2 getDiscMomentOfInertia() const { return disc.momentOfInertia; }
+	Meter getDiscRadius() const { return disc.radius; }
 
-	float getDriverCOF() const { return driver.coefficientOfFriction; }
-	float getDriverHeight() const { return driver.height; }
-	float getDriverMass() const { return driver.mass; };
-	float getDriverMomentOfInertia() const { return driver.momentOfInertia; }
-	float getDriverRadius() const { return driver.radius; }
+	Scalar getDriverCOF() const { return driver.coefficientOfFriction; }
+	Meter getDriverHeight() const { return driver.height; }
+	Kilogram getDriverMass() const { return driver.mass; }
+	KgM2 getDriverMomentOfInertia() const { return driver.momentOfInertia; }
+	Meter getDriverRadius() const { return driver.radius; }
 
-	void setDiscMass(float _mass) { disc.mass = _mass; }
-	void setDiscMomentOfInertia(float _moi) { disc.momentOfInertia = _moi; }
-	void setDriverCOF(float _cof) { driver.coefficientOfFriction = _cof; }
-	void setDriverMass(float _mass) { driver.mass = _mass; }
-	void setDriverMomentOfInertia(float _moi) { driver.momentOfInertia = _moi; }
+	void setDiscMass(Kilogram _mass) { disc.mass = _mass; }
+	void setDiscMomentOfInertia(KgM2 _moi) { disc.momentOfInertia = _moi; }
+	void setDriverCOF(Scalar _cof) { driver.coefficientOfFriction = _cof; }
+	void setDriverMass(Kilogram _mass) { driver.mass = _mass; }
+	void setDriverMomentOfInertia(KgM2 _moi) { driver.momentOfInertia = _moi; }
 
 	// Getters entire object
 	glm::vec3 getCenter() const { return baseCenter; }
 	glm::vec3 getVelocity() const { return velocity; }
 	glm::vec3 getAngularVelocity() const { return angularVelocity; }
 
-	float getMass() const { return mass; } // Total mass
-	float getMomentOfInertia() const { return momentOfInertia; }
-	float getLinearDragTerm() const { return linearDragTerm; }
-	float getAngularDragTerm() const { return angularDragTerm; }
+	Kilogram getMass() const { return mass; } // Total mass
+	KgM2 getMomentOfInertia() const { return momentOfInertia; }
+	M2 getLinearDragTerm() const { return linearDragTerm; }
+	M2 getAngularDragTerm() const { return angularDragTerm; }
 
 
 	// TODO: Need to distinguish between the top and bottom of the driver, or driverRadiusTop and driverRadiusBottom
@@ -92,8 +95,8 @@ public:
 	void resetPhysics(); // 2024-11-18
 	void setInitialLaunch(glm::vec3 initialCenter, glm::vec3 initialVelocity, glm::vec3 initialAngularVelocity);
 
-	void setMass(float _mass) { mass = _mass; }  // Total mass
-	void setMomentOfInertia(float _totalMOI) { momentOfInertia = _totalMOI; }
+	void setMass(Kilogram _mass) { mass = _mass; }  // Total mass
+	void setMomentOfInertia(KgM2 _totalMOI) { momentOfInertia = _totalMOI; }
 	void updateFromParts() {
 		setMass(layer.mass + disc.mass + driver.mass);
 		setMomentOfInertia(layer.momentOfInertia + disc.momentOfInertia + driver.momentOfInertia);
@@ -138,24 +141,24 @@ private:
 	Layer layer;
 
 	// Global Position
-	glm::vec3 baseCenter {};
-	glm::vec3 _initialBaseCenter{};  // 2024-11-18 Saved for use by restart
+	Vector3Quantity<Meter> baseCenter {};
+	Vector3Quantity<Meter> _initialBaseCenter{};  // 2024-11-18 Saved for use by restart
 
 	// Linear Physics
-	float mass;
-	glm::vec3 velocity {};
-	glm::vec3 _initialVelocity{};  // 2024-11-18 Saved for use by restart
+	Kilogram mass;
+	Vector3Quantity<M_S> velocity {};
+	Vector3Quantity<M_S> _initialVelocity{};  // 2024-11-18 Saved for use by restart
 
-	glm::vec3 acceleration {};
+	Vector3Quantity<M_S2> acceleration {};
 
 	// Rotational Physics
-	float momentOfInertia;  // This is the total for all parts
-	glm::vec3 angularVelocity{ 0.0f, 1.0f, 0.0f };
-	glm::vec3 _initialAngularVelocity{};  // 2024-11-18 Saved for use by restart
+	KgM2 momentOfInertia;  // This is the total for all parts
+	Vector3Quantity<R_S> angularVelocity{ 0.0f, 1.0f, 0.0f };
+	Vector3Quantity<R_S> _initialAngularVelocity{};  // 2024-11-18 Saved for use by restart
 
-	glm::vec3 angularAcceleration {};
-	float linearDragTerm; // Sum of Cd*A for parts 
-	float angularDragTerm; // Sum of Cd*A*r^2 for parts
+	Vector3Quantity<R_S2> angularAcceleration {};
+	M2 linearDragTerm; // Sum of Cd*A for parts 
+	M2 angularDragTerm; // Sum of Cd*A*r^2 for parts
 
 	// Accumulated delta velocity to be applied at cycle end (for instantaneous collisions, does not depend on deltaTime)
 	glm::vec3 accumulatedVelocity {};

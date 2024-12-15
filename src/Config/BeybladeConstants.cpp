@@ -3,6 +3,9 @@
 #include "imgui.h"
 #include <cmath>
 
+#include "UnitsSystem.h"
+using namespace Units;
+
 using namespace std;
 
 string BeybladeParameter::nameWithUnits() const {
@@ -23,40 +26,40 @@ float BeybladeParameter::getFastStepSize() const {
 }
 
 void BeybladeParameter::assignToBeybladeBody(BeybladeBody* body) {
-    body->setLayerMass(layerParameters[0].currentValue);
-    body->setLayerMomentOfInertia(layerParameters[1].currentValue);
-    body->setLayerCoefficientOfRestitution(layerParameters[2].currentValue);
-    body->setLayerRecoilDistribution(layerParameters[3].currentValue, layerParameters[4].currentValue);
+    body->setLayerMass(Kilogram(layerParameters[0].currentValue));
+    body->setLayerMomentOfInertia(KgM2(layerParameters[1].currentValue));
+    body->setLayerCoefficientOfRestitution(Scalar(layerParameters[2].currentValue));
+    body->setLayerRecoilDistribution(Scalar(layerParameters[3].currentValue), Scalar(layerParameters[4].currentValue));
 
-    body->setDiscMass(discParameters[0].currentValue);
-    body->setDiscMomentOfInertia(discParameters[1].currentValue);
+    body->setDiscMass(Kilogram(discParameters[0].currentValue));
+    body->setDiscMomentOfInertia(KgM2(discParameters[1].currentValue));
 
-    body->setDriverMass(driverParameters[0].currentValue);
-    body->setDriverMomentOfInertia(driverParameters[1].currentValue);
-    body->setDriverCOF(driverParameters[2].currentValue);
+    body->setDriverMass(Kilogram(driverParameters[0].currentValue));
+    body->setDriverMomentOfInertia(KgM2(driverParameters[1].currentValue));
+    body->setDriverCOF(Scalar(driverParameters[2].currentValue));
 
     body->updateFromParts();
 }
 
 void BeybladeParameter::assignFromBeybladeBody(BeybladeBody* body) {
-    layerParameters[0].currentValue = body->getLayerMass();
-    layerParameters[1].currentValue = body->getLayerMomentOfInertia();
-    layerParameters[2].currentValue = body->getLayerCOR();
-    layerParameters[3].currentValue = body->getLayerRecoilDistribution().getMean();
-    layerParameters[4].currentValue = body->getLayerRecoilDistribution().getStdDev();
+    layerParameters[0].currentValue = body->getLayerMass().value();
+    layerParameters[1].currentValue = body->getLayerMomentOfInertia().value();
+    layerParameters[2].currentValue = body->getLayerCOR().value();
+    layerParameters[3].currentValue = body->getLayerRecoilDistribution().getMean().value();
+    layerParameters[4].currentValue = body->getLayerRecoilDistribution().getStdDev().value();
 
-    discParameters[0].currentValue = body->getDiscMass();
-    discParameters[1].currentValue = body->getDiscMomentOfInertia();
+    discParameters[0].currentValue = body->getDiscMass().value();
+    discParameters[1].currentValue = body->getDiscMomentOfInertia().value();
 
-    driverParameters[0].currentValue = body->getDriverMass();
-    driverParameters[1].currentValue = body->getDriverMomentOfInertia();
-    driverParameters[2].currentValue = body->getDriverCOF();
+    driverParameters[0].currentValue = body->getDriverMass().value();
+    driverParameters[1].currentValue = body->getDriverMomentOfInertia().value();
+    driverParameters[2].currentValue = body->getDriverCOF().value();
 }
 
 // Layer parameters
 vector<BeybladeParameter> layerParameters = {
-    {"Mass", "g", 1.0f, 50.0f, 15.0f, 1},
-    {"Moment of Inertia", "g*m^2", 3.0e-3f, 1.6e-2f, 8.0e-3f, 4},
+    {"Mass", "g", 15.0f, 35.0f, 22.0f, 1},
+    {"Moment of Inertia", "g*m^2", 3.0e-6f, 1.6e-5f, 8.0e-3f, 4},
     {"Coefficient of Restitution", "", 0.0f, 0.5f, 0.25f, 2},
     {"Recoil Distribution Mean", "", 0.1f, 1.0f, 0.5f, 2},
     {"Recoil Distribution StdDev", "", 0.1f, 1.0f, 0.2f, 2}

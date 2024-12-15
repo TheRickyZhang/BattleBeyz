@@ -5,17 +5,31 @@ BeybladeBody::BeybladeBody(Layer layer, Disc disc, Driver driver) :
     mass(layer.mass + disc.mass + driver.mass),
     momentOfInertia(layer.momentOfInertia + disc.momentOfInertia + driver.momentOfInertia)
 {
-    // Sum 0.5 * Cd * A for each part
-    // Use 0.9 for now using cylindrical approximation
-    float linearLayerCA = 0.9f * 2 * layer.height * layer.radius;
-    float linearDiscCA = 0.9f * 2 * disc.height * disc.radius;
-    float linearDriverCA = 0.9f * driver.height * driver.radius;
-    linearDragTerm = 0.5f * (linearLayerCA + linearDiscCA + linearDriverCA);
+    //// Sum 0.5 * Cd * A for each part
+    //// Use 0.9 for now using cylindrical approximation
+    //M2 linearLayerCA = 0.9f * 2 * layer.height * layer.radius;
+    //M2 linearDiscCA = 0.9f * 2 * disc.height * disc.radius;
+    //M2 linearDriverCA = 0.9f * driver.height * driver.radius;
+    //linearDragTerm = 0.5f * (linearLayerCA + linearDiscCA + linearDriverCA);
 
-    // Sum 0.5 * Cd*A * r^2 for each part (rotationalDragCoefficient*layerHeight is C * avg distance extending outwards)
-    float angularLayerCAr2 = layer.rotationalDragCoefficient * layer.height * layer.radius * layer.radius;
-    float angularDiscCAr2 = disc.rotationalDragCoefficient * disc.height * disc.radius * disc.radius;
-    float angularDriverCAr2 = driver.rotationalDragCoefficient * driver.height * driver.radius * driver.radius;
+    //// Sum 0.5 * Cd*A * r^2 for each part (rotationalDragCoefficient*layerHeight is C * avg distance extending outwards)
+    //M2 angularLayerCAr2 = layer.rotationalDragCoefficient * layer.height * layer.radius * layer.radius;
+    //M2 angularDiscCAr2 = disc.rotationalDragCoefficient * disc.height * disc.radius * disc.radius;
+    //M2 angularDriverCAr2 = driver.rotationalDragCoefficient * driver.height * driver.radius * driver.radius;
+    //angularDragTerm = 0.5f * (angularLayerCAr2 + angularDiscCAr2 + angularDriverCAr2);
+    
+    // Sum 0.5 * Cd * A = 0.5 * Cd * 2 * r =
+    // Cd * r * h
+    M2 linearLayerCA = 0.9f * layer.radius * layer.height;
+    M2 linearDiscCA = 0.9f * disc.radius * disc.height;
+    M2 linearDriverCA = 0.9f * driver.radius * driver.height;
+    linearDragTerm = linearLayerCA + linearDiscCA + linearDriverCA;
+
+    // Sum 1/2 Ca * A * r^2 = 1/2 Ca * (2pi * r * h) * r^2 =
+    // Cd * pi * r^3 * h
+    M2 angularLayerCAr2 = layer.rotationalDragCoefficient * float(M_PI) * layer.radius * layer.radius * layer.radius * layer.height;
+    M2 angularDiscCAr2 = disc.rotationalDragCoefficient * disc.height * disc.radius * disc.radius;
+    M2 angularDriverCAr2 = driver.rotationalDragCoefficient * driver.height * driver.radius * driver.radius;
     angularDragTerm = 0.5f * (angularLayerCAr2 + angularDiscCAr2 + angularDriverCAr2);
 
     modified = false;  // 2024-12-03
@@ -28,7 +42,7 @@ BeybladeBody::BeybladeBody(BeybladeMesh* mesh, Layer _layer, Disc _disc, Driver 
     layer(_layer),
     disc(_disc),
     driver(_driver)
-{    
+{
     // NEWUI Copy default layer, etc., and most initialzation below -- too many initializers are gross.
     // The saved structures are useful for the customization UI.
     //
@@ -47,16 +61,16 @@ BeybladeBody::BeybladeBody(BeybladeMesh* mesh, Layer _layer, Disc _disc, Driver 
     // Sum 0.5 * Cd * A for each part
     // Use 0.9 for now using cylindrical approximation
 
-    float linearLayerCA = 0.9f * 2 * mesh->heightLayer * mesh->radiusLayer;
-    float linearDiscCA = 0.9f * 2 * mesh->heightDisc * mesh->radiusDisc;
-    float linearDriverCA = 0.9f * mesh->heightDriver * mesh->heightDriver;
-    linearDragTerm = 0.5f*(linearLayerCA + linearDiscCA + linearDriverCA);
+    M2 linearLayerCA = 0.9f * 2 * mesh->heightLayer * mesh->radiusLayer;
+    M2 linearDiscCA = 0.9f * 2 * mesh->heightDisc * mesh->radiusDisc;
+    M2 linearDriverCA = 0.9f * mesh->heightDriver * mesh->heightDriver;
+    linearDragTerm = 0.5f * (linearLayerCA + linearDiscCA + linearDriverCA);
 
     // Sum 0.5 * Cd*A * r^2 for each part (rotationalDragCoefficient*layerHeight is C * avg distance extending outwards)
-    float angularLayerCAr2 = layer.rotationalDragCoefficient * mesh->heightLayer * mesh->radiusLayer * mesh->radiusLayer;
-    float angularDiscCAr2 = disc.rotationalDragCoefficient * mesh->heightDisc * mesh->radiusDisc * mesh->radiusDisc;
-    float angularDriverCAr2 = driver.rotationalDragCoefficient * mesh->heightDriver * mesh->radiusDriver * mesh->radiusDriver;
-    angularDragTerm = 0.5f*(angularLayerCAr2 + angularDiscCAr2 + angularDriverCAr2);
+    M2 angularLayerCAr2 = layer.rotationalDragCoefficient * mesh->heightLayer * mesh->radiusLayer * mesh->radiusLayer;
+    M2 angularDiscCAr2 = disc.rotationalDragCoefficient * mesh->heightDisc * mesh->radiusDisc * mesh->radiusDisc;
+    M2 angularDriverCAr2 = driver.rotationalDragCoefficient * mesh->heightDriver * mesh->radiusDriver * mesh->radiusDriver;
+    angularDragTerm = 0.5f * (angularLayerCAr2 + angularDiscCAr2 + angularDriverCAr2);
 
     modified = false;  // 2024-12-03
 }
@@ -74,8 +88,9 @@ glm::vec3 BeybladeBody::getNormal() const {
 }
 
 glm::vec3 BeybladeBody::getBottomPosition() const {
-    glm::vec3 unitDown = angularVelocity.y < 0 ? glm::normalize(angularVelocity) : -glm::normalize(angularVelocity);
-    glm::vec3 tiltedDisplacement = dv3(disc.height + driver.height) * unitDown;
+    glm::vec3 unitDownTemp = angularVelocity.y < 0 ? glm::normalize(angularVelocity) : -glm::normalize(angularVelocity);
+    Vector3Quantity unitDown(unitDownTemp);
+    glm::vec3 tiltedDisplacement = (disc.height + driver.height) * unitDown;
     glm::vec3 bottomPosition = baseCenter + tiltedDisplacement;
     return bottomPosition;
 }
@@ -183,7 +198,7 @@ void BeybladeBody::accumulateAngularAcceleration(glm::vec3 addedAngularAccelerat
 void BeybladeBody::accumulateAngularImpulseMagnitude(float magnitude)
 {
     // Spin should never be 0 so no need to check
-    glm::vec3 deltaAngularImpulse = dv3(magnitude) * glm::normalize(angularVelocity);
+    Vector3Quantity<KgM2_S> deltaAngularImpulse = magnitude * Vector3Quantity<R_S>(glm::normalize(angularVelocity));
     glm::vec3 deltaAngularVelocity = deltaAngularImpulse / dv3(momentOfInertia);
     accumulateAngularVelocity(deltaAngularVelocity);
 }

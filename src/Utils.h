@@ -55,4 +55,3 @@ struct CollisionAccelerations {
         linearAcceleration += increment.second;
     }
 };
-

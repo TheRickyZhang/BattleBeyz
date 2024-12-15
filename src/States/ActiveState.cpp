@@ -30,7 +30,7 @@ void ActiveState::init()
     // TODO: this should add stadiums dynamically in future, but use default single one for now
     StadiumBody* rigidBody = new StadiumBody();
     StadiumMesh* stadiumMesh = new StadiumMesh();
-    rigidBody->center = glm::vec3(0.0f, 2.0f, 0.0f);
+    rigidBody->center = glm::vec3(0.0f, 0.0f, 0.0f);
     Stadium* stadium1 = new Stadium(rigidBody, stadiumMesh, "Stadium 1");
     stadiums.push_back(stadium1);
 

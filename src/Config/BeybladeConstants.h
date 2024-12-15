@@ -12,7 +12,7 @@ struct BeybladeParameter {
     float defaultValue;
     int stepExponent;
 
-    float currentValue = 0.0f; // Temporary value for the slider; make sure to sync with beyblade values
+    float currentValue = 0.0; // Temporary value for the slider; make sure to sync with beyblade values
 
     std::string nameWithUnits() const;
     std::string getDisplayFormat() const;

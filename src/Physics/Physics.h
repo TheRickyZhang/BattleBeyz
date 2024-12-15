@@ -12,6 +12,9 @@
 #include "RigidBodies/BeybladeBody.h"
 #include "RigidBodies/StadiumBody.h"
 
+#include "UnitsSystem.h"
+using namespace Units;
+
 namespace Physics {
     constexpr float GRAVITY = 9.81f;
     constexpr glm::vec3 GRAVITY_VECTOR = glm::vec3(0.0f, -GRAVITY, 0.0f);
@@ -28,8 +31,8 @@ namespace Physics {
     constexpr float FRICTIONAL_VELOCITY_CONSTANT = 0.04f;
 
     // How much aerial drag there is
-    const float FLUID_DRAG = 0.08f;
-    void accumulateAirResistance(BeybladeBody* beyblade, float airDensity = FLUID_DRAG);
+    const KilogramPerCubicMeter FLUID_DRAG = 0.08_kg / (1.0_m * 1.0_m * 1.0_m);
+    void accumulateAirResistance(BeybladeBody* beyblade, KilogramPerCubicMeter airDensity = FLUID_DRAG);
 
     void accumulateFriction(BeybladeBody* beyblade, StadiumBody* stadium);
     void accumulateSlope(BeybladeBody* beyblade, StadiumBody* stadium);

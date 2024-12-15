@@ -13,13 +13,13 @@
 * @param airDensity                 [in] Air density.
 */
 
-void Physics::accumulateAirResistance(BeybladeBody* beyblade, float airDensity) {
-    // b = 1/2 * Cd * A * p
-    float linearDragConstant = beyblade->getLinearDragTerm() * airDensity;
+void Physics::accumulateAirResistance(BeybladeBody* beyblade, Kg_M3 airDensity) {
+    // c = 1/2 * Cd * A * p
+    Kg_M linearDragConstant = beyblade->getLinearDragTerm() * airDensity;
     float velocityMagnitude = glm::length(beyblade->getVelocity());
 
     // Adrag = (-b * v^2 / mass) * unit v
-    glm::vec3 linearAirResistanceAcceleration = -dv3(linearDragConstant * velocityMagnitude / beyblade->getMass()) * beyblade->getVelocity();
+    Vector3Quantity<M_S2> linearAirResistanceAcceleration = -1.0f * linearDragConstant * beyblade->getVelocity() * beyblade->getVelocity() / beyblade->getMass() * beyblade->getVelocity();
 
     // b = 1/2 * Cd * A * r^2 * p
     float angularDragConstant = beyblade->getAngularDragTerm() * airDensity;
