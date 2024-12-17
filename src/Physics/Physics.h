@@ -12,31 +12,31 @@
 #include "RigidBodies/BeybladeBody.h"
 #include "RigidBodies/StadiumBody.h"
 
-#include "UnitsSystem.h"
+#include "Units.h"
 using namespace Units;
 
 namespace Physics {
-    constexpr float GRAVITY = 9.81f;
-    constexpr glm::vec3 GRAVITY_VECTOR = glm::vec3(0.0f, -GRAVITY, 0.0f);
+    constexpr M_S2 GRAVITY = -9.81_m_s2;
+    constexpr Vec3_M_S2 GRAVITY_VECTOR = Vec3_M_S2(0.0f, -9.81f, 0.0f);
 
     // How much loss in angular speed is converted to linear speed due to friction
-    constexpr float FRICTIONAL_EFFICIENCY = 0.5f;
+    constexpr Scalar FRICTIONAL_EFFICIENCY = 0.5__;
 
     // How much impact the accelaration has on frictional force. Usually ranges from 0.1 to 0.5.
     // Follows a = g * mu * cos * direction vector (* FAC)
-    constexpr float FRICTIONAL_ACCELERATION_CONSTANT = 0.17f;
+    constexpr Scalar FRICTIONAL_ACCELERATION_CONSTANT = 0.17__;
 
     // How much impact we want the angular speed affects the frictional force with the stadium. Usually ranges from 0.01 to 0.1
     // Follows a = w * mu (* FVC)
-    constexpr float FRICTIONAL_VELOCITY_CONSTANT = 0.04f;
+    constexpr Scalar FRICTIONAL_VELOCITY_CONSTANT = 0.04__;
 
     // How much aerial drag there is
-    const KilogramPerCubicMeter FLUID_DRAG = 0.08_kg / (1.0_m * 1.0_m * 1.0_m);
-    void accumulateAirResistance(BeybladeBody* beyblade, KilogramPerCubicMeter airDensity = FLUID_DRAG);
+    const Kg_M3 FLUID_DRAG = 0.08_kg / (1.0_m * 1.0_m * 1.0_m);
+    void accumulateAirResistance(BeybladeBody* beyblade, Kg_M3 airDensity = FLUID_DRAG);
 
     void accumulateFriction(BeybladeBody* beyblade, StadiumBody* stadium);
     void accumulateSlope(BeybladeBody* beyblade, StadiumBody* stadium);
-    void accumulateImpact(BeybladeBody* beyblade1, BeybladeBody* beyblade2, float contactDistance);
+    void accumulateImpact(BeybladeBody* beyblade1, BeybladeBody* beyblade2, M contactDistance);
     void preventStadiumClipping(BeybladeBody* beybladeBody, StadiumBody* stadiumBody);
 }
 

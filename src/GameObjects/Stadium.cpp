@@ -37,7 +37,7 @@ void Stadium::render(ShaderProgram& shader) {
 #endif
 
     // Bind appropriate uniforms (model, view, projection matrices)
-    glm::mat4 model = glm::translate(glm::mat4(1.0f), rigidBody->getCenter());
+    glm::mat4 model = glm::translate(glm::mat4(1.0f), rigidBody->getCenter().value());
     shader.setUniformMat4("model", model);
 
     //    shader.setUniformVec3("viewPos", viewPos);
@@ -88,7 +88,7 @@ void Stadium::initializeMesh() {
         std::cerr << "Vertices per ring must be a multiple of 4" << std::endl;
         return;
     }
-    double radius = rigidBody->getRadius();
+    double radius = rigidBody->getRadius().value();
 
     // Generate vertices
     for (int rIdx = 1; rIdx <= numRings; ++rIdx) {
@@ -97,7 +97,7 @@ void Stadium::initializeMesh() {
             float theta = (float)(2.0f * M_PI * static_cast<float>(thetaIdx) / static_cast<float>(verticesPerRing));
             float x = r * std::cos(theta);
             float z = r * std::sin(theta);
-            float y = rigidBody->getYLocal(r);
+            float y = rigidBody->getYLocal(M(r)).value();
 
             vertices.emplace_back(x, y, z);
             texCoords.emplace_back(textureScale * (r / radius * std::cos(theta)) + 0.5f,

@@ -37,7 +37,7 @@ void ActiveState::init()
     // NEWMESH: Load meshes before bodies so we can get the actual object sizes. Then pass the
     // mesh to the BeybladdeBody constructor.
     // NEWMESH: remove radius and heigth from these objects, leaving just some physics coefficients.
-    // TODO: Ensure that the VAOs / VBOs are handled withing the mesh objects properly (ex we can probably remove passing in 0 parameters)
+    // TODO: Ensure that the VAOs / VBOs are handled withing the mesh objects properly (ex we can probably remove passing in 0 paraMs)
 
     // These might be null for now, quell errors
     Beyblade* beyblade1 = game->pm.getActiveProfile()->getBeyblade(1).get();
@@ -230,25 +230,25 @@ void ActiveState::drawInfoScreen() {
         BeybladeBody* beybladeBody = beyblade->getRigidBody();
         if (ImGui::CollapsingHeader(beyblade->getName().data())) {
             ImGui::Text("Velocity");
-            vec3 initialVelocity = beybladeBody->getVelocity();
+            vec3 initialVelocity = beybladeBody->getVelocity().value();
             ImGui::SliderFloat("X##V", &initialVelocity.x, -100.0f, 100.0f);
             ImGui::SliderFloat("Y##V", &initialVelocity.y, -100.0f, 100.0f);
             ImGui::SliderFloat("Z##V", &initialVelocity.z, -100.0f, 100.0f);
 
             ImGui::Text("Center");
-            vec3 initialCenter = beybladeBody->getCenter();
+            vec3 initialCenter = beybladeBody->getCenter().value();
             ImGui::SliderFloat("X##CTR", &initialCenter.x, -100.0f, 100.0f);
             ImGui::SliderFloat("Y##CTR", &initialCenter.y, -100.0f, 100.0f);
             ImGui::SliderFloat("Z##CTR", &initialCenter.z, -100.0f, 100.0f);
 
             ImGui::Text("Angular Velocity");
-            vec3 initialAngularVelocity = beybladeBody->getAngularVelocity();
+            vec3 initialAngularVelocity = beybladeBody->getAngularVelocity().value();
             ImGui::SliderFloat("X##AV", &initialAngularVelocity.x, -100.0f, 100.0f);
             ImGui::SliderFloat("Y##AV", &initialAngularVelocity.y, -100.0f, 100.0f);
             ImGui::SliderFloat("Z##AV", &initialAngularVelocity.z, -100.0f, 100.0f);
 
             if (ImGui::Button("Apply Launch Settings")) {
-                beybladeBody->setInitialLaunch(initialCenter, initialVelocity, initialAngularVelocity);
+                beybladeBody->setInitialLaunch(Vec3_M(initialCenter), initialVelocity, initialAngularVelocity);
             }
         }
     }

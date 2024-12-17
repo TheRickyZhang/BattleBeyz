@@ -16,13 +16,13 @@
 #include "RigidBody.h"
 #include "ShaderProgram.h"
 
-#include "UnitsSystem.h"
+#include "Units.h"
 using namespace Units;
 
 class PhysicsWorld {
 public:
     // TODO: Move airDensityValue to Physics.h
-    PhysicsWorld(KilogramPerCubicMeter airDensityValue = 0.8_kg / (1.0_m*1.0_m*1.0_m), float spinThreshold = 30.0f) : airDensity(airDensityValue), SPIN_THRESHOLD(spinThreshold) {}
+    PhysicsWorld(Kg_M3 airDensityValue = 0.8_kg / (1.0_m*1.0_m*1.0_m), float spinThreshold = 30.0f) : airDensity(airDensityValue), SPIN_THRESHOLD(spinThreshold) {}
 
     void addBeyblade(Beyblade* body);
     void addStadium(Stadium* body);
@@ -42,9 +42,9 @@ public:
 
 private:
     //float airDensity;
-    KilogramPerCubicMeter airDensity;
+    Kg_M3 airDensity;
     std::vector<Beyblade*> beyblades;
     std::vector<Stadium*> stadiums;
-    const float SPIN_THRESHOLD = 30.0f;
+    const Scalar SPIN_THRESHOLD = 30.0__;
     const Scalar PI = 3.14159265358979__;
 };

@@ -20,9 +20,9 @@ Camera::Camera(const vec3& pos, const vec3& viewPoint, PhysicsWorld* world, floa
 }
 
 void Camera::setPanningVariables(StadiumBody* stadiumBody) {
-    radius = 1.5f * (float)stadiumBody->getRadius();
-    viewCenter = stadiumBody->getCenter();
-    rotationCenter = viewCenter; rotationCenter.y += stadiumBody->getYLocal(radius) + heightAbove;
+    radius = 1.5f * stadiumBody->getRadius().value();
+    viewCenter = stadiumBody->getCenter().value();
+    rotationCenter = viewCenter; rotationCenter.y += stadiumBody->getYLocal(M(radius)).value() + heightAbove;
     currentAngle = 0;
     angularVelocity = 0.5;
 }
@@ -53,8 +53,8 @@ vec3 Camera::applyCollisions(const vec3& currPos, vec3& nextPos) const {
 
     for (const Stadium* stadium : physicsWorld->getStadiums()) {
         StadiumBody* body = stadium->getRigidBody();
-        if (body->isInside(nextPos.x, nextPos.z)) {
-            float surfaceY = (float)body->getY(nextPos.x, nextPos.z);
+        if (body->isInside(M(nextPos.x), M(nextPos.z))) {
+            float surfaceY = (body->getY(M(nextPos.x), M(nextPos.z)).value());
             if (nextPos.y < surfaceY) {
                 nextPos.y = surfaceY;
             }
@@ -74,7 +74,7 @@ void Camera::update(float deltaTime) {
             std::cout << "Uninitialized Bey" << std::endl;
         }
         else {
-            position = followingBey->getCenter();
+            position = followingBey->getCenter().value();
             position.y += heightAbove;
         }
     }

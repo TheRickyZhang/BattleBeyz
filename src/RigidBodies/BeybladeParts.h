@@ -11,7 +11,7 @@
 #include <glm/glm.hpp>
 #include <memory>
 
-#include "UnitsSystem.h"
+#include "Units.h"
 using namespace Units;
 
 /**
@@ -21,12 +21,12 @@ using namespace Units;
  * RotationalDragCoefficient: dragCoefficient*averageRadiusExtending, should be between 0.001 and 0.015
  */
 struct Layer {
-    Layer(Meter radius, Meter height,
+    Layer(M radius, M height,
         Scalar recoilMean, Scalar recoilStddev,
         Scalar coefficientOfRestitution,
         Scalar rotationalDragCoefficient,
-        Kilogram mass,
-        KilogramMeterSquared momentOfInertia) :
+        Kg mass,
+        KgM2 momentOfInertia) :
         radius(radius),
         height(height),
         recoilDistribution(RandomDistribution(recoilMean, recoilStddev)),
@@ -46,10 +46,10 @@ struct Layer {
         recoilDistribution(RandomDistribution())
     {}
 
-    Meter radius;
-    Meter height;
-    Kilogram mass;
-    KilogramMeterSquared momentOfInertia;
+    M radius;
+    M height;
+    Kg mass;
+    KgM2 momentOfInertia;
     Scalar rotationalDragCoefficient;
     RandomDistribution recoilDistribution; // NOTE: This is 5000 bytes so avoid copying layer directly, using unique_ptr<Layer> will be ideal
     Scalar coefficientOfRestitution;
@@ -60,7 +60,7 @@ struct Layer {
  * Contains physical properties of the middle section of a Beyblade, not too important except for contributing weight.
  */
 struct Disc {
-    Disc(Meter radius, Meter height, Kilogram mass, KilogramMeterSquared momentOfInertia, Scalar rotationalDragCoefficient) :
+    Disc(M radius, M height, Kg mass, KgM2 momentOfInertia, Scalar rotationalDragCoefficient) :
         radius(radius), height(height), mass(mass), momentOfInertia(momentOfInertia), rotationalDragCoefficient(rotationalDragCoefficient)
     {}
 
@@ -72,10 +72,10 @@ struct Disc {
         rotationalDragCoefficient(0.1f * 0.005f)
     {}
 
-    Meter radius;
-    Meter height;
-    Kilogram mass;
-    KilogramMeterSquared momentOfInertia;
+    M radius;
+    M height;
+    Kg mass;
+    KgM2 momentOfInertia;
     Scalar rotationalDragCoefficient;
 };
 
@@ -84,7 +84,7 @@ struct Disc {
  *Contains physical properties of the bottom section of a Beyblade, important for friction and movement.
  */
 struct Driver {
-    Driver(Meter radius, Meter height, Kilogram mass, KilogramMeterSquared momentOfInertia, Scalar rotationalDragCoefficient, Scalar coefficientOfFriction) :
+    Driver(M radius, M height, Kg mass, KgM2 momentOfInertia, Scalar rotationalDragCoefficient, Scalar coefficientOfFriction) :
         radius(radius),
         height(height),
         mass(mass),
@@ -102,10 +102,10 @@ struct Driver {
         coefficientOfFriction(0.22f)
     {}
 
-    Meter radius;
-    Meter height;
-    Kilogram mass;
-    KilogramMeterSquared momentOfInertia;
+    M radius;
+    M height;
+    Kg mass;
+    KgM2 momentOfInertia;
     Scalar rotationalDragCoefficient;
     Scalar coefficientOfFriction;
 };

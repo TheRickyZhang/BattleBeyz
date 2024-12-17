@@ -11,6 +11,8 @@
 #include <glm/glm.hpp>
 #include <glm/gtx/vector_angle.hpp>
 
+#include "Units.h"
+using namespace Units;
 /**
  * StadiumBody. Contains all of the physical properties of a Stadium.
  * 
@@ -24,32 +26,32 @@
  */
 class StadiumBody {
 public:
-	StadiumBody::StadiumBody(glm::vec3 center, float radius, float curvature, float coefficientOfFriction) :
+	StadiumBody::StadiumBody(Vec3_M center, M radius, Scalar curvature, Scalar coefficientOfFriction) :
 		center(center), radius(radius), curvature(curvature), scaledCurvature(curvature / radius),
 		coefficientOfFriction(coefficientOfFriction) {}
 
     // Default parameters: 1.2 meters radius is quite large
 	StadiumBody::StadiumBody() :
-        center(glm::vec3(0.0f, 0.0f, 0.0f)), radius(1.2f), curvature(0.10f), scaledCurvature(0.10f/1.2f), coefficientOfFriction(0.35f) {}
+        center(Vec3_M(0.0f, 0.0f, 0.0f)), radius(1.2_m), curvature(0.10__), scaledCurvature(0.10__/1.2_m), coefficientOfFriction(0.35__) {}
 
-	bool isInside(float x, float z) const;
-	const float getRadius() const { return radius; }
-	const float getYLocal(float r) const;
-	const float getY(float x, float z) const;
-	const glm::vec3 getNormal(float x, float z) const;
+	bool isInside(M x, M z) const;
+	const M getRadius() const { return radius; }
+	const M getYLocal(M r) const;
+	const M getY(M x, M z) const;
+	const Vec3_Scalar getNormal(M x, M z) const;
 
-	glm::vec3 getCenter() const { return center; }
-	float getCOF() const { return coefficientOfFriction; }
+	Vec3_M getCenter() const { return center; }
+	Scalar getCOF() const { return coefficientOfFriction; }
 
 	std::vector<BoundingBox*> boundingBoxes{};
 
 	// Dimensions
-	glm::vec3 center{};
-	float radius;
-	float curvature;
-	float scaledCurvature;
+	Vec3_M center{};
+	M radius;
+	Scalar curvature;
+	__M scaledCurvature;
 
 	// Contact Properties
-	float coefficientOfFriction;
+	Scalar coefficientOfFriction;
 private:
 };

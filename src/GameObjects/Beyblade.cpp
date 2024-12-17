@@ -35,7 +35,7 @@ void Beyblade::render(ShaderProgram& shader)
 {
     shader.use();
 
-    glm::mat4 model = glm::translate(glm::mat4(1.0f), rigidBody->getCenter());
+    glm::mat4 model = glm::translate(glm::mat4(1.0f), rigidBody->getCenter().value());
 
     shader.setUniformMat4("model", model);
 

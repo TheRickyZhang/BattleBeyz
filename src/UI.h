@@ -62,8 +62,8 @@ static void UICustomScreenProfileSelected(int selectedItemIndex);
 static void UICustomScreenInit(GameControl* gc);
 static void UIProfileCreateSectionFromDefaults(const char* profileName, Disc& disc, Driver& driver, Layer& layer);
 static void UIPromptForProfile();
-static void UIProfileCreateSectionFromScreen(const std::string& profileName);
-static void UICustomSettingsSave(GameControl* gc);
+//static void UIProfileCreateSectionFromScreen(const std::string& profileName);
+//static void UICustomSettingsSave(GameControl* gc);
 static void UIUpdateBladeFromProfile();
 
 void UISetRunState(bool isError, const std::string& msg);

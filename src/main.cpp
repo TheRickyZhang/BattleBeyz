@@ -43,10 +43,9 @@
 #include <sstream>
 #include <atomic>
 
-#include "UnitsTest.cpp"
+//#include "UnitsTest.cpp"
 int main() {
-    UnitsTest();
-    return 0;
+    //UnitsTest();
 
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();

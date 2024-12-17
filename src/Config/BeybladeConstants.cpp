@@ -3,7 +3,7 @@
 #include "imgui.h"
 #include <cmath>
 
-#include "UnitsSystem.h"
+#include "Units.h"
 using namespace Units;
 
 using namespace std;
@@ -26,15 +26,15 @@ float BeybladeParameter::getFastStepSize() const {
 }
 
 void BeybladeParameter::assignToBeybladeBody(BeybladeBody* body) {
-    body->setLayerMass(Kilogram(layerParameters[0].currentValue));
+    body->setLayerMass(Kg(layerParameters[0].currentValue));
     body->setLayerMomentOfInertia(KgM2(layerParameters[1].currentValue));
     body->setLayerCoefficientOfRestitution(Scalar(layerParameters[2].currentValue));
     body->setLayerRecoilDistribution(Scalar(layerParameters[3].currentValue), Scalar(layerParameters[4].currentValue));
 
-    body->setDiscMass(Kilogram(discParameters[0].currentValue));
+    body->setDiscMass(Kg(discParameters[0].currentValue));
     body->setDiscMomentOfInertia(KgM2(discParameters[1].currentValue));
 
-    body->setDriverMass(Kilogram(driverParameters[0].currentValue));
+    body->setDriverMass(Kg(driverParameters[0].currentValue));
     body->setDriverMomentOfInertia(KgM2(driverParameters[1].currentValue));
     body->setDriverCOF(Scalar(driverParameters[2].currentValue));
 

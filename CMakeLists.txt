@@ -51,8 +51,10 @@ set(IMGUI_SOURCES
 add_compile_definitions(_USE_MATH_DEFINES)
 add_compile_definitions(GLM_ENABLE_EXPERIMENTAL)
 
-# Add source files
-file(GLOB_RECURSE SOURCES "src/*.cpp" "assets/*.cpp" ${IMGUI_SOURCES})
+# Add source and header files
+file(GLOB_RECURSE HEADER_FILES "src/*.h" "assets/*.h")
+file(GLOB_RECURSE SOURCE_FILES "src/*.cpp" "assets/*.cpp" ${IMGUI_SOURCES})
+set(SOURCES ${SOURCE_FILES} ${HEADER_FILES})
 
 # Add GLFW
 set(GLFW_DIR ${PROJECT_SOURCE_DIR}/lib/glfw-3.4)

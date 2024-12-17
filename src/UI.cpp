@@ -430,7 +430,7 @@ void showCustomizeScreen(GLFWwindow* window, Texture& backgroundTexture)
     float button_start_y = 650.0f;
     SetCursorPos(ImVec2(windowCenterX - 150 - 20, button_start_y));
     if (Button("OK", ImVec2(150, 30))) {
-        UICustomSettingsSave(data);
+        //UICustomSettingsSave(data);
         data->showCustomizeScreen = false;
     }
 
@@ -584,19 +584,19 @@ void drawInfoScreen(GLFWwindow* window) {
         // Each Beyblade has its own collapsible header that can be expanded/collapsed independently
         if (CollapsingHeader(beyblades[i]->getName().data())) {
             Text("Velocity");  // Was "Initial Velocity"
-            glm::vec3 initialVelocity = beybladeBody->getVelocity();
+            glm::vec3 initialVelocity = beybladeBody->getVelocity().value();
             SliderFloat("X##V", &initialVelocity.x, -100.0f, 100.0f);
             SliderFloat("Y##V", &initialVelocity.y, -100.0f, 100.0f);
             SliderFloat("Z##V", &initialVelocity.z, -100.0f, 100.0f);
 
             Text("Center");
-            glm::vec3 initialCenter = beybladeBody->getCenter();
+            glm::vec3 initialCenter = beybladeBody->getCenter().value();
             SliderFloat("X##CTR", &initialCenter.x, -100.0f, 100.0f);
             SliderFloat("Y##CTR", &initialCenter.y, -100.0f, 100.0f);
             SliderFloat("Z##CTR", &initialCenter.z, -100.0f, 100.0f);
 
             Text("Angular Velocity");
-            glm::vec3 initialAngularVelocity = beybladeBody->getAngularVelocity();
+            glm::vec3 initialAngularVelocity = beybladeBody->getAngularVelocity().value();
             SliderFloat("X##AV", &initialAngularVelocity.x, -100.0f, 100.0f);
             SliderFloat("Y##AV", &initialAngularVelocity.y, -100.0f, 100.0f);
             SliderFloat("Z##AV", &initialAngularVelocity.z, -100.0f, 100.0f);
@@ -811,7 +811,7 @@ static void UIPromptForProfile()
 
         if (Button("OK", ImVec2(120, 0))) {
             if (newProfileName[0] != '\0') {  // [Re]write the profiles, and add or replace the screen data.
-                UIProfileCreateSectionFromScreen(newProfileName);
+                //UIProfileCreateSectionFromScreen(newProfileName);
 
                 if (std::find(profileItems.begin(), profileItems.end(), newProfileName) == profileItems.end()) {
                     profileItems.push_back(newProfileName);
