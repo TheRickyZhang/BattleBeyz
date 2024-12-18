@@ -1,6 +1,7 @@
 #pragma once
 #include <glm/vec3.hpp>
 #include <iostream>
+#include <iomanip>
 #include <type_traits>
 #include <cmath>
 
@@ -210,7 +211,7 @@ namespace Units {
     template<typename T>
     constexpr Quantity<Scalar, T> log(const Quantity<Scalar, T>& quantity);
 
-    // <, >
+    // Comparison operators
     template<typename D, typename T>
     constexpr bool operator<(const Quantity<D, T>& lhs, const Quantity<D, T>& rhs);
 
@@ -218,8 +219,8 @@ namespace Units {
     constexpr bool operator>(const Quantity<D, T>& lhs, const Quantity<D, T>& rhs);
 
     // Stream insertion for Dimension
-    template<int Length, int Mass, int Time, int Angle>
-    std::ostream& operator<<(std::ostream& os, const Dimension<Length, Mass, Time, Angle>&);
+    template<typename D, typename T>
+    std::ostream& operator<<(std::ostream& os, const Quantity<D, T>& unit);
 
     /**
      * @brief Class representing a 3D vector of physical quantities with associated dimensions.

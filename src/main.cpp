@@ -77,10 +77,10 @@ int main() {
     // Add beys
     physicsWorld->addBeyblade(beyblade1);
     physicsWorld->addBeyblade(beyblade2);
-    glm::vec3 initialPosition1 = glm::vec3(0.0f, 2.0f, 0.5f);
-    glm::vec initialPosition2 = glm::vec3(0.0f, 2.0f, -0.5f);
-    glm::vec3 initialVelocity1 = glm::vec3(0.0f, 0.0f, -0.2f);
-    glm::vec3 initialVelocity2 = glm::vec3(0.2f, 0.0f, 0.1f);
+    glm::vec3 initialPosition1 = glm::vec3(0.0f, 1.0f, 0.3f);
+    glm::vec3 initialPosition2 = glm::vec3(0.0f, 1.0f, -0.3f);
+    glm::vec3 initialVelocity1 = glm::vec3(0.0f, 0.0f, -0.1f);
+    glm::vec3 initialVelocity2 = glm::vec3(0.0f, 0.0f, 0.1f);
     glm::vec3 initialAngularVelocity = glm::vec3(0.0f, -450.0f, 0.0f);
 
     beyblade1->getRigidBody()->setInitialLaunch(initialPosition1, initialVelocity1, initialAngularVelocity);

@@ -5,6 +5,7 @@
 
 #include "Physics.h"
 
+using namespace std;
 /**
 * Calculate air resistance proportional to C * v^2 for both angular and linear components.
 * 
@@ -59,7 +60,7 @@ void Physics::accumulateFriction(BeybladeBody* beyblade, StadiumBody* stadium) {
     Vec3_Scalar normalizedAngularVelocity = normalize(beyblade->getAngularVelocity());
  
     // sin(theta) * direction.  Patched with units
-    Vec3_Scalar frictionDirectionAcceleration = cross(normalizedAngularVelocity, stadiumNormal);
+    Vec3_Scalar frictionDirectionAcceleration = -cross(normalizedAngularVelocity, stadiumNormal);
     Scalar alignment = dot(normalizedAngularVelocity, stadiumNormal);
 
     // TODO: Represent radius as 1/rad units
@@ -76,10 +77,9 @@ void Physics::accumulateFriction(BeybladeBody* beyblade, StadiumBody* stadium) {
     Vec3_M_S2 linearAcceleration = frictionDirectionAcceleration * (traditionalAccelerationComponent + velocityAccelarationComponent);
 
     // Prevent case where Beyblade and Stadium are perfectly aligned, and nothing moves
-    if (linearAcceleration.length() < 0.001__) {
-        std::cout << "HUHUHUH" << std::endl;
-        linearAcceleration = Vec3_M_S2(0.001, 0, 0);
-    }
+    //if (linearAcceleration.length() < 0.001__) {
+    //    linearAcceleration = Vec3_M_S2(0.001, 0, 0);
+    //}
 
     // angular = -direction * |linear| * mass * r / moi
     Vec3_R_S2 angularAcceleration = -1.0_rad * normalizedAngularVelocity *
@@ -111,8 +111,8 @@ void Physics::accumulateSlope(BeybladeBody* beyblade, StadiumBody* stadium)
     Vec3_Scalar unitDisplacement = normalize(stadium->getCenter() - beyBottomPosition);
     Vec3_M_S2 slopeForce = (Physics::GRAVITY * sinOfAngle * combinedCOF) * unitDisplacement;
 #if 0
-    std::cout << Physics::GRAVITY << " " << sinOfAngle << " " << combinedCOF << std::endl;
-    std::cout << unitDisplacement.x << " " << unitDisplacement.y << " " << unitDisplacement.z << std::endl;
+    //cout << Physics::GRAVITY << " " << sinOfAngle << " " << combinedCOF << endl;
+    //cout << unitDisplacement.x << " " << unitDisplacement.y << " " << unitDisplacement.z << endl;
     printVec3("Slope force", slopeForce);
 #endif
     beyblade->accumulateAcceleration(slopeForce);
@@ -140,6 +140,10 @@ void Physics::accumulateImpact(BeybladeBody* beyblade1, BeybladeBody* beyblade2,
     beyblade1->addCenterXZ(-displacement.xTyped(), -displacement.zTyped());
     beyblade2->addCenterXZ(displacement.xTyped(), displacement.zTyped());
 
+    auto d = BeybladeBody::distanceOverlap(beyblade1, beyblade2);
+    if (d.has_value())  cout << "The distance between the beys is " << d.value() << endl;
+    else cout << "The beys are not intersecting afterwards" << endl;
+
     Vec3_M_S velocity1 = beyblade1->getVelocity();
     Vec3_M_S velocity2 = beyblade2->getVelocity();
     Vec3_M_S vDiff = velocity2 - velocity1;
@@ -149,6 +153,8 @@ void Physics::accumulateImpact(BeybladeBody* beyblade1, BeybladeBody* beyblade2,
     Kg mass2 = beyblade2->getMass();
 
     M_S relativeSpeed = proj(vDiff, unitSeparation);
+    cout << "projecting " << vDiff << " onto " << unitSeparation << "gives";
+    cout << "relative speed " << relativeSpeed << endl;
 
     // Trust this known linear collison model works correctly
     KgM_S impulseMagnitude = averageCOR * relativeSpeed / (1.0__ / mass1 + 1.0__ / mass2);
@@ -157,41 +163,49 @@ void Physics::accumulateImpact(BeybladeBody* beyblade1, BeybladeBody* beyblade2,
     Vec3_M_S deltaVelocity1 = -impulseMagnitude / mass1 * unitSeparation;
     Vec3_M_S deltaVelocity2 = impulseMagnitude / mass2 * unitSeparation;
 
+    // TODO URGENT PHYSICS: Ensure there is a cooldown after a collision to not have clipping multiple collisions
     // Need to set velocities directly, NOT accumulate them, since collision changes it instantaneously
     beyblade1->setVelocity(deltaVelocity1);
     beyblade2->setVelocity(deltaVelocity2);
+    cout << "Bey1 velocity set to " << deltaVelocity1 << " when it was "<< velocity1<< endl;
+    cout << "Bey2 velocity set to " << deltaVelocity2 << " when it was " << velocity2 << endl;
 
-    std::cout << "v1" << glm::length(velocity1.value()) << " v2" << glm::length(velocity2.value()) << std::endl;
-    std::cout << "dv1" << glm::length(deltaVelocity1.value()) << " dv2" << glm::length(deltaVelocity2.value()) << std::endl;
+    cout << fixed << setprecision(5);
+    cout << "v1: " << glm::length(velocity1.value()) << " | v2: " << glm::length(velocity2.value()) << endl;
+    cout << "dv1: " << glm::length(deltaVelocity1.value()) << " | dv2: " << glm::length(deltaVelocity2.value()) << endl;
 
     // Random effect with inherent attack power of beyblades built in
     Scalar randomMagnitude = (beyblade1->sampleRecoil() + beyblade2->sampleRecoil());
+    assert(randomMagnitude > 0.0__);
 
     // NOTE: I think this is the same as relativeSpeed but with reversed sign.
     
     //float linearCollisionSpeed = glm::dot(unitSeparation, velocity1) + glm::dot(-unitSeparation, velocity2);
-    //if (linearCollisionSpeed < 0) std::cerr << "Linear collision speed is less than 0!" << std::endl;
+    //if (linearCollisionSpeed < 0) cerr << "Linear collision speed is less than 0!" << endl;
 
     // Different cases for same-spin vs opposite-spin collisions
     bool sameSpinDirection = beyblade1->isSpinningClockwise() == beyblade2->isSpinningClockwise();
     if (sameSpinDirection) {
         Scalar angularSpeedDiff = beyblade1->getAngularVelocity().length() + beyblade2->getAngularVelocity().length();
+        cerr << fixed << setprecision(5) << "Angular speed diff " << endl;
 
         // Predictive modeling using y = log(x) - x/500 based on expected values for x.
         // Increases from AngularSpeedDiff = 0 to 500 and gently decreases from 500 to 1000, modeling empirical data (AKA I just made it up)
-        Scalar scalingFactor = 0.007__ * (1.0__ * std::log(angularSpeedDiff.value() + 1.0f) - (angularSpeedDiff / 501.0__)) * relativeSpeed.value();
+        Scalar scalingFactor = 0.001__ * sqrt(abs(relativeSpeed.value())) * (1.0__ * log(angularSpeedDiff.value() + 1.0f) - (angularSpeedDiff / 501.0__));
 
         // CHECK whether this conversion from angular to linear is correct.
         // Just simply multiply by COR since moment of inertia vs mass already accounts for?
 
         KgM2_S recoilAngularImpulseMagnitude(randomMagnitude * scalingFactor);  // Since we can't simulate directly fudge up units
-        std::cerr << "Angular implulse magnitude (should be less than 0.001): " << recoilAngularImpulseMagnitude.value() << std::endl;
+        cerr << fixed << setprecision(5) << "Angular implulse magnitude (< 0.001): " << recoilAngularImpulseMagnitude.value() << endl;
+        assert(recoilAngularImpulseMagnitude.value() > 0.0);
 
         beyblade1->accumulateAngularImpulseMagnitude(-recoilAngularImpulseMagnitude);
         beyblade2->accumulateAngularImpulseMagnitude(-recoilAngularImpulseMagnitude);
 
         KgM_S recoilLinearImpulseMagnitude(randomMagnitude * scalingFactor * averageCOR);
-        std::cerr << "Linear implulse magnitude (should be less than 0.02): " << recoilLinearImpulseMagnitude.value() << std::endl;
+        cerr << fixed << setprecision(5) << "Linear implulse magnitude (< 0.02): " << recoilLinearImpulseMagnitude.value() << endl;
+        assert(recoilLinearImpulseMagnitude.value() > 0.0);
 
         beyblade1->accumulateImpulseMagnitude(-recoilLinearImpulseMagnitude);
         beyblade2->accumulateImpulseMagnitude(-recoilLinearImpulseMagnitude);
@@ -199,7 +213,7 @@ void Physics::accumulateImpact(BeybladeBody* beyblade1, BeybladeBody* beyblade2,
     else {
         // TODO: Different case for opposite spin interactions
         auto angularSpeedDiff = beyblade1->getAngularVelocity().length() + beyblade2->getAngularVelocity().length();
-        std::cerr << "Opposite spin collisions have not been implemented yet";
+        cerr << "Opposite spin collisions have not been implemented yet";
     }
 }
 

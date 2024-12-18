@@ -92,7 +92,7 @@ namespace Units {
     template<int n, typename D, typename T>
     constexpr Quantity<Dimension<D::length / n, D::mass / n, D::time / n, D::angle / n>, T>
         root(const Quantity<D, T>& quantity) {
-        return Quantity<Dimension<D::length / n, D::mass / n, D::time / n, D::angle / n>, T>(std::pow(quantity.value(), 1.0 / n));
+        return Quantity<Dimension<D::length / n, D::mass / n, D::time / n, D::angle / n>, T>(T(std::pow(quantity.value(), 1.0 / n)));
     }
     template<typename T>
     constexpr Quantity<Scalar, T> log(const Quantity<Scalar, T>& quantity) {
@@ -107,11 +107,9 @@ namespace Units {
     constexpr bool operator>(const Quantity<D, T>& lhs, const Quantity<D, T>& rhs) {
         return lhs.value() > rhs.value();
     }
-
-    // Stream Insertion
-    template<int Length, int Mass, int Time, int Angle>
-    std::ostream& operator<<(std::ostream& os, const Dimension<Length, Mass, Time, Angle>&) {
-        os << "Dimension(L=" << Length << ", M=" << Mass << ", T=" << Time << ", A=" << Angle << ")";
+    template<typename D, typename T>
+    std::ostream& operator<<(std::ostream& os, const Quantity<D, T>& unit) {
+        os << fixed << setprecision(6) << unit.value();
         return os;
     }
 
@@ -326,7 +324,7 @@ namespace Units {
 
     template<typename D, typename T>
     std::ostream& operator<<(std::ostream& os, const Vector3Quantity<D, T>& vec) {
-        os << "(" << vec.x() << ", " << vec.y() << ", " << vec.z() << ") " << D{};
+        os << "(" << vec.x() << ", " << vec.y() << ", " << vec.z() << ") ";
         return os;
     }
 
