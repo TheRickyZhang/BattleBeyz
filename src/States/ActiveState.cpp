@@ -34,6 +34,8 @@ void ActiveState::init()
     Stadium* stadium1 = new Stadium(rigidBody, stadiumMesh, "Stadium 1");
     stadiums.push_back(stadium1);
 
+    physicsWorld->resetPhysics();
+
     // NEWMESH: Load meshes before bodies so we can get the actual object sizes. Then pass the
     // mesh to the BeybladdeBody constructor.
     // NEWMESH: remove radius and heigth from these objects, leaving just some physics coefficients.
@@ -45,7 +47,6 @@ void ActiveState::init()
 
     // 2024-11-18. Reset various things before [re]starting the game.
     // TODO: Screen to modify initial conditions (launch location, angle, speed) beforehand so resetPhysics() works
-    physicsWorld->resetPhysics();
     beyblades.clear();
 
     beyblade1->getRigidBody()->resetPhysics();

@@ -137,6 +137,7 @@ public:
 		modified = _modified;
 	}
 
+	float prevCollision = 0.0f;
 private:
 	// Parts - Access individual variables through these!
 	Disc disc;

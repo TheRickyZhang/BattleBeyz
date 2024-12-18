@@ -175,7 +175,7 @@ void Physics::accumulateImpact(BeybladeBody* beyblade1, BeybladeBody* beyblade2,
     cout << "dv1: " << glm::length(deltaVelocity1.value()) << " | dv2: " << glm::length(deltaVelocity2.value()) << endl;
 
     // Random effect with inherent attack power of beyblades built in
-    Scalar randomMagnitude = (beyblade1->sampleRecoil() + beyblade2->sampleRecoil());
+    Scalar randomMagnitude = (beyblade1->sampleRecoil() + beyblade2->sampleRecoil()) / 2.0__;
     assert(randomMagnitude > 0.0__);
 
     // NOTE: I think this is the same as relativeSpeed but with reversed sign.
@@ -183,32 +183,37 @@ void Physics::accumulateImpact(BeybladeBody* beyblade1, BeybladeBody* beyblade2,
     //float linearCollisionSpeed = glm::dot(unitSeparation, velocity1) + glm::dot(-unitSeparation, velocity2);
     //if (linearCollisionSpeed < 0) cerr << "Linear collision speed is less than 0!" << endl;
 
+    KgM2 averageMOI = (beyblade1->getMomentOfInertia() + beyblade2->getMomentOfInertia()) / 2.0__;
+    Kg averageMass = (mass1 + mass2) / 2.0__;
     // Different cases for same-spin vs opposite-spin collisions
     bool sameSpinDirection = beyblade1->isSpinningClockwise() == beyblade2->isSpinningClockwise();
     if (sameSpinDirection) {
         Scalar angularSpeedDiff = beyblade1->getAngularVelocity().length() + beyblade2->getAngularVelocity().length();
         cerr << fixed << setprecision(5) << "Angular speed diff " << endl;
 
-        // Predictive modeling using y = log(x) - x/500 based on expected values for x.
-        // Increases from AngularSpeedDiff = 0 to 500 and gently decreases from 500 to 1000, modeling empirical data (AKA I just made it up)
-        Scalar scalingFactor = 0.001__ * sqrt(abs(relativeSpeed.value())) * (1.0__ * log(angularSpeedDiff.value() + 1.0f) - (angularSpeedDiff / 501.0__));
+        // TODO: More accurate predictive modeling, use sqrt() for now
+        // NOTE we assume magnitude bounded by MIN and MAX spin threshold
+        Scalar angularScalingFactor = 1.0__ * sqrt(abs(relativeSpeed.value())) * sqrt(angularSpeedDiff.value());
+        Scalar linearScalingFactor = 0.2__ * sqrt(abs(relativeSpeed.value()))
+            * (1.0f + float((std::clamp(angularSpeedDiff.value(), 30.0f, 1500.0f) - 30.0f)
+                * (10.0 - 1.0) / (1500.0f - 30.0f)));
 
         // CHECK whether this conversion from angular to linear is correct.
         // Just simply multiply by COR since moment of inertia vs mass already accounts for?
 
-        KgM2_S recoilAngularImpulseMagnitude(randomMagnitude * scalingFactor);  // Since we can't simulate directly fudge up units
+        Scalar recoilAngularImpulseMagnitude(randomMagnitude * angularScalingFactor);  // Since we can't simulate directly fudge up units
         cerr << fixed << setprecision(5) << "Angular implulse magnitude (< 0.001): " << recoilAngularImpulseMagnitude.value() << endl;
         assert(recoilAngularImpulseMagnitude.value() > 0.0);
 
-        beyblade1->accumulateAngularImpulseMagnitude(-recoilAngularImpulseMagnitude);
-        beyblade2->accumulateAngularImpulseMagnitude(-recoilAngularImpulseMagnitude);
+        beyblade1->accumulateAngularImpulseMagnitude(-1.0__/1.0_s * recoilAngularImpulseMagnitude * averageMOI);
+        beyblade2->accumulateAngularImpulseMagnitude(-1.0__/1.0_s * recoilAngularImpulseMagnitude * averageMOI);
 
-        KgM_S recoilLinearImpulseMagnitude(randomMagnitude * scalingFactor * averageCOR);
+        M_S recoilLinearImpulseMagnitude(randomMagnitude * linearScalingFactor * averageCOR);
         cerr << fixed << setprecision(5) << "Linear implulse magnitude (< 0.02): " << recoilLinearImpulseMagnitude.value() << endl;
         assert(recoilLinearImpulseMagnitude.value() > 0.0);
 
-        beyblade1->accumulateImpulseMagnitude(-recoilLinearImpulseMagnitude);
-        beyblade2->accumulateImpulseMagnitude(-recoilLinearImpulseMagnitude);
+        beyblade1->accumulateImpulseMagnitude(-recoilLinearImpulseMagnitude * averageMass);
+        beyblade2->accumulateImpulseMagnitude(-recoilLinearImpulseMagnitude * averageMass);
     }
     else {
         // TODO: Different case for opposite spin interactions

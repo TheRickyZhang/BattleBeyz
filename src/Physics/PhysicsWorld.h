@@ -21,7 +21,7 @@ using namespace Units;
 
 class PhysicsWorld {
 public:
-    // TODO: Move airDensityValue to Physics.h
+    // TODO: Move airDensityValue and other physicsto Physics.h
     PhysicsWorld(Kg_M3 airDensityValue = 0.8_kg / (1.0_m*1.0_m*1.0_m), float spinThreshold = 30.0f) : airDensity(airDensityValue), SPIN_THRESHOLD(spinThreshold) {}
 
     void addBeyblade(Beyblade* body);
@@ -32,6 +32,8 @@ public:
     void resetPhysics() { // 2024-11-18.  Clear before game restart.
         beyblades.clear();
         stadiums.clear();
+        currTime = 0.0f;
+        for (auto& bey : beyblades) bey->getRigidBody()->prevCollision = 0.0f;
     };
 
     void update(float deltaTime);
@@ -42,9 +44,13 @@ public:
 
 private:
     //float airDensity;
+    float currTime = 0.0f;
+    
     Kg_M3 airDensity;
     std::vector<Beyblade*> beyblades;
     std::vector<Stadium*> stadiums;
     const Scalar SPIN_THRESHOLD = 30.0__;
+    const Scalar MAX_SPIN_THRESHOLD = 1500.0__;
     const Scalar PI = 3.14159265358979__;
+    const float epsilonTime = 0.5f; // Cannot have collisions within 0.1 seconds of a previous one
 };

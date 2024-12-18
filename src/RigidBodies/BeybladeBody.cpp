@@ -106,6 +106,8 @@ void BeybladeBody::resetPhysics()
     accumulatedAcceleration = Vec3_M_S2(0.0, 0.0, 0.0);
     accumulatedAngularAcceleration = Vec3_R_S2(0.0, 0.0, 0.0);
     accumulatedVelocity = Vec3_M_S(0.0, 0.0, 0.0);
+
+    prevCollision = 0.0f;
 }
 
 void BeybladeBody::setInitialLaunch(Vec3_M initialCenter, Vec3_M_S initialVelocity, Vec3_R_S initialAngularVelocity)

@@ -45,6 +45,7 @@ void PhysicsWorld::removeStadium(Stadium* body) {
 void PhysicsWorld::update(float deltaTime) {
     extern void UISetRunState(bool isError, const std::string & msg);  // Defined in UI.h
 
+    currTime += deltaTime;
     /**
     * Resolve bey-stadium collisions
     */
@@ -97,12 +98,16 @@ void PhysicsWorld::update(float deltaTime) {
 
             // Skip beys with no contact
             if (!contactDistance.has_value()) continue;
+            if (currTime - bey1->prevCollision < epsilonTime || currTime - bey2->prevCollision < epsilonTime) {
+                continue;
+            }
 
             /**
             * Linear repulsive force combines the collision due to initial velocity with the recoil from spins
             * Angular draining force is the loss of spin of both beys due to colliding
             */
             Physics::accumulateImpact(bey1, bey2, contactDistance.value());
+            bey1->prevCollision = bey2->prevCollision = currTime;
         }
     }
 
