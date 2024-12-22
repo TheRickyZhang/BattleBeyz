@@ -72,30 +72,28 @@ void ActiveState::pause() {}
 void ActiveState::resume() {}
 
 void ActiveState::handleEvents() {
-    auto& inputManager = game->inputManager;
-
-    if (inputManager.keyJustPressed(GLFW_KEY_TAB)) {
+    if (game->im.keyJustPressed(GLFW_KEY_TAB)) {
         showInfoScreen = !showInfoScreen;
     }
 
-    if (inputManager.keyJustPressed(GLFW_KEY_D) && glfwGetKey(game->getWindow(), GLFW_KEY_LEFT_CONTROL)) {
+    if (game->im.keyJustPressed(GLFW_KEY_D) && glfwGetKey(game->getWindow(), GLFW_KEY_LEFT_CONTROL)) {
         game->debugMode = !game->debugMode;
         std::cout << "Debug mode is " << (game->debugMode ? "On" : "Off") << std::endl;
     }
 
-    if (inputManager.keyJustPressed(CtrlD)) {
+    if (game->im.keyJustPressed(CtrlD)) {
         game->debugMode = !game->debugMode;
         std::cout << "Debug mode is " << (game->debugMode ? "On" : "Off") << std::endl;
     }
 
     for (const auto& [movementKey, action] : movementKeys) {
-        if (inputManager.keyPressed(movementKey)) {
+        if (game->im.keyPressed(movementKey)) {
             game->camera->processKeyboard(action, game->deltaTime);
         }
     }
     game->camera->update(game->deltaTime);
 
-    if (inputManager.mouseButtonJustPressed(GLFW_MOUSE_BUTTON_LEFT)) {
+    if (game->im.mouseButtonJustPressed(GLFW_MOUSE_BUTTON_LEFT)) {
         float xpos, ypos; double dx, dy;
         glfwGetCursorPos(game->getWindow(), &dx, &dy);
         xpos = static_cast<float>(dx);
@@ -110,17 +108,17 @@ void ActiveState::handleEvents() {
     }
 
     // RIght click + drag to move camera
-    if (inputManager.mouseButtonPressed(GLFW_MOUSE_BUTTON_RIGHT)) {
-        auto [xOffset, yOffset] = inputManager.getMouseOffsets();
+    if (game->im.mouseButtonPressed(GLFW_MOUSE_BUTTON_RIGHT)) {
+        auto [xOffset, yOffset] = game->im.getMouseOffsets();
         if (xOffset != 0.0f || yOffset != 0.0f) {
             game->camera->processMouseMovement(xOffset, yOffset);
         }
     }
 
-    if (inputManager.scrollMoved()) {
-        float scrollOffsetY = inputManager.getScrollOffsetY();
+    if (game->im.scrollMoved()) {
+        float scrollOffsetY = game->im.getScrollOffsetY();
         game->camera->processMouseScroll(scrollOffsetY);
-        inputManager.resetScrollOffset();
+        game->im.resetScrollOffset();
     }
 }
 
@@ -180,13 +178,6 @@ void ActiveState::draw() {
         << "Position: " << cameraPosition.x << ", "
         << cameraPosition.y << ", " << cameraPosition.z;
     std::string positionText = ss.str();
-
-    // Only resize if window dimensions have changed
-    if (game->windowWidth != game->lastWidth || game->windowHeight != game->lastHeight) {
-        game->textRenderer->resize(game->windowWidth, game->windowHeight);
-        game->lastWidth = game->windowWidth;
-        game->lastHeight = game->windowHeight;
-    }
 
     if (game->debugMode) {
         game->physicsWorld->renderDebug(*objectShader);
@@ -263,15 +254,15 @@ void ActiveState::drawInfoScreen() {
     CameraMode currentMode = game->camera->activeMode;
     if (ImGui::RadioButton("Free", currentMode == CameraMode::FREE)) {
         game->camera->changeCameraMode(CameraMode::FREE);
-        game->messageLog->addMessage("Camera changed to free", MessageType::NORMAL, true);
+        game->ml.addMessage("Camera changed to free", MessageType::NORMAL, true);
     }
     if (ImGui::RadioButton("Attached", currentMode == CameraMode::ATTACHED)) {
         game->camera->changeCameraMode(CameraMode::ATTACHED);
-        game->messageLog->addMessage("Camera attached to bey" + std::string(game->pm.getActiveProfile()->getName()), MessageType::NORMAL, true);
+        game->ml.addMessage("Camera attached to bey" + std::string(game->pm.getActiveProfile()->getName()), MessageType::NORMAL, true);
     }
     if (ImGui::RadioButton("Panning", currentMode == CameraMode::PANNING)) {
         game->camera->changeCameraMode(CameraMode::PANNING);
-        game->messageLog->addMessage("Camera changed to pan", MessageType::NORMAL, true);
+        game->ml.addMessage("Camera changed to pan", MessageType::NORMAL, true);
     }
 
     ImGui::End();

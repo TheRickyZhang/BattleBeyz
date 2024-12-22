@@ -2,14 +2,18 @@
 #include "GameEngine.h"
 #include "LoadingState.h"
 
-void LoadingState::init() {}
+using namespace ImGui;
 
-void LoadingState::cleanup() {}
+void LoadingState::init() {
+    loadingMessage = tips[rand() % tips.size()];
+}
+
+void LoadingState::cleanup() {
+    loadingMessage = "";
+}
 
 void LoadingState::pause() {}
-
 void LoadingState::resume() {}
-
 void LoadingState::handleEvents() {}
 
 void LoadingState::update(float deltaTime) {
@@ -20,28 +24,19 @@ void LoadingState::update(float deltaTime) {
 }
 
 void LoadingState::draw() {
-    int windowWidth, windowHeight;
-    glfwGetWindowSize(game->getWindow(), &windowWidth, &windowHeight);
-
-    // Render the background first
     renderBackground(game, "defaultBackground");
 
-    // Begin a plain, non-collapsible center window
-    ImGui::SetNextWindowPos(ImVec2(windowWidth / 2.0f, windowHeight / 2.0f), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
-    ImGui::SetNextWindowSize(ImVec2(400, 200));
-    renderPlainScreen("LoadingState", windowWidth / 2.0f, windowHeight / 2.0f, 400.0f, 200.0f);
+    auto [centerX, wrapWidth] = SetWindowPositionAndSize(3, 4, 2, 2, 1, 2);
 
-    ImGui::SetCursorPosX((400 - ImGui::CalcTextSize("Loading...").x) / 2.0f);
-    ImGui::Text("Loading...");
+    Begin("Loading Screen", nullptr, MinimalWindow);
 
-    ImGui::Dummy(ImVec2(0.0f, 20.0f));
-    float progressBarWidth = 300.0f;
-    ImGui::SetCursorPosX((400 - progressBarWidth) / 2.0f);
-    ImGui::ProgressBar(progress / duration, ImVec2(progressBarWidth, 0.0f));
+    PushFont(game->titleFont);
+    centerWrappedText(centerX, wrapWidth, "Loading...");
+    PopFont();
 
-    ImGui::Dummy(ImVec2(0.0f, 20.0f));
-    ImGui::SetCursorPosX((400 - ImGui::CalcTextSize("Please wait...").x) / 2.0f);
-    ImGui::Text("Please wait...");
+    centerWrappedText(centerX, wrapWidth, loadingMessage.c_str());
 
-    ImGui::End();
+    centerProgressBar(centerX, 0.8f * wrapWidth, progress/duration, "Loading...");
+
+    End();
 }

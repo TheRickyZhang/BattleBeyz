@@ -42,6 +42,7 @@ void PhysicsWorld::removeStadium(Stadium* body) {
 * @param deltaTime              [in] Time increment in seconds.
 */
 
+// TODO: Handle game logic when round is over
 void PhysicsWorld::update(float deltaTime) {
     extern void UISetRunState(bool isError, const std::string & msg);  // Defined in UI.h
 
@@ -51,10 +52,8 @@ void PhysicsWorld::update(float deltaTime) {
     */
     for (Beyblade* beyblade : beyblades) {
         BeybladeBody* beybladeBody = beyblade->getRigidBody();
-        // TODO: If bey is below minimum spin threshold, end the match. Some default animation could be used.
         if (beybladeBody->getAngularVelocity().length() < SPIN_THRESHOLD) {
-            //std::cerr << "Beyblade ran out of spin" << std::endl;
-            UISetRunState(true, "Beyblade run out of spin");
+            MessageLog::getInstance().addMessage("Beyblade " + beyblade->getName() + " ran out of spin", MessageType::NORMAL);
             return;
         }
 
@@ -65,9 +64,7 @@ void PhysicsWorld::update(float deltaTime) {
         for (Stadium* stadium : stadiums) {
             StadiumBody* stadiumBody = stadium->getRigidBody();
             if(!stadiumBody->isInside(beyBottom.xTyped(), beyBottom.zTyped())) {
-                // Game is over since beyblade is out of bounds, implement behavior in future
-                //std::cerr << "Beyblade out of bounds" << std::endl;
-                UISetRunState(true, "Beyblade out of bounds");
+                MessageLog::getInstance().addMessage("Beyblade " + beyblade->getName() + " out of bounds", MessageType::NORMAL);
                 return;
             }
 

@@ -3,8 +3,6 @@
 #include "imgui.h"
 #include "UI.h"
 
-MessageLog::MessageLog() : visible(false) {}
-
 void MessageLog::open() {
     visible = true;
 }

@@ -14,6 +14,8 @@ GameEngine::GameEngine()
     // Need to initialize these as references from constructor, as opposed to init()
     tm(TextureManager::getInstance()),
     pm(ProfileManager::getInstance()),
+    ml(MessageLog::getInstance()),
+    im(InputManager::getInstance()),
     io(ImGui::GetIO()) 
 {
     (void)io;
@@ -44,9 +46,12 @@ bool GameEngine::init(const char* title, int width, int height) {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);      // Resizing
+    glfwWindowHint(GLFW_DECORATED, GLFW_TRUE);      // Decoration
+
 
     // Create the window
-    window = glfwCreateWindow(width, height, title, nullptr, nullptr);
+    window = glfwCreateWindow(static_cast<int>(width), static_cast<int>(height), title, nullptr, nullptr);
     if (!window) {
         std::cerr << "Failed to create window" << std::endl;
         glfwTerminate();
@@ -55,13 +60,16 @@ bool GameEngine::init(const char* title, int width, int height) {
         return false;
     }
 
+    // Set the aspect ratio for the window
+    glfwSetWindowAspectRatio(window, static_cast<int>(aspectRatio * 100), 100);
+
     // Multiple monitors
     monitors = glfwGetMonitors(&nMonitors);
     videoMode = glfwGetVideoMode(monitors[0]);
     glfwGetMonitorPos(monitors[0], &monitorX, &monitorY);
     glfwSetWindowPos(window,
-        monitorX + (videoMode->width - windowWidth) / 2,
-        monitorY + (videoMode->height - windowHeight) / 2);
+        monitorX + static_cast<int>(videoMode->width - windowWidth) / 2,
+        monitorY + static_cast<int>(videoMode->height - windowHeight) / 2);
 
 
     glfwMakeContextCurrent(window);
@@ -130,12 +138,11 @@ bool GameEngine::init(const char* title, int width, int height) {
     tm.loadTexture("floor", "./assets/textures/Wood1.jpg");
 
     // Set default profile at first (Needed in order to not crash)
-    //pm.addProfile("Default");
     pm.addDefaultProfiles();
 
     // Set window user pointer to GameEngine
     glfwSetWindowUserPointer(window, this);
-    glfwSetWindowSizeLimits(window, minWidth, minHeight, GLFW_DONT_CARE, GLFW_DONT_CARE);
+    glfwSetWindowSizeLimits(window, static_cast<int>(minWidth), static_cast<int>(minHeight), GLFW_DONT_CARE, GLFW_DONT_CARE);
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 
     glfwSetFramebufferSizeCallback(window, GameEngine::framebufferSizeCallback);  // This handles window resizing
@@ -153,13 +160,12 @@ bool GameEngine::init(const char* title, int width, int height) {
     * @param action                 [in] The key action that occured (press, release,
     *                               or release).
     */
-    inputManager = InputManager();
     glfwSetKeyCallback(window, [](GLFWwindow* window, int key, int scancode, int action, int mods) {
         ImGui_ImplGlfw_KeyCallback(window, key, scancode, action, mods);
         GameEngine* engine = static_cast<GameEngine*>(glfwGetWindowUserPointer(window));
         if (engine) {
             bool isPressed = (action == GLFW_PRESS || action == GLFW_REPEAT);
-            engine->inputManager.setKey(key, isPressed);
+            engine->im.setKey(key, isPressed);
         }
     });
     glfwSetMouseButtonCallback(window, [](GLFWwindow* window, int button, int action, int mods) {
@@ -173,7 +179,7 @@ bool GameEngine::init(const char* title, int width, int height) {
         GameEngine* engine = static_cast<GameEngine*>(glfwGetWindowUserPointer(window));
         if (engine) {
             bool isPressed = (action == GLFW_PRESS);
-            engine->inputManager.setMouseButton(button, isPressed);
+            engine->im.setMouseButton(button, isPressed);
         }
     });
     glfwSetCursorPosCallback(window, [](GLFWwindow* window, double xpos, double ypos) {
@@ -184,7 +190,7 @@ bool GameEngine::init(const char* title, int width, int height) {
 
         GameEngine* engine = static_cast<GameEngine*>(glfwGetWindowUserPointer(window));
         if (engine) {
-            engine->inputManager.setMousePosition(xpos, ypos);
+            engine->im.setMousePosition(xpos, ypos);
         }
     });
     glfwSetScrollCallback(window, [](GLFWwindow* window, double xoffset, double yoffset) {
@@ -194,7 +200,7 @@ bool GameEngine::init(const char* title, int width, int height) {
 
         GameEngine* engine = static_cast<GameEngine*>(glfwGetWindowUserPointer(window));
         if (engine) {
-            engine->inputManager.setScrollOffset(xoffset, yoffset);
+            engine->im.setScrollOffset(xoffset, yoffset);
         }
     });
 
@@ -213,7 +219,6 @@ bool GameEngine::init(const char* title, int width, int height) {
     imguiColor[2] = 0.8f;
 
     quadRenderer = new QuadRenderer();
-    messageLog = new MessageLog();
 
     isRunning = true;
     return true;
@@ -301,13 +306,18 @@ void GameEngine::handleEvents() {
     // Poll GLFW events (handles window events, input events, etc.)
     glfwPollEvents();
 
+    // Skip any updates if window is minimized
+    if (glfwGetWindowAttrib(window, GLFW_ICONIFIED)) {  
+        return;
+    }
+
     handleGlobalEvents();
 
-    if (!stateStack.empty()) {
+    if (!stateStack.empty() && !paused) {
         stateStack.back()->handleEvents();
     }
 
-    inputManager.updateState();  // Must be called at end
+    im.updateState();  // Must be called at end
 }
 
 void GameEngine::update() {
@@ -329,15 +339,8 @@ void GameEngine::draw() {
         stateStack.back()->draw();
     }
 
-    // Update window width on change
-    if (windowWidth != lastWidth || windowHeight != lastHeight) {
-        textRenderer->resize(windowWidth, windowHeight);
-        lastWidth = windowWidth;
-        lastHeight = windowHeight;
-    }
-
     // Display log
-    messageLog->render();
+    ml.render();
 
     if (debugScreenActive) {
         // Render faded background
@@ -360,7 +363,6 @@ void GameEngine::draw() {
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
     glfwSwapBuffers(window);
 }
-
 
 void GameEngine::cleanup() {
     // Clean up all states in the stack
@@ -401,35 +403,40 @@ void GameEngine::cleanup() {
 /*static*/
 void GameEngine::framebufferSizeCallback(GLFWwindow* window, int width, int height) {
     auto* engine = static_cast<GameEngine*>(glfwGetWindowUserPointer(window));
+
+    // Optimization: return if no change in size
     if (!engine || (width == engine->windowWidth && height == engine->windowHeight)) {
         return;
     }
 
+    // Skip updates if the window is minimized
+    if (!engine || width == 0 || height == 0) {
+        return;
+    }
+
+    // All logic related to resizing windows should go here
     engine->windowWidth = width;
     engine->windowHeight = height;
 
-    int newWidth = width;
-    int newHeight = static_cast<int>(width / engine->aspectRatio);
-    if (newHeight > height) {
-        newHeight = height;
-        newWidth = static_cast<int>(height * engine->aspectRatio);
-    }
-    if (newWidth != width || newHeight != height) {
-        glfwSetWindowSize(window, newWidth, newHeight);
-    }
+    engine->textRenderer->resize(width, height);  
 
-    glViewport(0, 0, newWidth, newHeight);
-    engine->projection = glm::perspective(glm::radians(45.0f), (float)newWidth / newHeight, 0.1f, 100.0f);
+    glViewport(0, 0, width, height);
+    engine->projection = glm::perspective(glm::radians(45.0f), (float)width / height, 0.1f, 100.0f);
     engine->objectShader->use();
     engine->objectShader->setUniformMat4("projection", engine->projection);
 }
 
 void GameEngine::handleGlobalEvents() {
-    if (inputManager.keyJustPressed(GLFW_KEY_F9)) {
-        messageLog->toggle();
+    if (im.keyJustPressed(GLFW_KEY_F9)) {
+        ml.toggle();
     }
-    if (inputManager.keyJustPressed(GLFW_KEY_F3)) {
+    if (im.keyJustPressed(GLFW_KEY_F3)) {
         debugScreenActive = !debugScreenActive;
+    }
+    if (im.keyJustPressed(GLFW_KEY_ESCAPE)) {
+        paused = !paused;
+        if (stateStack.empty()) return;
+        paused ? stateStack.back()->pause() : stateStack.back()->resume();
     }
     // TODO: Add more global events
 }

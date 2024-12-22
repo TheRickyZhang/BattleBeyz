@@ -1,0 +1,115 @@
+BattleBeyz Assets Folder
+
+Below are the files used to create custom BeyBlades.  Each blade consists of a disc (blade middle),
+a layer (top middle), and a driver (blade bottom).
+
+Each component is Wavefront "obj" format conssting of a ".obj" file (the mesh), and
+a ".mtl" (materials) file.  The materials files can contain color and texture information,
+but all of these are "plain" with no such attributes.
+
+You can mix-and-match discs, layers, and drivers via the Customization screen, and you can then
+observe the behavior of your custom BeyBlade during game play.  Each of the various
+attributes affects the physics in some way.  For example, you can see how well a the poor little "light"
+blade stacks up against the big "heavy" bully blade.
+
+For those interested in the detailed parameters of each component, refer to src\Config\BeybladeTemplate.cpp
+where you can see the dimensions, mass, and other physics-related parameters.
+
+„¥„Ÿdiscs (The middle of a blade)
+„       disc_compact.mtl             Compact disc materials
+„       disc_compact.obj             Compact disc mesh
+„       disc_heavy.mtl               Heavy disc materials
+„       disc_heavy.obj               Heavy disc mesh
+„       disc_light.mtl               Light disc materials
+„       disc_light.obj               Light disc mesh
+„       disc_standard.mtl            Standard mesh materials
+„       disc_standard.obj            Standard disc mesh
+„       disc_wide.mtl                Wide disc materials
+„       disc_wide.obj                Wide disc mesh
+„       
+„¥„Ÿdrivers (The bottom of a blade)
+„       driver_high_friction.mtl     High friction driver materials
+„       driver_high_friction.obj     High driver driver mesh
+„       driver_light.mtl             Light driver materials
+„       driver_light.obj             Light driver mesh
+„       driver_standard.mtl          Standard friction materials
+„       driver_standard.obj          Standard friction mesh
+„       driver_tall.mtl              Tall driver materials
+„       driver_tall.obj              Tall driver mesh
+„       driver_wide.mtl              Wide driver materials
+„       driver_wide.obj              Wide driver mesh
+„       
+„¥„Ÿlayers (The top of a blade)
+„       layer_heavy.mtl              Heavy layer materials
+„       layer_heavy.obj              Heavy layer mesh
+„       layer_light.mtl              Light layer materials
+„       layer_light.mtl.mtl          <== ERROR. PLEASE DELETE
+„       layer_light.mtl.obj
+„       layer_light.obj              Light layer mesh
+„       layer_standard.mtl           Standard layer materials
+„       layer_standard.obj           Standard layer mesh
+„       layer_tall.mtl               Tall layer materials
+„       layer_tall.obj               Tall layer mesh
+„       layer_wide.mtl               Wide layer materials
+„       layer_wide.obj               Wide layer mesh
+„       
+
+# Other assets subfolders
+
+„¥„Ÿfonts (Various font files)
+„       MetalFight.ttf
+„       OpenSans-Regular.ttf
+„       OpenSans-Semibold.ttf
+„       Orbitron-Bold.ttf
+„       Orbitron-Regular.ttf
+„       paladins.ttf
+„       paladins3d.ttf
+
+„¥„Ÿmodels (Various combined disc+layer+drivers used during development. Dimensions used unknown!)
+„       beyblade.mtl
+„       beyblade.obj
+„       beyblade1.mtl
+„       beyblade1.obj
+„       beyblade2.mtl
+„       beyblade2.obj
+„       default.obj
+„       IceCream_1.mtl
+„       IceCream_1.obj
+„       IceCream_Cone.mtl
+„       IceCream_Cone.obj
+„       TestBlade.obj
+„       TestBlade2-1.obj
+„       TestBlade2-2.obj
+„       TestBlade2-3.obj
+„       TestBlade2.obj
+„       TestBlade3-1.obj
+„       TestBlade3-2.obj
+„       TestBlade3-3.obj
+„       TestBlade3.obj
+„       TestBlade5.mtl
+„       TestBlade5.obj
+„       TestBlade6.mtl
+„       TestBlade6.obj
+„       
+„¥„Ÿshaders (Shader programs for OpenGL)
+„       background.fs
+„       background.vs
+„       basic.fs
+„       basic.vs
+„       fancy.fs
+„       fancy.vs
+„       object.fs
+„       object.vs
+„       panorama.fs
+„       panorama.vs
+„       text.fs
+„       text.vs
+„       
+„¤„Ÿtextures (OpenGL texture files used to draw the stadium)
+        Brickbeyz.jpg
+        FlyingPig.jpg
+        Hexagon.jpg
+        HexagonSmall.jpg
+        missing.jpg
+        Plastic1.jpg
+        Wood1.jpg

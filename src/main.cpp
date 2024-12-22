@@ -86,10 +86,6 @@ int main() {
     beyblade1->getRigidBody()->setInitialLaunch(initialPosition1, initialVelocity1, initialAngularVelocity);
     beyblade2->getRigidBody()->setInitialLaunch(initialPosition2, initialVelocity2, initialAngularVelocity);
 
-// 2024-12-03 TEMPORARY.  WHAT SHOULD THE RANGE BE?
-    //auto sr = stadium->getRigidBody()->radius;
-    //engine.camera->movementRange = BoundingBox(glm::vec3(-sr, -10, -sr), glm::vec3(sr, 10, sr));
-
     /* ----------------------MAIN RENDERING LOOP-------------------------- */
 
     // TODO: Move these declarations dynmically upon loading of ActiveState
@@ -104,7 +100,7 @@ int main() {
         engine.deltaTime = 0.0052f; // fixed frame rate, lower = slower
 #endif
 
-        engine.handleEvents();  // External inputs: user/system
+        if(!engine.paused) engine.handleEvents();  // External inputs: user/system
         engine.update();        // Time-based state updates
         engine.draw();          // Render the current state
     }

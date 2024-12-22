@@ -45,6 +45,7 @@ set(IMGUI_SOURCES
         ${PROJECT_SOURCE_DIR}/lib/imgui-1.90.8/imgui_widgets.cpp
         ${PROJECT_SOURCE_DIR}/lib/imgui-1.90.8/backends/imgui_impl_opengl3.cpp
         ${PROJECT_SOURCE_DIR}/lib/imgui-1.90.8/backends/imgui_impl_glfw.cpp
+        ${PROJECT_SOURCE_DIR}/lib/ImGuiFileDialog/ImGuiFileDialog.cpp
 )
 
 # Add the preprocessor definitions. Otherwise you have trouble with cmath and opengl

@@ -28,11 +28,11 @@ public:
         : modelPath(std::move(modelPath)), VAO(vao), VBO(vbo), EBO(ebo), color(col) {
         initializeMesh();
     }
-    BeybladeMesh() : modelPath("./assets/models/default.obj"), VAO(0), VBO(0), EBO(0), color(glm::vec3(1.0f)) {
+    BeybladeMesh(const char* path = "./assets/models/default.obj") : modelPath(path), VAO(0), VBO(0), EBO(0), color(glm::vec3(1.0f)) {
         initializeMesh();
     }
 
-    void loadModel(const std::string& path);
+    bool loadModel(const std::string& path);
     void printDebugInfo();
 
     unsigned int getVAO() const { return VAO; }
@@ -40,9 +40,11 @@ public:
     std::unordered_map<std::string, glm::vec3>& getMaterialColors() { return materialColors; }
 
 public:  // NEWMESH
-    BoundingBox boundingBox{};                // Mesh bounding box.
+    BoundingBox boundingBox{};              // Mesh bounding box.
     float heightDisc{}, heightLayer{}, heightDriver{};  // Heights of subparts
     float radiusDisc{}, radiusLayer{}, radiusDriver{};  // Radii of subparts
+
+    bool modelLoaded = false;               // True if loadModel succeeded.
 
 protected:
     // Mesh data

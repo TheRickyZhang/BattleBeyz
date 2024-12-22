@@ -15,13 +15,16 @@
 #include "Utils.h"
 #include "RigidBody.h"
 #include "ShaderProgram.h"
+#include "MessageLog.h"
 
 #include "Units.h"
 using namespace Units;
 
+class GameEngine;
+
 class PhysicsWorld {
 public:
-    // TODO: Move airDensityValue and other physicsto Physics.h
+    // TODO: Move airDensityValue and other physicsal constants to Physics.h
     PhysicsWorld(Kg_M3 airDensityValue = 0.8_kg / (1.0_m*1.0_m*1.0_m), float spinThreshold = 30.0f) : airDensity(airDensityValue), SPIN_THRESHOLD(spinThreshold) {}
 
     void addBeyblade(Beyblade* body);
@@ -52,5 +55,5 @@ private:
     const Scalar SPIN_THRESHOLD = 30.0__;
     const Scalar MAX_SPIN_THRESHOLD = 1500.0__;
     const Scalar PI = 3.14159265358979__;
-    const float epsilonTime = 0.5f; // Cannot have collisions within 0.1 seconds of a previous one
+    const float epsilonTime = 0.2f; // Cannot have collisions within 0.3 seconds of a previous one
 };

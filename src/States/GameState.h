@@ -50,13 +50,16 @@ protected:
 
     // Map button text to the state they will transition onto (TODO: Does not distinguish between swtiching and pushing states)
     std::unordered_map<std::string, GameStateType> buttonStateMap = {
-        { "Start Game", GameStateType::ACTIVE },
-        { "Resume Game", GameStateType::ACTIVE},
-        { "Customize Beyblades", GameStateType::CUSTOMIZE },
+        // Main Screens
+        { "Back", GameStateType::HOME }, { "Home", GameStateType::HOME },
+        { "Start Game", GameStateType::ACTIVE }, { "Resume Game", GameStateType::ACTIVE},
+        { "Profiles & Beyblades", GameStateType::CUSTOMIZE },
+        { "Settings", GameStateType::SETTINGS},
         { "About", GameStateType::ABOUT },
-        { "Back", GameStateType::HOME },
+
+        // Secondary Screens
+        { "Loading", GameStateType::LOADING },
         { "Pause", GameStateType::PAUSE },
-        { "Loading", GameStateType::LOADING }
     };
 
 };

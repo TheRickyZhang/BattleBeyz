@@ -41,6 +41,7 @@ public:
     std::string getName() const { return name; }
     BeybladeBody* getRigidBody() { return rigidBody.get(); }
     BeybladeMesh* getMesh() { return mesh.get(); }
+    void setMesh(std::unique_ptr<BeybladeMesh>& newMesh) { mesh = std::move(newMesh); }
     void setName(const std::string& name) { Beyblade::name = name; }
 
     void update(int layerIndex, int discIndex, int driverIndex);
