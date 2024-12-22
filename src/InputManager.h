@@ -3,81 +3,47 @@
 #include <unordered_map>
 #include "InputUtils.h"
 
+/*
+* Singleton. Handles all conversion of inputs to actions.
+* 
+* Currently does not support key combinations.
+*/
 class InputManager {
 public:
-    /* GENERAL */
-    void setWindow(GLFWwindow* window) { this->window = window; }
-    void updateState() {
-        prevKeyStates = keyStates;
-        prevMouseButtonStates = mouseButtonStates;
-    }
+    /* Singleton */
+    static InputManager& getInstance();
 
-    /* KEYS */
-    void setKey(int key, bool isPressed) { keyStates[key] = isPressed; }
-    bool keyPressed(int key) const {
-        return keyStates.count(key) && keyStates.at(key);
-    }
-    bool keyJustPressed(int key) const {
-        return keyStates.count(key) && keyStates.at(key) && (!prevKeyStates.count(key) || !prevKeyStates.at(key));
-    }
-    bool keyJustReleased(int key) const {
-        return prevKeyStates.count(key) && prevKeyStates.at(key) && (!keyStates.count(key) || !keyStates.at(key));
-    }
-    bool keyJustPressed(const KeyCombination& combo) const {
-        return keyJustPressed(combo.primaryKey) && keyJustPressed(combo.modifierKey);
-    }
+    /* General */
+    void setWindow(GLFWwindow* window);
+    void updateState();
 
-    /* MOUSE */
-    void setMouseButton(int button, bool isPressed) { mouseButtonStates[button] = isPressed; }
-    bool mouseButtonPressed(int button) const {
-        return mouseButtonStates.count(button) && mouseButtonStates.at(button);
-    }
-    bool mouseButtonJustPressed(int button) const {
-        return mouseButtonStates.count(button) && mouseButtonStates.at(button) && (!prevMouseButtonStates.count(button) || !prevMouseButtonStates.at(button));
-    }
-    void setMousePosition(double xpos, double ypos) {
-        if (mouseButtonPressed(GLFW_MOUSE_BUTTON_RIGHT)) {
-            if (firstMouseMove) { // Initialize the mouse position on the first click
-                lastX = xpos;
-                lastY = ypos;
-                firstMouseMove = false;
-            }
-            xOffset = xpos - lastX;
-            yOffset = lastY - ypos;
-            lastX = xpos;
-            lastY = ypos;
-        }
-        else {
-            resetMouseState();
-        }
-    }
-    std::pair<float, float> getMouseOffsets() {
-        auto offsets = std::make_pair(static_cast<float>(xOffset), static_cast<float>(yOffset));
-        xOffset = 0.0;
-        yOffset = 0.0;
-        return offsets;
-    }
-    void resetMouseState() {
-        xOffset = 0.0;
-        yOffset = 0.0;
-        firstMouseMove = true;
-    }
+    /* Keys */
+    void setKey(int key, bool isPressed);
+    bool keyPressed(int key) const;
+    bool keyJustPressed(int key) const;
+    bool keyJustReleased(int key) const;
+    bool keyJustPressed(const KeyCombination& combo) const;
 
-    /* SCROLL */
-    void setScrollOffset(double xoffset, double yoffset) {
-        scrollOffsetY = static_cast<float>(yoffset);
-        scrollMovedFlag = (scrollOffsetY != 0.0f);
-    }
-    bool scrollMoved() const {
-        return scrollMovedFlag;
-    }
-    float getScrollOffsetY() const { return scrollOffsetY; }
-    void resetScrollOffset() {
-        scrollOffsetY = 0.0f;
-        scrollMovedFlag = false;
-    }
+    /* Mouse */
+    void setMouseButton(int button, bool isPressed);
+    bool mouseButtonPressed(int button) const;
+    bool mouseButtonJustPressed(int button) const;
+    void setMousePosition(double xpos, double ypos);
+    std::pair<float, float> getMouseOffsets();
+    void resetMouseState();
+
+    /* Scroll */
+    void setScrollOffset(double xoffset, double yoffset);
+    bool scrollMoved() const;
+    float getScrollOffsetY() const;
+    void resetScrollOffset();
 
 private:
+    InputManager() = default;
+    ~InputManager() = default;
+    InputManager(const InputManager&) = delete;
+    InputManager& operator=(const InputManager&) = delete;
+
     GLFWwindow* window = nullptr;
     std::unordered_map<int, bool> keyStates;
     std::unordered_map<int, bool> prevKeyStates;

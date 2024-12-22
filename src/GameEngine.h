@@ -51,13 +51,12 @@ public:
         return window;
     };
 
+    // Everything default initialized {} is initialized in the constructor
+
     int windowWidth{};
     int windowHeight{};
-    // For optimizing any window resize checks. ANy instance of resize() must be checked with previous window values
-    int lastWidth{}; 
-    int lastHeight{}; 
-
     float aspectRatio{};
+
     int minWidth{};
     int minHeight{};
 
@@ -83,28 +82,24 @@ public:
 
     PhysicsWorld* physicsWorld{};
 
-    Camera* camera;
+    Camera* camera = nullptr;
 
     ShaderProgram* objectShader{};
     ShaderProgram* backgroundShader{};
 
     TextRenderer* textRenderer{};
     QuadRenderer* quadRenderer{};
-    MessageLog* messageLog;
 
     float prevTime{};
     float deltaTime{};
 
     float imguiColor[3];
 
-
-    TextureManager& tm; // Central point for accessing all textures
-    ProfileManager& pm; // Central point for accessing all profiles
-    InputManager inputManager;
-    /*static void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
-    static void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
-    static void cursorPositionCallback(GLFWwindow* window, double xPos, double yPos);
-    static void scrollCallback(GLFWwindow* window, double xOffset, double yOffset);*/
+    // Singleton Managers
+    TextureManager& tm;     // Textures
+    ProfileManager& pm;     // Profiles (and corresponding data)
+    InputManager& im;       // Key/Mouse Input
+    MessageLog& ml;         // Message Logging
 
     // INI handling
     mINI::INIFile* iniFile{};
@@ -113,6 +108,7 @@ public:
     // Other various global states
     bool boundCamera{};
     bool debugMode{};
+    bool paused{};
 
     std::vector<Timer> timers;  // TODO: In very future, if have dynamic timers separate from the fixed timers (frame rate, etc)
     std::vector<std::function<void()>> timerCallbacks;

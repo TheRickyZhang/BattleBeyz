@@ -1,25 +1,29 @@
 #include "ProfileManager.h"
+#include "json.hpp"
+
+using namespace std;
+using namespace nlohmann;
 
 // TEMP to start off with defaults
 void ProfileManager::addDefaultProfiles() {
     if (!createProfile("Default") || !createProfile("Player1")) {
-        std::cerr << "Error: Failed to create default profiles." << std::endl;
+        cerr << "Error: Failed to create default profiles." << endl;
         return;
     }
     if (!getActiveProfile()->createBeyblade("DefaultBeyblade1")) {
-        std::cout << "Cannot create 1" << std::endl;
+        cout << "Cannot create 1" << endl;
     }
     if (!getActiveProfile()->createBeyblade("DefaultBeyblade2")) {
-        std::cout << "Cannot create 2" << std::endl;
+        cout << "Cannot create 2" << endl;
     }
 }
 
 
 // SERVER: To replace with server requests for unique profileIds
-bool ProfileManager::createProfile(const std::string& name) {
-    std::lock_guard<std::mutex> lock(mtx);
+bool ProfileManager::createProfile(const string& name) {
+    lock_guard<mutex> lock(mtx);
     if (profiles.size() >= MAX_PROFILES) {
-        std::cerr << "Error: Cannot add profile. Maximum number of profiles (" << MAX_PROFILES << ") reached." << std::endl;
+        cerr << "Error: Cannot add profile. Maximum number of profiles (" << MAX_PROFILES << ") reached." << endl;
         return false;
     }
     
@@ -28,7 +32,7 @@ bool ProfileManager::createProfile(const std::string& name) {
     if (profiles.size() > 0 && getProfileIterator(nextProfileID) != profiles.end()) {
         return false;
     }
-    auto profile = std::make_shared<Profile>(nextProfileID, name);
+    auto profile = make_shared<Profile>(nextProfileID, name);
     profiles.push_back(profile);
     if (!activeProfileId.has_value()) {
         activeProfileId = profile->getId();  // Set newly added profile as active if none active
@@ -36,8 +40,8 @@ bool ProfileManager::createProfile(const std::string& name) {
     return true;
 }
 
-bool ProfileManager::addProfile(std::shared_ptr<Profile> profile) {
-    std::lock_guard<std::mutex> lock(mtx);
+bool ProfileManager::addProfile(shared_ptr<Profile> profile) {
+    lock_guard<mutex> lock(mtx);
     if (profiles.size() >= MAX_PROFILES) {
         return false;
     }
@@ -53,10 +57,10 @@ bool ProfileManager::addProfile(std::shared_ptr<Profile> profile) {
 
 // Deletes a profile by ID
 bool ProfileManager::deleteProfile(int profileId) {
-    std::lock_guard<std::mutex> lock(mtx);
+    lock_guard<mutex> lock(mtx);
     auto it = getProfileIterator(profileId);
     if (profiles.size() <= 1 || it == profiles.end()) {
-        // std::cerr << "Error: Profile with ID " << profileId << " not found." << std::endl;
+        // cerr << "Error: Profile with ID " << profileId << " not found." << endl;
         return false;
     }
 
@@ -73,16 +77,16 @@ bool ProfileManager::deleteProfile(int profileId) {
     return true;
 }
 
-std::shared_ptr<Profile> ProfileManager::getProfile(int profileId) const {
-    std::lock_guard<std::mutex> lock(mtx);
+shared_ptr<Profile> ProfileManager::getProfile(int profileId) const {
+    lock_guard<mutex> lock(mtx);
     auto it = getProfileIterator(profileId);
     if (it == profiles.end()) return nullptr;
     return *it;
 }
 
 // Nullptr if no active profile
-std::shared_ptr<Profile> ProfileManager::getActiveProfile() const {
-    std::lock_guard<std::mutex> lock(mtx);
+shared_ptr<Profile> ProfileManager::getActiveProfile() const {
+    lock_guard<mutex> lock(mtx);
     if (!activeProfileId.has_value()) {
         return nullptr;
     }
@@ -93,7 +97,7 @@ std::shared_ptr<Profile> ProfileManager::getActiveProfile() const {
 
 // Sets a profile as the active profile by ID
 bool ProfileManager::setActiveProfile(int profileId) {
-    std::lock_guard<std::mutex> lock(mtx);
+    lock_guard<mutex> lock(mtx);
     auto it = getProfileIterator(profileId);
     if (it != profiles.end()) {
         activeProfileId = profileId;
@@ -102,7 +106,49 @@ bool ProfileManager::setActiveProfile(int profileId) {
     return false;
 }
 
-const std::vector<std::shared_ptr<Profile>>& ProfileManager::getAllProfiles() const {
-    std::lock_guard<std::mutex> lock(mtx);
+const vector<shared_ptr<Profile>>& ProfileManager::getAllProfiles() const {
+    lock_guard<mutex> lock(mtx);
     return profiles;
+}
+
+void ProfileManager::saveProfilesToFile(const std::string& filePath) {
+    json js;
+    for (const auto& profile : profiles) {
+        js["profiles"].push_back(profile->toJson()); // Save all relevant profile details
+    }
+    if (activeProfileId.has_value()) {
+        js["activeProfileId"] = activeProfileId.value();
+    }
+    std::ofstream file(filePath);
+    if (file.is_open()) {
+        file << js.dump(4); // Pretty print with 4 spaces
+    }
+}
+
+void ProfileManager::loadProfilesFromFile(const std::string& filePath) {
+    std::ifstream file(filePath);
+    if (file.is_open()) {
+        json js;
+        file >> js;
+
+        for (const auto& profileJson : js["profiles"]) {
+            // Extract profile details
+            std::string name = profileJson["name"];
+            int id = profileJson["id"];
+
+            // Use `addProfile` to add a pre-created profile to ensure proper initialization
+            auto profile = std::make_shared<Profile>(id, name);
+            profile->fromJson(profileJson); // Populate the profile's details
+
+            // Add the profile via your addProfile function
+            if (!addProfile(profile)) {
+                std::cerr << "Error: Failed to add profile during load. Name: " << name << std::endl;
+            }
+        }
+
+        // Set the active profile (optional: based on saved state)
+        if (js.contains("activeProfileId")) {
+            setActiveProfile(js["activeProfileId"]);
+        }
+    }
 }

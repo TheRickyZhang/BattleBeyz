@@ -42,41 +42,39 @@ void PhysicsWorld::removeStadium(Stadium* body) {
 * @param deltaTime              [in] Time increment in seconds.
 */
 
+// TODO: Handle game logic when round is over
 void PhysicsWorld::update(float deltaTime) {
     extern void UISetRunState(bool isError, const std::string & msg);  // Defined in UI.h
 
+    currTime += deltaTime;
     /**
     * Resolve bey-stadium collisions
     */
     for (Beyblade* beyblade : beyblades) {
         BeybladeBody* beybladeBody = beyblade->getRigidBody();
-        // TODO: If bey is below minimum spin threshold, end the match. Some default animation could be used.
-        if (glm::length(beybladeBody->getAngularVelocity()) < SPIN_THRESHOLD) {
-            //std::cerr << "Beyblade ran out of spin" << std::endl;
-            UISetRunState(true, "Beyblade run out of spin");
+        if (beybladeBody->getAngularVelocity().length() < SPIN_THRESHOLD) {
+            MessageLog::getInstance().addMessage("Beyblade " + beyblade->getName() + " ran out of spin", MessageType::NORMAL);
             return;
         }
 
         // Get position of the bottom tip
-        glm::vec3 beyBottom = beybladeBody->getBottomPosition();
+        Vec3_M beyBottom = beybladeBody->getBottomPosition();
 
         // Should usually only be one stadium, but may need to scale to more
         for (Stadium* stadium : stadiums) {
             StadiumBody* stadiumBody = stadium->getRigidBody();
-            if(!stadiumBody->isInside(beyBottom.x, beyBottom.z)) {
-                // Game is over since beyblade is out of bounds, implement behavior in future
-                //std::cerr << "Beyblade out of bounds" << std::endl;
-                UISetRunState(true, "Beyblade out of bounds");
+            if(!stadiumBody->isInside(beyBottom.xTyped(), beyBottom.zTyped())) {
+                MessageLog::getInstance().addMessage("Beyblade " + beyblade->getName() + " out of bounds", MessageType::NORMAL);
                 return;
             }
 
             // Add air resistance
             Physics::accumulateAirResistance(beybladeBody, airDensity);
 
-            double stadiumY = stadiumBody->getY(beyBottom.x, beyBottom.z);
+            M stadiumY = stadiumBody->getY(beyBottom.xTyped(), beyBottom.zTyped());
 
             // If the Beyblade is airborne by some significant amount, only apply gravity
-            if (beyBottom.y - stadiumY > 0.005) {
+            if (beyBottom.yTyped() - stadiumY > 0.005_m) {
                 beybladeBody->accumulateAcceleration(Physics::GRAVITY_VECTOR);
             }
             else {
@@ -93,16 +91,20 @@ void PhysicsWorld::update(float deltaTime) {
         for (size_t j = i + 1; j < beyblades.size(); ++j) {
             BeybladeBody* bey1 = beyblades[i]->getRigidBody();
             BeybladeBody* bey2 = beyblades[j]->getRigidBody();
-            std::optional<double> contactDistance = BeybladeBody::distanceOverlap(bey1, bey2);
+            std::optional<M> contactDistance = BeybladeBody::distanceOverlap(bey1, bey2);
 
             // Skip beys with no contact
             if (!contactDistance.has_value()) continue;
+            if (currTime - bey1->prevCollision < epsilonTime || currTime - bey2->prevCollision < epsilonTime) {
+                continue;
+            }
 
             /**
             * Linear repulsive force combines the collision due to initial velocity with the recoil from spins
             * Angular draining force is the loss of spin of both beys due to colliding
             */
             Physics::accumulateImpact(bey1, bey2, contactDistance.value());
+            bey1->prevCollision = bey2->prevCollision = currTime;
         }
     }
 
@@ -138,14 +140,14 @@ void PhysicsWorld::renderDebug(ShaderProgram& shader) const {
     for (Beyblade* beyblade : beyblades) {
         BeybladeBody* beybladeBody = beyblade->getRigidBody();
         for (int i = 0; i < beybladeBody->boundingBoxes.size() && i < 100; i++) {
-            beybladeBody->boundingBoxes[i]->renderDebug(shader, beybladeBody->getCenter());
+            beybladeBody->boundingBoxes[i]->renderDebug(shader, beybladeBody->getCenter().value());
         }
     }
 
     for (Stadium* stadium : stadiums) {
         StadiumBody* stadiumBody = stadium->getRigidBody();
         for (int i = 0; i < stadiumBody->boundingBoxes.size() && i < 100; i++) {
-            stadiumBody->boundingBoxes[i]->renderDebug(shader, stadiumBody->getCenter());
+            stadiumBody->boundingBoxes[i]->renderDebug(shader, stadiumBody->getCenter().value());
         }
     }
 }

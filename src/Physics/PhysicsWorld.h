@@ -15,11 +15,17 @@
 #include "Utils.h"
 #include "RigidBody.h"
 #include "ShaderProgram.h"
+#include "MessageLog.h"
+
+#include "Units.h"
+using namespace Units;
+
+class GameEngine;
 
 class PhysicsWorld {
 public:
-    // TODO: Move airDensityValue to Physics.h
-    PhysicsWorld(double airDensityValue = 0.8, double spinThreshold = 30) : airDensity(airDensityValue), SPIN_THRESHOLD(spinThreshold) {}
+    // TODO: Move airDensityValue and other physicsal constants to Physics.h
+    PhysicsWorld(Kg_M3 airDensityValue = 0.8_kg / (1.0_m*1.0_m*1.0_m), float spinThreshold = 30.0f) : airDensity(airDensityValue), SPIN_THRESHOLD(spinThreshold) {}
 
     void addBeyblade(Beyblade* body);
     void addStadium(Stadium* body);
@@ -29,21 +35,25 @@ public:
     void resetPhysics() { // 2024-11-18.  Clear before game restart.
         beyblades.clear();
         stadiums.clear();
+        currTime = 0.0f;
+        for (auto& bey : beyblades) bey->getRigidBody()->prevCollision = 0.0f;
     };
 
     void update(float deltaTime);
     void renderDebug(ShaderProgram &shader) const;
-#if 0
-    std::vector<Beyblade*> getBeyblades() const { return beyblades; }
-    std::vector<Stadium*> getStadiums() const { return stadiums; }
-#else  // NEWUI
+
     std::vector<Beyblade*>& getBeyblades() { return beyblades; }
     std::vector<Stadium*>& getStadiums() { return stadiums; }
-#endif
 
 private:
-    double airDensity;
+    //float airDensity;
+    float currTime = 0.0f;
+    
+    Kg_M3 airDensity;
     std::vector<Beyblade*> beyblades;
     std::vector<Stadium*> stadiums;
-    const double SPIN_THRESHOLD = 30;
+    const Scalar SPIN_THRESHOLD = 30.0__;
+    const Scalar MAX_SPIN_THRESHOLD = 1500.0__;
+    const Scalar PI = 3.14159265358979__;
+    const float epsilonTime = 0.2f; // Cannot have collisions within 0.3 seconds of a previous one
 };

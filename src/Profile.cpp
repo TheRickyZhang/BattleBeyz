@@ -1,40 +1,44 @@
 #include "Profile.h"
+#include <memory>
+
+using namespace std;
+using namespace nlohmann;
 
 // SERVER: (need globally unique beybladeIds across multiple different profiles)
-bool Profile::createBeyblade(const std::string& name, bool isTemplate) {
-    std::cout << "Attempting to create Beyblade: " << name << std::endl;
-    std::lock_guard<std::mutex> lock(mtx);
+bool Profile::createBeyblade(const string& name, bool isTemplate) {
+    cout << "Attempting to create Beyblade: " << name << endl;
+    lock_guard<mutex> lock(mtx);
     if (beybladesOwned.size() >= MAX_BEYBLADES_PER_PROFILE) {
-        std::cerr << "Error: Cannot add Beyblade. Maximum number of beyblades (" << MAX_BEYBLADES_PER_PROFILE << ") reached." << std::endl;
+        cerr << "Error: Cannot add Beyblade. Maximum number of beyblades (" << MAX_BEYBLADES_PER_PROFILE << ") reached." << endl;
         return false;
     }
 
     nextBladeID++;
     if (!beybladesOwned.empty() && getBeybladeIterator(nextBladeID) != beybladesOwned.end()) {
-        std::cerr << "Error: Beyblade with ID " << nextBladeID << " already exists." << std::endl;
+        cerr << "Error: Beyblade with ID " << nextBladeID << " already exists." << endl;
         return false;
     }
 
-    std::shared_ptr<Beyblade> beyblade;
+    shared_ptr<Beyblade> beyblade;
     if (isTemplate) {
-        beyblade = std::make_shared<Beyblade>(nextBladeID, name, true);
+        beyblade = make_shared<Beyblade>(nextBladeID, name, true);
     }
     else {
-        beyblade = std::make_shared<Beyblade>(nextBladeID, name);
+        beyblade = make_shared<Beyblade>(nextBladeID, name);
     }
 
     beybladesOwned.push_back(beyblade);
     if (!activeBeybladeId.has_value()) {
         activeBeybladeId = beyblade->getId();
     }
-    std::cout << "Beyblade created successfully with ID: " << beyblade->getId() << std::endl;
+    cout << "Beyblade created successfully with ID: " << beyblade->getId() << endl;
     return true;
 }
 
 
 // Return false if beyblade already exists or max beyblades reached.
-bool Profile::addBeyblade(std::shared_ptr<Beyblade> beyblade) {
-    std::lock_guard<std::mutex> lock(mtx);
+bool Profile::addBeyblade(shared_ptr<Beyblade> beyblade) {
+    lock_guard<mutex> lock(mtx);
     if (getBeybladeIterator(beyblade->getId()) == beybladesOwned.end()) {
         return false;
     }
@@ -50,10 +54,10 @@ bool Profile::addBeyblade(std::shared_ptr<Beyblade> beyblade) {
 
 
 bool Profile::deleteBeyblade(int beybladeId) {
-    std::lock_guard<std::mutex> lock(mtx);
+    lock_guard<mutex> lock(mtx);
     auto it = getBeybladeIterator(beybladeId);
     if (it == beybladesOwned.end()) {
-        std::cerr << "Error: Beyblade with ID " << beybladeId << " not found in profile " << id << "." << std::endl;
+        cerr << "Error: Beyblade with ID " << beybladeId << " not found in profile " << id << "." << endl;
         return false;
     }
 
@@ -71,21 +75,21 @@ bool Profile::deleteBeyblade(int beybladeId) {
     return true;
 }
 
-std::shared_ptr<Beyblade> Profile::getBeyblade(int beybladeId) const {
-    std::lock_guard<std::mutex> lock(mtx);
+shared_ptr<Beyblade> Profile::getBeyblade(int beybladeId) const {
+    lock_guard<mutex> lock(mtx);
     auto it = getBeybladeIterator(beybladeId);
-    for (std::shared_ptr<Beyblade> bey : beybladesOwned) {
-        std::cout << bey->getName() << "," << bey->getId() << " ";
+    for (shared_ptr<Beyblade> bey : beybladesOwned) {
+        cout << bey->getName() << "," << bey->getId() << " ";
     }
-    std::cout << "|" << beybladeId << std::endl;
+    cout << "|" << beybladeId << endl;
     if (it == beybladesOwned.end()) return nullptr;
     return *it;
 }
 
 // Take an optional id, or uses active one by default.
 // Returns the beyblade pointer or nullptr if not found
-std::shared_ptr<Beyblade> Profile::getActiveBeyblade() const {
-    std::lock_guard<std::mutex> lock(mtx);
+shared_ptr<Beyblade> Profile::getActiveBeyblade() const {
+    lock_guard<mutex> lock(mtx);
     if (!activeBeybladeId.has_value()) {
         return nullptr;
     }
@@ -99,7 +103,7 @@ std::shared_ptr<Beyblade> Profile::getActiveBeyblade() const {
 }
 
 bool Profile::setActiveBeyblade(int beybladeId) {
-    std::lock_guard<std::mutex> lock(mtx);
+    lock_guard<mutex> lock(mtx);
     auto it = getBeybladeIterator(beybladeId);
     if (it != beybladesOwned.end()) {
         activeBeybladeId = beybladeId;
@@ -108,7 +112,34 @@ bool Profile::setActiveBeyblade(int beybladeId) {
     return false;
 }
 
-const std::vector<std::shared_ptr<Beyblade>>& Profile::getAllBeyblades() const {
-    std::lock_guard<std::mutex> lock(mtx);
+const vector<shared_ptr<Beyblade>>& Profile::getAllBeyblades() const {
+    lock_guard<mutex> lock(mtx);
     return beybladesOwned;
+}
+
+json Profile::toJson() const {
+    json js;
+    js["id"] = id;
+    js["name"] = name;
+
+    // can add additional fie
+    js["settings"] = settings.toJson();
+    for (const auto& beyblade : beybladesOwned) {
+        js["beyblades"].push_back(beyblade->toJson());
+    }
+    return js;
+}
+
+void Profile::fromJson(const json& js) {
+    if (js.contains("id")) id = js["id"];
+    if (js.contains("name")) name = js["name"];
+
+    // Add additional fields here, such as settings or custom fields
+    if (js.contains("settings")) settings.fromJson(js["settings"]);
+    if (js.contains("beyblades")) {
+        for (const auto& beybladeJson : js["beyblades"]) {
+            // TODO: Need to sync this with current id logic in create/add beyblade
+            beybladesOwned.push_back(make_unique<Beyblade>(Beyblade::fromJson(beybladeJson)));
+        }
+    }
 }

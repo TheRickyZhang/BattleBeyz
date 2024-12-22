@@ -28,7 +28,7 @@ enum struct CameraMode {
 
 class Camera {
 public:
-    Camera(const glm::vec3& position, const glm::vec3& viewPoint, PhysicsWorld* world, double x, double y, BoundingBox box = BoundingBox(glm::vec3(-1e6), glm::vec3(1e6)));
+    Camera(const glm::vec3& position, const glm::vec3& viewPoint, PhysicsWorld* world, float x, float y, BoundingBox box = BoundingBox(glm::vec3(-1e6), glm::vec3(1e6)));
 
     // Must call these before changing the mode (initial only works in free UNTIL attached to beybalde/stadium)
     void setFollowingBey(BeybladeBody* bey) { followingBey = bey; }
@@ -57,8 +57,8 @@ public:
     bool hasCollision = true;
 
     // For screen input with camera movements
-    double lastX;
-    double lastY;
+    float lastX;
+    float lastY;
     bool firstMouse;
 
     CameraMode activeMode = CameraMode::FREE;

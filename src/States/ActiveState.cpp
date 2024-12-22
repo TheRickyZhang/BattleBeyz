@@ -30,14 +30,16 @@ void ActiveState::init()
     // TODO: this should add stadiums dynamically in future, but use default single one for now
     StadiumBody* rigidBody = new StadiumBody();
     StadiumMesh* stadiumMesh = new StadiumMesh();
-    rigidBody->center = glm::vec3(0.0f, 2.0f, 0.0f);
+    rigidBody->center = glm::vec3(0.0f, 0.0f, 0.0f);
     Stadium* stadium1 = new Stadium(rigidBody, stadiumMesh, "Stadium 1");
     stadiums.push_back(stadium1);
+
+    physicsWorld->resetPhysics();
 
     // NEWMESH: Load meshes before bodies so we can get the actual object sizes. Then pass the
     // mesh to the BeybladdeBody constructor.
     // NEWMESH: remove radius and heigth from these objects, leaving just some physics coefficients.
-    // TODO: Ensure that the VAOs / VBOs are handled withing the mesh objects properly (ex we can probably remove passing in 0 parameters)
+    // TODO: Ensure that the VAOs / VBOs are handled withing the mesh objects properly (ex we can probably remove passing in 0 paraMs)
 
     // These might be null for now, quell errors
     Beyblade* beyblade1 = game->pm.getActiveProfile()->getBeyblade(1).get();
@@ -45,7 +47,6 @@ void ActiveState::init()
 
     // 2024-11-18. Reset various things before [re]starting the game.
     // TODO: Screen to modify initial conditions (launch location, angle, speed) beforehand so resetPhysics() works
-    physicsWorld->resetPhysics();
     beyblades.clear();
 
     beyblade1->getRigidBody()->resetPhysics();
@@ -71,32 +72,32 @@ void ActiveState::pause() {}
 void ActiveState::resume() {}
 
 void ActiveState::handleEvents() {
-    auto& inputManager = game->inputManager;
-
-    if (inputManager.keyJustPressed(GLFW_KEY_TAB)) {
+    if (game->im.keyJustPressed(GLFW_KEY_TAB)) {
         showInfoScreen = !showInfoScreen;
     }
 
-    if (inputManager.keyJustPressed(GLFW_KEY_D) && glfwGetKey(game->getWindow(), GLFW_KEY_LEFT_CONTROL)) {
+    if (game->im.keyJustPressed(GLFW_KEY_D) && glfwGetKey(game->getWindow(), GLFW_KEY_LEFT_CONTROL)) {
         game->debugMode = !game->debugMode;
         std::cout << "Debug mode is " << (game->debugMode ? "On" : "Off") << std::endl;
     }
 
-    if (inputManager.keyJustPressed(CtrlD)) {
+    if (game->im.keyJustPressed(CtrlD)) {
         game->debugMode = !game->debugMode;
         std::cout << "Debug mode is " << (game->debugMode ? "On" : "Off") << std::endl;
     }
 
     for (const auto& [movementKey, action] : movementKeys) {
-        if (inputManager.keyPressed(movementKey)) {
+        if (game->im.keyPressed(movementKey)) {
             game->camera->processKeyboard(action, game->deltaTime);
         }
     }
     game->camera->update(game->deltaTime);
 
-    if (inputManager.mouseButtonJustPressed(GLFW_MOUSE_BUTTON_LEFT)) {
-        double xpos, ypos;
-        glfwGetCursorPos(game->getWindow(), &xpos, &ypos);
+    if (game->im.mouseButtonJustPressed(GLFW_MOUSE_BUTTON_LEFT)) {
+        float xpos, ypos; double dx, dy;
+        glfwGetCursorPos(game->getWindow(), &dx, &dy);
+        xpos = static_cast<float>(dx);
+        ypos = static_cast<float>(dy);
 
         // Calculate world ray and perform intersection check
         vec3 ray_world = screenToWorldCoordinates(game->getWindow(), xpos, ypos,
@@ -107,17 +108,17 @@ void ActiveState::handleEvents() {
     }
 
     // RIght click + drag to move camera
-    if (inputManager.mouseButtonPressed(GLFW_MOUSE_BUTTON_RIGHT)) {
-        auto [xOffset, yOffset] = inputManager.getMouseOffsets();
+    if (game->im.mouseButtonPressed(GLFW_MOUSE_BUTTON_RIGHT)) {
+        auto [xOffset, yOffset] = game->im.getMouseOffsets();
         if (xOffset != 0.0f || yOffset != 0.0f) {
             game->camera->processMouseMovement(xOffset, yOffset);
         }
     }
 
-    if (inputManager.scrollMoved()) {
-        float scrollOffsetY = inputManager.getScrollOffsetY();
+    if (game->im.scrollMoved()) {
+        float scrollOffsetY = game->im.getScrollOffsetY();
         game->camera->processMouseScroll(scrollOffsetY);
-        inputManager.resetScrollOffset();
+        game->im.resetScrollOffset();
     }
 }
 
@@ -178,13 +179,6 @@ void ActiveState::draw() {
         << cameraPosition.y << ", " << cameraPosition.z;
     std::string positionText = ss.str();
 
-    // Only resize if window dimensions have changed
-    if (game->windowWidth != game->lastWidth || game->windowHeight != game->lastHeight) {
-        game->textRenderer->resize(game->windowWidth, game->windowHeight);
-        game->lastWidth = game->windowWidth;
-        game->lastHeight = game->windowHeight;
-    }
-
     if (game->debugMode) {
         game->physicsWorld->renderDebug(*objectShader);
     }
@@ -228,25 +222,25 @@ void ActiveState::drawInfoScreen() {
         BeybladeBody* beybladeBody = beyblade->getRigidBody();
         if (ImGui::CollapsingHeader(beyblade->getName().data())) {
             ImGui::Text("Velocity");
-            vec3 initialVelocity = beybladeBody->getVelocity();
+            vec3 initialVelocity = beybladeBody->getVelocity().value();
             ImGui::SliderFloat("X##V", &initialVelocity.x, -100.0f, 100.0f);
             ImGui::SliderFloat("Y##V", &initialVelocity.y, -100.0f, 100.0f);
             ImGui::SliderFloat("Z##V", &initialVelocity.z, -100.0f, 100.0f);
 
             ImGui::Text("Center");
-            vec3 initialCenter = beybladeBody->getCenter();
+            vec3 initialCenter = beybladeBody->getCenter().value();
             ImGui::SliderFloat("X##CTR", &initialCenter.x, -100.0f, 100.0f);
             ImGui::SliderFloat("Y##CTR", &initialCenter.y, -100.0f, 100.0f);
             ImGui::SliderFloat("Z##CTR", &initialCenter.z, -100.0f, 100.0f);
 
             ImGui::Text("Angular Velocity");
-            vec3 initialAngularVelocity = beybladeBody->getAngularVelocity();
+            vec3 initialAngularVelocity = beybladeBody->getAngularVelocity().value();
             ImGui::SliderFloat("X##AV", &initialAngularVelocity.x, -100.0f, 100.0f);
             ImGui::SliderFloat("Y##AV", &initialAngularVelocity.y, -100.0f, 100.0f);
             ImGui::SliderFloat("Z##AV", &initialAngularVelocity.z, -100.0f, 100.0f);
 
             if (ImGui::Button("Apply Launch Settings")) {
-                beybladeBody->setInitialLaunch(initialCenter, initialVelocity, initialAngularVelocity);
+                beybladeBody->setInitialLaunch(Vec3_M(initialCenter), initialVelocity, initialAngularVelocity);
             }
         }
     }
@@ -260,15 +254,15 @@ void ActiveState::drawInfoScreen() {
     CameraMode currentMode = game->camera->activeMode;
     if (ImGui::RadioButton("Free", currentMode == CameraMode::FREE)) {
         game->camera->changeCameraMode(CameraMode::FREE);
-        game->messageLog->addMessage("Camera changed to free", MessageType::NORMAL, true);
+        game->ml.addMessage("Camera changed to free", MessageType::NORMAL, true);
     }
     if (ImGui::RadioButton("Attached", currentMode == CameraMode::ATTACHED)) {
         game->camera->changeCameraMode(CameraMode::ATTACHED);
-        game->messageLog->addMessage("Camera attached to bey" + std::string(game->pm.getActiveProfile()->getName()), MessageType::NORMAL, true);
+        game->ml.addMessage("Camera attached to bey" + std::string(game->pm.getActiveProfile()->getName()), MessageType::NORMAL, true);
     }
     if (ImGui::RadioButton("Panning", currentMode == CameraMode::PANNING)) {
         game->camera->changeCameraMode(CameraMode::PANNING);
-        game->messageLog->addMessage("Camera changed to pan", MessageType::NORMAL, true);
+        game->ml.addMessage("Camera changed to pan", MessageType::NORMAL, true);
     }
 
     ImGui::End();

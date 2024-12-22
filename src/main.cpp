@@ -43,7 +43,10 @@
 #include <sstream>
 #include <atomic>
 
+//#include "UnitsTest.cpp"
 int main() {
+    //UnitsTest();
+
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     GameEngine engine;
@@ -74,18 +77,14 @@ int main() {
     // Add beys
     physicsWorld->addBeyblade(beyblade1);
     physicsWorld->addBeyblade(beyblade2);
-    glm::vec3 initialPosition1 = glm::vec3(0.0f, 2.0f, 0.5f);
-    glm::vec initialPosition2 = glm::vec3(0.0f, 2.0f, -0.5f);
-    glm::vec3 initialVelocity1 = glm::vec3(0.0f, 0.0f, -0.2f);
-    glm::vec3 initialVelocity2 = glm::vec3(0.2f, 0.0f, 0.1f);
+    glm::vec3 initialPosition1 = glm::vec3(0.0f, 1.0f, 0.3f);
+    glm::vec3 initialPosition2 = glm::vec3(0.0f, 1.0f, -0.3f);
+    glm::vec3 initialVelocity1 = glm::vec3(0.0f, 0.0f, -0.1f);
+    glm::vec3 initialVelocity2 = glm::vec3(0.0f, 0.0f, 0.1f);
     glm::vec3 initialAngularVelocity = glm::vec3(0.0f, -450.0f, 0.0f);
 
     beyblade1->getRigidBody()->setInitialLaunch(initialPosition1, initialVelocity1, initialAngularVelocity);
     beyblade2->getRigidBody()->setInitialLaunch(initialPosition2, initialVelocity2, initialAngularVelocity);
-
-// 2024-12-03 TEMPORARY.  WHAT SHOULD THE RANGE BE?
-    //auto sr = stadium->getRigidBody()->radius;
-    //engine.camera->movementRange = BoundingBox(glm::vec3(-sr, -10, -sr), glm::vec3(sr, 10, sr));
 
     /* ----------------------MAIN RENDERING LOOP-------------------------- */
 
@@ -101,7 +100,7 @@ int main() {
         engine.deltaTime = 0.0052f; // fixed frame rate, lower = slower
 #endif
 
-        engine.handleEvents();  // External inputs: user/system
+        if(!engine.paused) engine.handleEvents();  // External inputs: user/system
         engine.update();        // Time-based state updates
         engine.draw();          // Render the current state
     }

@@ -13,7 +13,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 find_package(OpenGL REQUIRED)
 
 # Include directories
-include_directories(${PROJECT_SOURCE_DIR}/include)
+include_directories(${PROJECT_SOURCE_DIR}/lib)
 include_directories(${PROJECT_SOURCE_DIR}/lib/glew-2.2.0/include)
 include_directories(${PROJECT_SOURCE_DIR}/lib/glfw-3.4/include)
 include_directories(${PROJECT_SOURCE_DIR}/lib/glm-1.0.1)
@@ -30,9 +30,11 @@ include_directories(${PROJECT_SOURCE_DIR}/src/GameObjects)
 include_directories(${PROJECT_SOURCE_DIR}/src/MeshObjects)
 include_directories(${PROJECT_SOURCE_DIR}/src/mini)
 include_directories(${PROJECT_SOURCE_DIR}/src/Physics)
+include_directories(${PROJECT_SOURCE_DIR}/src/Physics/Units)
 include_directories(${PROJECT_SOURCE_DIR}/src/Rendering)
 include_directories(${PROJECT_SOURCE_DIR}/src/RigidBodies)
 include_directories(${PROJECT_SOURCE_DIR}/src/States)
+include_directories(${PROJECT_SOURCE_DIR}/src/Config)
 
 
 # Specify ImGui source files
@@ -43,14 +45,17 @@ set(IMGUI_SOURCES
         ${PROJECT_SOURCE_DIR}/lib/imgui-1.90.8/imgui_widgets.cpp
         ${PROJECT_SOURCE_DIR}/lib/imgui-1.90.8/backends/imgui_impl_opengl3.cpp
         ${PROJECT_SOURCE_DIR}/lib/imgui-1.90.8/backends/imgui_impl_glfw.cpp
+        ${PROJECT_SOURCE_DIR}/lib/ImGuiFileDialog/ImGuiFileDialog.cpp
 )
 
 # Add the preprocessor definitions. Otherwise you have trouble with cmath and opengl
 add_compile_definitions(_USE_MATH_DEFINES)
 add_compile_definitions(GLM_ENABLE_EXPERIMENTAL)
 
-# Add source files
-file(GLOB_RECURSE SOURCES "src/*.cpp" "assets/*.cpp" ${IMGUI_SOURCES})
+# Add source and header files
+file(GLOB_RECURSE HEADER_FILES "src/*.h" "assets/*.h")
+file(GLOB_RECURSE SOURCE_FILES "src/*.cpp" "assets/*.cpp" ${IMGUI_SOURCES})
+set(SOURCES ${SOURCE_FILES} ${HEADER_FILES})
 
 # Add GLFW
 set(GLFW_DIR ${PROJECT_SOURCE_DIR}/lib/glfw-3.4)
@@ -92,7 +97,7 @@ add_executable(BattleBeyz ${SOURCES})
 # Default runtime folder for debugging in Visual Studio:
 set_property(TARGET BattleBeyz PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}")
 
-# Set BattleyBeyz as the default startup project in Visual Studio
+# Set Battlebeyz as the default startup project in Visual Studio
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT BattleBeyz)
 
 # Link libraries

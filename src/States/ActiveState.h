@@ -26,7 +26,7 @@ private:
 
     float imguiColor[3] = { 0.45f, 0.55f, 0.60f };
 
-    GLuint floorVAO, floorVBO, floorEBO; // TODO: floor class? Right now assum only one floor;
+    GLuint floorVAO{}, floorVBO{}, floorEBO{}; // TODO: floor class? Right now assum only one floor;
     QuadRenderer* floor{};
     std::vector<Stadium*> stadiums;
     std::vector<Beyblade*> beyblades;

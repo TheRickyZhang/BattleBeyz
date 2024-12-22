@@ -8,27 +8,33 @@
 * NEWMESH Load the model files.
 *
 * A model consists of a Wavefront .obj model and a corresponding .mtl (material) mtl file.
-* 
+*
 * The model will always be centered and the based moved to a y-offset of 0.
-* 
+*
 * If the model consists of exactly three parts we calculate the radius and height of
 * each part, assuming that the input order is disc, layer, and driver.
-* 
+*
 * If there are not three parts, the radii and heights are estimated, and from a physics
 * standpoint you will be dealing with a cylinder.
-* 
+*
 * This does not do any scaling.  The expected sizes are documented in Units.txt.
-* 
+*
 * Once the model is loaded, the radii and heights can be copied to the Beyblade object
 * so they can be more conveniently be accessed by the physics code.
+*
+* @param path                       [in] Path to the obj file.
+*
+* @return true on success.  Also sets the modelLoaded field.
 */
 
-void BeybladeMesh::loadModel(const std::string& path) {
+bool BeybladeMesh::loadModel(const std::string& path) {
     // Load the OBJ file...
     tinyobj::attrib_t attrib;
     std::vector<tinyobj::shape_t> shapes;
     std::vector<tinyobj::material_t> materials;
     std::string warn, err;
+
+    modelLoaded = false;
 
     // Extract directory from the path
     std::string baseDir = path.substr(0, path.find_last_of("/\\"));
@@ -48,7 +54,12 @@ void BeybladeMesh::loadModel(const std::string& path) {
 
     if (!ret) {
         std::cerr << "ERROR::TINYOBJLOADER::Failed to load/parse .obj.\n";
-        return;
+        return false;
+    }
+
+    if (shapes.size() == 0) {
+        std::cerr << "ERROR: No shapes found in " << path << std::endl;
+        return false;
     }
 
     // Clear previous data
@@ -177,6 +188,9 @@ void BeybladeMesh::loadModel(const std::string& path) {
 
     modelPath = path;
     std::cout << "Model loaded successfully with " << vertices.size() << " vertices and " << indices.size() << " indices." << std::endl;
+
+    modelLoaded = true;
+    return true;
 }
 
 /**

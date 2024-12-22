@@ -2,6 +2,7 @@
 **/build/
 **/.vs/
 **/src-old/
+legacycode.cpp
 
 # Exclude CMake-generated files
 CMakeCache.txt
