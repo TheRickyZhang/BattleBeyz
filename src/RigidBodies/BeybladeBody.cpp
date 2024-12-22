@@ -4,19 +4,8 @@ BeybladeBody::BeybladeBody(Layer layer, Disc disc, Driver driver) :
     layer(layer), disc(disc), driver(driver),
     mass(layer.mass + disc.mass + driver.mass),
     momentOfInertia(layer.momentOfInertia + disc.momentOfInertia + driver.momentOfInertia)
-{
-    //// Sum 0.5 * Cd * A for each part
-    //// Use 0.9 for now using cylindrical approximation
-    //M2 linearLayerCA = 0.9f * 2 * layer.height * layer.radius;
-    //M2 linearDiscCA = 0.9f * 2 * disc.height * disc.radius;
-    //M2 linearDriverCA = 0.9f * driver.height * driver.radius;
-    //linearDragTerm = 0.5f * (linearLayerCA + linearDiscCA + linearDriverCA);
-
-    //// Sum 0.5 * Cd*A * r^2 for each part (rotationalDragCoefficient*layerHeight is C * avg distance extending outwards)
-    //M2 angularLayerCAr2 = layer.rotationalDragCoefficient * layer.height * layer.radius * layer.radius;
-    //M2 angularDiscCAr2 = disc.rotationalDragCoefficient * disc.height * disc.radius * disc.radius;
-    //M2 angularDriverCAr2 = driver.rotationalDragCoefficient * driver.height * driver.radius * driver.radius;
-    //angularDragTerm = 0.5f * (angularLayerCAr2 + angularDiscCAr2 + angularDriverCAr2);
+{   
+    // Used to be older physics code here for the very annoying drag terms to get correct. See GitHub history if still needed.
     
     // Sum 0.5 * Cd * A = 0.5 * Cd * 2 * r =
     // Cd * r * h
@@ -37,43 +26,6 @@ BeybladeBody::BeybladeBody(Layer layer, Disc disc, Driver driver) :
 
 BeybladeBody::BeybladeBody() : BeybladeBody(Layer(), Disc(), Driver()) {}
 
-// NEWMESH: Added mesh argument.
-BeybladeBody::BeybladeBody(BeybladeMesh* mesh, Layer _layer, Disc _disc, Driver _driver) :
-    layer(_layer),
-    disc(_disc),
-    driver(_driver)
-{
-    // NEWUI Copy default layer, etc., and most initialzation below -- too many initializers are gross.
-    // The saved structures are useful for the customization UI.
-    //
-    // NEWUI: TODO.  There are redundant COF and COR in the layer and driver.
-
-    acceleration = glm::vec3(0.0f);
-    // NEWUI coefficientOfFriction = 0.2; Now taken from the driver structure.
-    // NEWUI coefficientOfRestitution = 0.8; Now taken from the layer structure.
-    mass = layer.mass + disc.mass + driver.mass;
-    momentOfInertia = layer.momentOfInertia + disc.momentOfInertia + driver.momentOfInertia;
-    velocity = glm::vec3(0.0f);
-
-
-    // NEWMESH:  Use radii and heights from the mesh.  TODO: Remove radii and heights from Layer, etc.
-
-    // TODO: Update to use same equation as what I have above (when it is corrected)
-    //M2 linearLayerCA = M2(0.9f * 2 * mesh->heightLayer * mesh->radiusLayer);
-    //M2 linearDiscCA = M2(0.9f * 2 * mesh->heightDisc * mesh->radiusDisc);
-    //M2 linearDriverCA = M2(0.9f * mesh->heightDriver * mesh->heightDriver);
-    //linearDragTerm = 0.5f * (linearLayerCA + linearDiscCA + linearDriverCA);
-
-    //// Sum 0.5 * Cd*A * r^2 for each part (rotationalDragCoefficient*layerHeight is C * avg distance extending outwards)
-    //M2 angularLayerCAr2 = M2(layer.rotationalDragCoefficient * mesh->heightLayer * mesh->radiusLayer * mesh->radiusLayer);
-    //M2 angularDiscCAr2 = M2(disc.rotationalDragCoefficient * mesh->heightDisc * mesh->radiusDisc * mesh->radiusDisc);
-    //M2 angularDriverCAr2 = M2(driver.rotationalDragCoefficient * mesh->heightDriver * mesh->radiusDriver * mesh->radiusDriver);
-    //angularDragTerm = 0.5f * (angularLayerCAr2 + angularDiscCAr2 + angularDriverCAr2);
-
-    modified = false;  // 2024-12-03
-}
-
-//NEWMESH: NO BeybladeBody::BeybladeBody() : BeybladeBody(Layer(), Disc(), Driver()) {}
 
 /*--------------------------------------------Specialized Getters--------------------------------------------*/
 Vec3_Scalar BeybladeBody::getNormal() const {

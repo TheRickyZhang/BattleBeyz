@@ -20,6 +20,7 @@ void CustomizeState::resume() {}
 void CustomizeState::handleEvents() {}
 
 void CustomizeState::update(float deltaTime) {}
+
 // Draw Method
 void CustomizeState::draw() {
     // Precompute layout parameters

@@ -7,6 +7,8 @@
 #include <algorithm>
 #include <optional>
 #include <mutex>
+#include "json.hpp"
+#include "Settings.h"
 
 struct Layer; struct Disc; struct Driver;
 class Profile {
@@ -32,6 +34,11 @@ public:
     // Retrieves the list of owned Beyblades
     const std::vector<std::shared_ptr<Beyblade>>& getAllBeyblades() const;
 
+    // Writing to 
+    Settings settings;
+
+    nlohmann::json toJson() const;
+    void fromJson(const nlohmann::json& json);
 private:
     int id; // This is PROFILE ID!
     std::vector<std::shared_ptr<Beyblade>> beybladesOwned{};    // List of Beyblades owned by the profile

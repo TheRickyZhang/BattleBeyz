@@ -12,7 +12,9 @@
 #include "RigidBody.h"
 #include "RigidBodies/BeybladeBody.h"
 #include "MeshObjects/BeybladeMesh.h"
+#include "json.hpp"
 
+// TODO: Reorder these definitions to match standard? Unless this is something where reordering it break everything
 #include <glm/gtc/matrix_transform.hpp>
 #include <iostream>
 #include <glm/glm.hpp>
@@ -35,6 +37,8 @@ public:
     //Beyblade(int id, std::string name, BeybladeBody* rigidBody, BeybladeMesh* mesh) :
     //    id(id), name(name), rigidBody(rigidBody), mesh(mesh), isTemplate(true) {}
 
+    static Beyblade fromJson(const nlohmann::json& j);
+
     void render(ShaderProgram& shader);
 
     int getId() const { return id; }
@@ -46,8 +50,11 @@ public:
 
     void update(int layerIndex, int discIndex, int driverIndex);
 
+    nlohmann::json toJson() const;
+
     bool isTemplate = false;
     int templateIndices[3] = { -1, -1, -1 };  // ONLY used by templated beyblades
+
 
 protected:
 

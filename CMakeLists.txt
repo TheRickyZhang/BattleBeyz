@@ -13,7 +13,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 find_package(OpenGL REQUIRED)
 
 # Include directories
-include_directories(${PROJECT_SOURCE_DIR}/include)
+include_directories(${PROJECT_SOURCE_DIR}/lib)
 include_directories(${PROJECT_SOURCE_DIR}/lib/glew-2.2.0/include)
 include_directories(${PROJECT_SOURCE_DIR}/lib/glfw-3.4/include)
 include_directories(${PROJECT_SOURCE_DIR}/lib/glm-1.0.1)

@@ -24,6 +24,7 @@
 class BeybladeMesh {
     //friend class Beyblade;
 public:
+    // TODO: Remove color?
     BeybladeMesh(std::string& modelPath, unsigned int vao, unsigned int vbo, unsigned int ebo, const glm::vec3& col)
         : modelPath(std::move(modelPath)), VAO(vao), VBO(vbo), EBO(ebo), color(col) {
         initializeMesh();
@@ -33,21 +34,19 @@ public:
     }
 
     bool loadModel(const std::string& path);
+    const std::string& getModelPath() const { return modelPath; }
     void printDebugInfo();
 
     unsigned int getVAO() const { return VAO; }
     int getIndicesSize() { return static_cast<int>(indices.size()); }
     std::unordered_map<std::string, glm::vec3>& getMaterialColors() { return materialColors; }
 
-public:  // NEWMESH
-    BoundingBox boundingBox{};              // Mesh bounding box.
+    BoundingBox boundingBox{};                          // Mesh bounding box.
     float heightDisc{}, heightLayer{}, heightDriver{};  // Heights of subparts
     float radiusDisc{}, radiusLayer{}, radiusDriver{};  // Radii of subparts
 
-    bool modelLoaded = false;               // True if loadModel succeeded.
-
-protected:
-    // Mesh data
+    bool modelLoaded = false;                           // True if loadModel succeeded.
+private:
     std::vector<glm::vec3> vertices;
     std::vector<glm::vec3> normals;
     std::vector<glm::vec2> texCoords;
@@ -63,8 +62,5 @@ protected:
     unsigned int VAO{}, VBO{}, EBO{};
     glm::vec3 color;
 
-private:
     void initializeMesh();
-
-
 };

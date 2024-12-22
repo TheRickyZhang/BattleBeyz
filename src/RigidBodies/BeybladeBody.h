@@ -29,11 +29,9 @@ public:
 	BeybladeBody();
 	BeybladeBody(Layer layer, Disc disc, Driver driver);
 
-	// NEWMESH: Would it be possible to initialize the body entirely based off of the mesh + a few additional custom inputs? 
-	// Instead of layer, disc, driver, etc. it would be only the additional variables needed
-	BeybladeBody(BeybladeMesh* mesh, Layer layer, Disc disc, Driver driver);
-
 	// Simple getters.
+	// TODO: Make Layer (5000 bytes), Disc, Driver public unique_ptrs, thus reducing too many getters/setters
+	// 
 	// RZ:  Theoretically good style, but there are too many!  Just make the variables public!
 
 	// Getters per part
@@ -137,12 +135,13 @@ public:
 		modified = _modified;
 	}
 
-	float prevCollision = 0.0f;
-private:
 	// Parts - Access individual variables through these!
 	Disc disc;
 	Driver driver;
 	Layer layer;
+
+	float prevCollision = 0.0f;
+private:
 
 	// Global Position
 	Vec3_M baseCenter {};
@@ -162,7 +161,7 @@ private:
 
 	Vec3_R_S2 angularAcceleration {};
 	M2 linearDragTerm; // Sum of Cd*A for parts 
-	M5 angularDragTerm; // Sum of Cd*A*r^2 for parts
+	M5 angularDragTerm; // Sum of Cd*A*r^3 for parts
 
 	// Accumulated delta velocity to be applied at cycle end (for instantaneous collisions, does not depend on deltaTime)
 	Vec3_M_S accumulatedVelocity {};

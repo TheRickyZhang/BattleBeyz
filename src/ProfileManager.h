@@ -22,10 +22,15 @@ public:
     bool createProfile(const std::string& name);
     bool addProfile(std::shared_ptr<Profile> profile);
     bool deleteProfile(int profileId);
+
     std::shared_ptr<Profile> getProfile(int profileId) const;
+    const std::vector<std::shared_ptr<Profile>>& getAllProfiles() const;
+
     std::shared_ptr<Profile> getActiveProfile() const;
     bool setActiveProfile(int profileId);
-    const std::vector<std::shared_ptr<Profile>>& getAllProfiles() const;
+
+    void saveProfilesToFile(const std::string& filePath);
+    void loadProfilesFromFile(const std::string& filePath);
 private:
     ProfileManager() = default;
 
