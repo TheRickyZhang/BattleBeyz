@@ -6,6 +6,7 @@
 #include "BeybladeConstants.h"
 
 #include "States/StateFactory.h"
+#include "ShaderProgram.h" // Added recently
 
 // Constructor with default values
 GameEngine::GameEngine()
@@ -110,7 +111,6 @@ bool GameEngine::init(const char* title, int width, int height) {
     glm::vec3 initialCameraPos(2.0f, 1.5f, 0.0f);
     glm::vec3 lookAtPoint(0.0f, 0.0f, 0.0f);
 
-    camera = new Camera(initialCameraPos, lookAtPoint, physicsWorld, windowWidth / 2.0f, windowHeight / 2.0f);
 
     model = glm::mat4(1.0f);
     view = glm::lookAt(initialCameraPos, lookAtPoint, glm::vec3(0.0f, 1.0f, 0.0f));
@@ -120,13 +120,14 @@ bool GameEngine::init(const char* title, int width, int height) {
     orthoProjection = glm::ortho(0.0f, float(windowWidth), 0.0f, float(windowHeight), 0.0f, 1.0f);
 
     objectShader = new ShaderProgram(OBJECT_VERTEX_SHADER_PATH, OBJECT_FRAGMENT_SHADER_PATH);
-    objectShader->setUniforms(model, view, projection);
-    objectShader->setUniformVec3("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
-    objectShader->setUniformVec3("lightPos", glm::vec3(0.0f, 1e5f, 0.0f));  // Light very high
+    objectShader->setRenderMatrices(model, view, projection, initialCameraPos);
+    objectShader->setLight(LightType::Directional, glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(0.0f, -1.0f, 0.0f));
 
     backgroundShader = new ShaderProgram(BACKGROUND_VERTEX_SHADER_PATH, BACKGROUND_FRAGMENT_SHADER_PATH);
-    backgroundShader->setUniforms(backgroundModel, backgroundView, orthoProjection);
-    backgroundShader->setUniform1f("wrapFactor", 4.0f);
+    backgroundShader->setRenderMatrices(backgroundModel, backgroundView, orthoProjection, glm::vec3(0.0f)); // No cameraPosition needed
+    backgroundShader->setFloat("wrapFactor", 4.0f);
+
+    camera = new Camera(initialCameraPos, lookAtPoint, physicsWorld, windowWidth / 2.0f, windowHeight / 2.0f);
 
     //    auto panoramaShader = new ShaderProgram(PANORAMA_VERTEX_SHADER_PATH, PANORAMA_FRAGMENT_SHADER_PATH);
     //    panoramaShader->setUniforms(panoramaModel, panoramaView, panoramaProjection);
@@ -423,7 +424,7 @@ void GameEngine::framebufferSizeCallback(GLFWwindow* window, int width, int heig
     glViewport(0, 0, width, height);
     engine->projection = glm::perspective(glm::radians(45.0f), (float)width / height, 0.1f, 100.0f);
     engine->objectShader->use();
-    engine->objectShader->setUniformMat4("projection", engine->projection);
+    engine->objectShader->setMat4("projection", engine->projection);
 }
 
 void GameEngine::handleGlobalEvents() {
@@ -438,5 +439,5 @@ void GameEngine::handleGlobalEvents() {
         if (stateStack.empty()) return;
         paused ? stateStack.back()->pause() : stateStack.back()->resume();
     }
-    // TODO: Add more global events
+
 }

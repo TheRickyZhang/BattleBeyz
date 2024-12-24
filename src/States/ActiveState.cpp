@@ -155,8 +155,8 @@ void ActiveState::draw() {
 
     // Use the shader program (objectShader) for rendering 3D objects, sets viewPos and view
     objectShader->use();
-    objectShader->updateCameraPosition(cameraPos, view);
-    objectShader->setUniformMat4("model", mat4(1.0));
+    objectShader->setCameraView(cameraPos, view);
+    objectShader->setMat4("model", mat4(1.0));
 
     // Render the floor
     // TODO: inspect texture loaidng. This should be abstracted into the texture manager

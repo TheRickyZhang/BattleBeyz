@@ -4,6 +4,7 @@
 #define TINYOBJLOADER_IMPLEMENTATION
 #include "tiny_obj_loader.h"
 
+using namespace std;
 /**
 * NEWMESH Load the model files.
 *
@@ -27,17 +28,17 @@
 * @return true on success.  Also sets the modelLoaded field.
 */
 
-bool BeybladeMesh::loadModel(const std::string& path) {
+bool BeybladeMesh::loadModel(const string& path) {
     // Load the OBJ file...
     tinyobj::attrib_t attrib;
-    std::vector<tinyobj::shape_t> shapes;
-    std::vector<tinyobj::material_t> materials;
-    std::string warn, err;
+    vector<tinyobj::shape_t> shapes;
+    vector<tinyobj::material_t> materials;
+    string warn, err;
 
     modelLoaded = false;
 
     // Extract directory from the path
-    std::string baseDir = path.substr(0, path.find_last_of("/\\"));
+    string baseDir = path.substr(0, path.find_last_of("/\\"));
     if (baseDir.empty()) {
         baseDir = ".";
     }
@@ -45,20 +46,20 @@ bool BeybladeMesh::loadModel(const std::string& path) {
     bool ret = tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, path.c_str(), baseDir.c_str(), true, true);
 
     if (!warn.empty()) {
-        std::cout << "WARN::TINYOBJLOADER::" << warn << std::endl;
+        cout << "WARN::TINYOBJLOADER::" << warn << endl;
     }
 
     if (!err.empty()) {
-        std::cerr << "ERROR::TINYOBJLOADER::" << err << std::endl;
+        cerr << "ERROR::TINYOBJLOADER::" << err << endl;
     }
 
     if (!ret) {
-        std::cerr << "ERROR::TINYOBJLOADER::Failed to load/parse .obj.\n";
+        cerr << "ERROR::TINYOBJLOADER::Failed to load/parse .obj.\n";
         return false;
     }
 
     if (shapes.size() == 0) {
-        std::cerr << "ERROR: No shapes found in " << path << std::endl;
+        cerr << "ERROR: No shapes found in " << path << endl;
         return false;
     }
 
@@ -70,9 +71,9 @@ bool BeybladeMesh::loadModel(const std::string& path) {
     indices.clear();
     materialColors.clear();
 
-    std::unordered_map<uint32_t, glm::vec3> vertexMap;
-    std::unordered_map<uint32_t, glm::vec3> normalMap;
-    std::unordered_map<uint32_t, glm::vec2> texCoordMap;
+    unordered_map<uint32_t, glm::vec3> vertexMap;
+    unordered_map<uint32_t, glm::vec3> normalMap;
+    unordered_map<uint32_t, glm::vec2> texCoordMap;
 
     // Extract vertices, normals, and texture coordinates...
     for (uint32_t v = 0; v < (uint32_t)attrib.vertices.size() / 3; ++v) {
@@ -89,7 +90,7 @@ bool BeybladeMesh::loadModel(const std::string& path) {
 
     // Handle materials
 
-    std::unordered_map<uint32_t, glm::vec3> materialIndexToDiffuseColor;
+    unordered_map<uint32_t, glm::vec3> materialIndexToDiffuseColor;
 
     for (uint32_t i = 0; i < (uint32_t)materials.size(); ++i) {
         const auto& material = materials[i];
@@ -100,13 +101,13 @@ bool BeybladeMesh::loadModel(const std::string& path) {
         materialColors[material.name] = diffuseColor;
         materialIndexToDiffuseColor[i] = diffuseColor;
 
-        std::cout << "Material name: " << material.name << std::endl;
-        std::cout << "Diffuse: " << diffuseColor.x << ", " << diffuseColor.y << ", " << diffuseColor.z << std::endl;
+        cout << "Material name: " << material.name << endl;
+        cout << "Diffuse: " << diffuseColor.x << ", " << diffuseColor.y << ", " << diffuseColor.z << endl;
     }
 
     // Extract indices and assemble vertex data
 
-    std::vector<BoundingBox> shapeBounds;  // min and max bounds for each shape
+    vector<BoundingBox> shapeBounds;  // min and max bounds for each shape
 
     for (const auto& shape : shapes) {
         BoundingBox bb(glm::vec3(1e6), glm::vec3(FLT_MIN));
@@ -165,7 +166,7 @@ bool BeybladeMesh::loadModel(const std::string& path) {
     boundingBox.max.y -= boundingBox.min.y;
     boundingBox.min.y = 0.0f;
 
-    std::cout << "Model bounds (" << boundingBox.min.x << ", " << boundingBox.min.y << ", " << boundingBox.min.z << ") to (" << boundingBox.max.x << ", " << boundingBox.max.y << ", " << boundingBox.max.z << ")." << std::endl;
+    cout << "Model bounds (" << boundingBox.min.x << ", " << boundingBox.min.y << ", " << boundingBox.min.z << ") to (" << boundingBox.max.x << ", " << boundingBox.max.y << ", " << boundingBox.max.z << ")." << endl;
 
     // If we have three parts, we want to know the radii for the disc, layer, and driver components.
     // These different radii are used for the various physics calculations such as air resistance, etc.
@@ -187,7 +188,7 @@ bool BeybladeMesh::loadModel(const std::string& path) {
     }
 
     modelPath = path;
-    std::cout << "Model loaded successfully with " << vertices.size() << " vertices and " << indices.size() << " indices." << std::endl;
+    cout << "Model loaded successfully with " << vertices.size() << " vertices and " << indices.size() << " indices." << endl;
 
     modelLoaded = true;
     return true;
@@ -201,16 +202,16 @@ void BeybladeMesh::initializeMesh() {
     loadModel(modelPath);
 
     if (vertices.size() != normals.size() || vertices.size() != texCoords.size()) {
-        std::cerr << "Mesh data is inconsistent" << std::endl;
-        std::cout << "Vertices: " << vertices.size() << ", Normals: " << normals.size() << ", TexCoords: "
-            << texCoords.size() << std::endl;
+        cerr << "Mesh data is inconsistent" << endl;
+        cout << "Vertices: " << vertices.size() << ", Normals: " << normals.size() << ", TexCoords: "
+            << texCoords.size() << endl;
         return;
     }
 
     // Ensure colors vector has the same size as vertices if colors are not present
     if (colors.empty()) {
         colors.resize(vertices.size(), glm::vec3(1.0f, 1.0f, 1.0f));  // Default color to white
-        std::cout << "SET TO ALL WHITE" << std::endl;
+        cout << "SET TO ALL WHITE" << endl;
     }
 
     for (size_t i = 0; i < vertices.size(); ++i) {
@@ -233,6 +234,12 @@ void BeybladeMesh::initializeMesh() {
             vertexData.push_back(0.0f);
             vertexData.push_back(0.0f);
         }
+        
+        if (tint != glm::vec3(1.0)) {
+            cout << "Applying tint of " << tint.x << " " << tint.y << " " << tint.z << endl;
+            // TODO: Create a globally accessible shader instance or expose how this is being shaded
+            //shader.setTint(glm::vec3(1.0f, 0.0f, 0.0f));
+        }
 
         // Color data
         vertexData.push_back(colors[i].x);
@@ -245,38 +252,47 @@ void BeybladeMesh::initializeMesh() {
 }
 
 void BeybladeMesh::printDebugInfo() {
-    std::ostringstream buffer;
-    buffer << "Vertices: " << vertices.size() << std::endl;
+    ostringstream buffer;
+    buffer << "Vertices: " << vertices.size() << endl;
     for (const auto& vertex : vertices) {
-        buffer << std::fixed << std::setprecision(2) << "(" << vertex.x << ", " << vertex.y << ", " << vertex.z << ") ";
+        buffer << fixed << setprecision(2) << "(" << vertex.x << ", " << vertex.y << ", " << vertex.z << ") ";
     }
-    buffer << "\nNormals: " << normals.size() << std::endl;
+    buffer << "\nNormals: " << normals.size() << endl;
     for (const auto& normal : normals) {
-        buffer << std::fixed << std::setprecision(2) << "(" << normal.x << ", " << normal.y << ", " << normal.z << ") ";
+        buffer << fixed << setprecision(2) << "(" << normal.x << ", " << normal.y << ", " << normal.z << ") ";
     }
-    buffer << "\nTexture Coordinates: " << texCoords.size() << std::endl;
+    buffer << "\nTexture Coordinates: " << texCoords.size() << endl;
     for (const auto& texCoord : texCoords) {
-        buffer << std::fixed << std::setprecision(2) << "(" << texCoord.x << ", " << texCoord.y << ") ";
+        buffer << fixed << setprecision(2) << "(" << texCoord.x << ", " << texCoord.y << ") ";
     }
-    buffer << "\nIndices: " << indices.size() << std::endl;
+    buffer << "\nIndices: " << indices.size() << endl;
     for (size_t i = 0; i < indices.size(); i += 3) {
         buffer << "Triangle: (" << indices[i] << ", " << indices[i + 1] << ", " << indices[i + 2] << ") ";
     }
-    buffer << "\nTangents: " << tangents.size() << std::endl;
+    buffer << "\nTangents: " << tangents.size() << endl;
     for (const auto& tangent : tangents) {
-        buffer << std::fixed << std::setprecision(2) << "(" << tangent.x << ", " << tangent.y << ", " << tangent.z << ") ";
+        buffer << fixed << setprecision(2) << "(" << tangent.x << ", " << tangent.y << ", " << tangent.z << ") ";
     }
-    std::cout << buffer.str();
+    cout << buffer.str();
 }
 
 
+void BeybladeMesh::render(ShaderProgram& shader) {
+    for (const auto& material : materialColors) {  // TODO: This needs to be fixed, currently not applying materials correctly
+        shader.setVec3("VertexColor", material.second);
+    }
+    shader.setTint(tint);
 
-/**
-* Renderer.
-*
-* @param shader                     [in] Our custom shader program.
-*
-* @param lightColor                 [in] The light color.
-*
-* @param lightPos                   [in] The light position.
-*/
+    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Switch to wireframe mode
+
+    glBindVertexArray(VAO);
+    glDrawElements(GL_TRIANGLES, (GLsizei)indices.size(), GL_UNSIGNED_INT, nullptr);
+    glBindVertexArray(0);
+
+    //glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // Switch to polygon mode
+
+    GLenum err;
+    while ((err = glGetError()) != GL_NO_ERROR) {
+        cerr << "OpenGL error: " << err << endl;
+    }
+}

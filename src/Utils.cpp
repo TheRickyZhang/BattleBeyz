@@ -81,6 +81,8 @@ void checkGLError(const char* stmt, const char* fname, int line) {
     GLenum err = glGetError();
     if (err != GL_NO_ERROR) {
         std::cerr << "OpenGL error " << err << " at " << fname << ":" << line << " for " << stmt << std::endl;
+
+        exit(0);
     }
 }
 

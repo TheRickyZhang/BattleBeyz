@@ -163,21 +163,15 @@ void BoundingBox::renderDebug(ShaderProgram &shader, const glm::vec3& bodyPositi
     setupBuffers();
 
     glm::mat4 model = glm::translate(glm::mat4(1.0f), bodyPosition);
-    shader.setUniformMat4("model", model);
+    shader.setMat4("model", model);
 
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Switch to wireframe mode
 
-    //glm::vec3 color(0.0f, 1.0f, 1.0f);  // Set uniform for object color to white.
-    //shader.setObjectColor(&color);
-
-    // TODO: How about quads instead of triangles?
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, nullptr); // 36 is the number of indices for 12 triangles
     glBindVertexArray(0);
 
     //glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // Switch to shaded mode
-
-    //shader.setObjectColor(nullptr);  // Now disable this feature
 
     GLenum err;
     while ((err = glGetError()) != GL_NO_ERROR) {
