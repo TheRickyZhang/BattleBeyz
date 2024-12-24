@@ -1,12 +1,13 @@
 #include "Profile.h"
 #include <memory>
+#include "MessageLog.h"
 
 using namespace std;
 using namespace nlohmann;
 
 // SERVER: (need globally unique beybladeIds across multiple different profiles)
 bool Profile::createBeyblade(const string& name, bool isTemplate) {
-    cout << "Attempting to create Beyblade: " << name << endl;
+    MessageLog::getInstance().addMessage("Attempting to create Beyblade: "+name, MessageType::NORMAL);
     lock_guard<mutex> lock(mtx);
     if (beybladesOwned.size() >= MAX_BEYBLADES_PER_PROFILE) {
         cerr << "Error: Cannot add Beyblade. Maximum number of beyblades (" << MAX_BEYBLADES_PER_PROFILE << ") reached." << endl;
@@ -31,7 +32,7 @@ bool Profile::createBeyblade(const string& name, bool isTemplate) {
     if (!activeBeybladeId.has_value()) {
         activeBeybladeId = beyblade->getId();
     }
-    cout << "Beyblade created successfully with ID: " << beyblade->getId() << endl;
+    MessageLog::getInstance().addMessage("Beyblade created successfully with ID: " + beyblade->getId(), MessageType::NORMAL);
     return true;
 }
 
@@ -78,10 +79,6 @@ bool Profile::deleteBeyblade(int beybladeId) {
 shared_ptr<Beyblade> Profile::getBeyblade(int beybladeId) const {
     lock_guard<mutex> lock(mtx);
     auto it = getBeybladeIterator(beybladeId);
-    for (shared_ptr<Beyblade> bey : beybladesOwned) {
-        cout << bey->getName() << "," << bey->getId() << " ";
-    }
-    cout << "|" << beybladeId << endl;
     if (it == beybladesOwned.end()) return nullptr;
     return *it;
 }

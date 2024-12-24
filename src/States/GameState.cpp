@@ -13,11 +13,10 @@ void GameState::renderBackground(GameEngine* game, const std::string& textureNam
 
         backgroundShader->use();
         backgroundShader->setFloat("time", (float)glfwGetTime());
-        backgroundShader->setMat4("projection", ortho);
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, backgroundTexture->ID);
-        backgroundShader->setInt("background", 0);
+        //backgroundShader->setInt("background", 0);
 
         quadRenderer->render(*backgroundShader); // Pass the shader to render
     }

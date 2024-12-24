@@ -39,19 +39,8 @@ ShaderProgram::ShaderProgram(const char* vertexPath, const char* fragmentPath) {
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
 
-    // Debug active attributes
-    debugActiveAttributes(ID);
-
-    //validateUniforms({ "model", "view", "projection", "viewPos", "lightColor", "lightPos", "tint" });
-    //use();
-    //setMat4("model", glm::mat4(1.0f));
-    //setMat4("view", glm::mat4(1.0f));
-    //setMat4("projection", glm::mat4(1.0f));
-    //setVec3("viewPos", glm::vec3(0.0f));
-    //setVec3("lightColor", glm::vec3(1.0f));
-    //setVec3("lightPos", glm::vec3(0.0f));
-    //setVec3("tint", glm::vec3(1.0f));
-    //setMat4("backgroundTexture", glm::mat4(1.0f));
+    use();
+    //debugActiveAttributes(ID);
 }
 
 // Destructor
@@ -205,7 +194,7 @@ void ShaderProgram::setMat4(const std::string& name, const glm::mat4& mat) const
     }
     else {
         std::cerr << "Mat4 " << name << std::endl;
-        debugActiveAttributes(ID);
+        //debugActiveAttributes(ID);
     }
 }
 
@@ -216,7 +205,7 @@ void ShaderProgram::setVec3(const std::string& name, const glm::vec3& vec) const
     }
     else {
         std::cerr << "Vec3 " << name << std::endl;
-        debugActiveAttributes(ID);
+        //debugActiveAttributes(ID);
     }
 }
 
@@ -227,7 +216,7 @@ void ShaderProgram::setFloat(const std::string& name, float value) const {
     }
     else {
         std::cerr << "Float " << name << std::endl;
-        debugActiveAttributes(ID);
+        //debugActiveAttributes(ID);
     }
 }
 
@@ -238,7 +227,7 @@ void ShaderProgram::setInt(const std::string& name, int value) const {
     }
     else {
         std::cerr << "Int " << name << std::endl;
-        debugActiveAttributes(ID);
+        //debugActiveAttributes(ID);
     }
 }
 //void ShaderProgram::setMat4(const std::string& name, const glm::mat4& mat) const {

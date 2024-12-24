@@ -213,12 +213,14 @@ void BoundingBox::setupBoundingBoxBuffers() {
     // Debugging active attributes
     GLint currentProgram;
     glGetIntegerv(GL_CURRENT_PROGRAM, &currentProgram);
-    std::cout << "Active Shader Program ID in BOundingBox: " << currentProgram << std::endl;
+    std::cout << "Active Shader Program ID in BoundingBox: " << currentProgram << std::endl;
 
     debugActiveAttributes(currentProgram);
     if (!glfwGetCurrentContext()) {
         std::cerr << "No current OpenGL context!" << std::endl;
     }
+
+    // TOLOOK: Commenting out this code (224-227) causes a crash.
     GLenum err;
     while ((err = glGetError()) != GL_NO_ERROR) {
         std::cerr << "OpenGL error before setupBuffers: " << err << std::endl;

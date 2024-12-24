@@ -3,6 +3,7 @@
 // Might need to only define in cpp file?
 #define TINYOBJLOADER_IMPLEMENTATION
 #include "tiny_obj_loader.h"
+#include "MessageLog.h"
 
 using namespace std;
 /**
@@ -101,8 +102,8 @@ bool BeybladeMesh::loadModel(const string& path) {
         materialColors[material.name] = diffuseColor;
         materialIndexToDiffuseColor[i] = diffuseColor;
 
-        cout << "Material name: " << material.name << endl;
-        cout << "Diffuse: " << diffuseColor.x << ", " << diffuseColor.y << ", " << diffuseColor.z << endl;
+        //cout << "Material name: " << material.name << endl;
+        //cout << "Diffuse: " << diffuseColor.x << ", " << diffuseColor.y << ", " << diffuseColor.z << endl;
     }
 
     // Extract indices and assemble vertex data
@@ -166,8 +167,6 @@ bool BeybladeMesh::loadModel(const string& path) {
     boundingBox.max.y -= boundingBox.min.y;
     boundingBox.min.y = 0.0f;
 
-    cout << "Model bounds (" << boundingBox.min.x << ", " << boundingBox.min.y << ", " << boundingBox.min.z << ") to (" << boundingBox.max.x << ", " << boundingBox.max.y << ", " << boundingBox.max.z << ")." << endl;
-
     // If we have three parts, we want to know the radii for the disc, layer, and driver components.
     // These different radii are used for the various physics calculations such as air resistance, etc.
     //
@@ -186,9 +185,17 @@ bool BeybladeMesh::loadModel(const string& path) {
         radiusDriver = (shapeBounds[2].max.x - shapeBounds[2].min.x) * 0.5f;
         heightDriver = shapeBounds[2].max.y - shapeBounds[2].min.y;
     }
-
     modelPath = path;
-    cout << "Model loaded successfully with " << vertices.size() << " vertices and " << indices.size() << " indices." << endl;
+
+    std::ostringstream oss;
+    oss << "Model bounds ("
+        << boundingBox.min.x << ", " << boundingBox.min.y << ", " << boundingBox.min.z
+        << ") to ("
+        << boundingBox.max.x << ", " << boundingBox.max.y << ", " << boundingBox.max.z
+        << ").\n";
+    oss << "Model loaded successfully with " << vertices.size() << " vertices and " << indices.size() << " indices." << endl;
+    std::string meshInitString = oss.str();
+    MessageLog::getInstance().addMessage(meshInitString, MessageType::NORMAL);
 
     modelLoaded = true;
     return true;
@@ -277,9 +284,11 @@ void BeybladeMesh::printDebugInfo() {
 
 
 void BeybladeMesh::render(ShaderProgram& shader) {
-    for (const auto& material : materialColors) {  // TODO: This needs to be fixed, currently not applying materials correctly
-        shader.setVec3("VertexColor", material.second);
-    }
+    // TODO: First of all, not correct logic, should be done per vertex, not per the entire mesh
+    // Secondly, cannot set vertexColor? I am still a bit shaky on what exactly everything represents in the vertex and fragment shaders.
+    //for (const auto& material : materialColors) {
+    //    shader.setVec3("color", material.second);
+    //}
     shader.setTint(tint);
 
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Switch to wireframe mode

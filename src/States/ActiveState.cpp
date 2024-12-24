@@ -8,12 +8,11 @@ void ActiveState::init()
 {
     // Set up keyboard and mouse callbacks.
     GLFWwindow* window = game->getWindow();
-
     PhysicsWorld* physicsWorld = game->physicsWorld;
 
     // TODO: Use quadrender instead
-    floor = new QuadRenderer(100.0f);
-    //GLuint floorVAO, floorVBO, floorEBO; // TOLOOK: Make infinite? Like pass in world position and calculate positioning dynamically in the shader
+    //floor = new QuadRenderer(100.0f);
+    GLuint floorVAO, floorVBO, floorEBO; // TOLOOK: Make infinite? Like pass in world position and calculate positioning dynamically in the shader
     float floorVertices[] = {
         // Positions        // Normals       // TexCoords // Colors
         -30.0f, 0.0f, -30.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.5f, 0.5f, 0.5f,
@@ -26,6 +25,7 @@ void ActiveState::init()
             2, 3, 0
     };
     setupBuffers(floorVAO, floorVBO, floorEBO, floorVertices, sizeof(floorVertices), floorIndices, sizeof(floorIndices), { 3, 3, 2, 3 });
+
 
     // TODO: this should add stadiums dynamically in future, but use default single one for now
     StadiumBody* rigidBody = new StadiumBody();
@@ -164,7 +164,7 @@ void ActiveState::draw() {
     tm.getTexture("floor")->use(); // SHould use texture, used to be small hexagon pattern
     glBindVertexArray(floorVAO);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
-    //floor->render();
+    //floor->render(*game->objectShader);
 
     // update and render the stadium (uses this texture)
     for(auto stadium : stadiums) stadium->render(*objectShader);

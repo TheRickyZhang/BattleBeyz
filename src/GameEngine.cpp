@@ -125,17 +125,14 @@ bool GameEngine::init(const char* title, int width, int height) {
     orthoProjection = glm::ortho(0.0f, float(windowWidth), 0.0f, float(windowHeight), 0.0f, 1.0f);
 
     backgroundShader = new ShaderProgram(BACKGROUND_VERTEX_SHADER_PATH, BACKGROUND_FRAGMENT_SHADER_PATH);
-    backgroundShader->use();
-    backgroundShader->setFloat("wrapFactor", 4.0f);        // Number of repetitions
-    backgroundShader->setFloat("time", float(glfwGetTime()));     // Animated offset
-    backgroundShader->setInt("backgroundTexture", 0);      // Texture unit 0
+    backgroundShader->setFloat("wrapFactor", 4.0f);
+    backgroundShader->setFloat("time", float(glfwGetTime()));
+    backgroundShader->setInt("backgroundTexture", 0);
 
     objectShader = new ShaderProgram(OBJECT_VERTEX_SHADER_PATH, OBJECT_FRAGMENT_SHADER_PATH);
-    objectShader->use();
     objectShader->setRenderMatrices(model, view, projection, initialCameraPos);
     objectShader->setLight(LightType::Directional, glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(0.0f, -1.0f, 0.0f));
 
-    // NOTE: Object shader is first used in the camera instantiation so object MUST be the active one. Since background is secondary it can be on/off in short period
     camera = new Camera(initialCameraPos, lookAtPoint, physicsWorld, windowWidth / 2.0f, windowHeight / 2.0f);
 
     //    auto panoramaShader = new ShaderProgram(PANORAMA_VERTEX_SHADER_PATH, PANORAMA_FRAGMENT_SHADER_PATH);

@@ -1,5 +1,4 @@
 #version 330 core
-#pragma optimize(off)
 
 out vec4 FragColor;
 
