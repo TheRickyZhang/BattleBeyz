@@ -62,9 +62,6 @@ int main() {
     
     /* ----------------------OBJECT SETUP-------------------------- */
 
-    //setupBuffers(tetrahedronVAO, tetrahedronVBO, tetrahedronEBO, tetrahedronVertices,
-    //    sizeof(tetrahedronVertices), tetrahedronIndices, sizeof(tetrahedronIndices));
-
     // NEWMESH: Load meshes before bodies so we can get the actual object sizes. Then pass the
     // mesh to the BeybladdeBody constructor.
     // Also call mesh->initializeMesh() here.

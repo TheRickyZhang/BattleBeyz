@@ -22,7 +22,7 @@ RigidBody::RigidBody(const  std::string& _name, const glm::vec3& pos, const glm:
     inverseInertiaTensor = glm::inverse(inertiaTensor);
     aggregateBoundingBox = BoundingBox(glm::vec3(-0.1f), glm::vec3(0.1f));
 
-    setupBuffers();
+    setupRigidBodyBuffers();
 
     updateBoundingBoxes(); // Initial update of bounding boxes
 }
@@ -59,7 +59,7 @@ void RigidBody::update(float deltaTime) {
 }
 
 
-void RigidBody::setupBuffers() {
+void RigidBody::setupRigidBodyBuffers() {
     // Vertex coordinates for the bounding box based on min and max points
     glm::vec3 &min = aggregateBoundingBox.min;
     glm::vec3 &max = aggregateBoundingBox.max;
@@ -81,9 +81,7 @@ void RigidBody::setupBuffers() {
             0, 4, 1, 5, 2, 6, 3, 7   // Connecting edges
     };
 
-    std::cout << "Generated VAO: " << VAO << std::endl;
-    ::setupBuffers(VAO, VBO, EBO, vertices, sizeof(vertices), indices, sizeof(indices));
-    std::cout << "Generated VAO: " << VAO << std::endl;
+    setupBuffers(VAO, VBO, EBO, vertices, sizeof(vertices), indices, sizeof(indices), {3, 3, 2, 3});
 }
 
 

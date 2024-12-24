@@ -25,7 +25,7 @@ void ActiveState::init()
             0, 1, 2,
             2, 3, 0
     };
-    setupBuffers(floorVAO, floorVBO, floorEBO, floorVertices, sizeof(floorVertices), floorIndices, sizeof(floorIndices));
+    setupBuffers(floorVAO, floorVBO, floorEBO, floorVertices, sizeof(floorVertices), floorIndices, sizeof(floorIndices), { 3, 3, 2, 3 });
 
     // TODO: this should add stadiums dynamically in future, but use default single one for now
     StadiumBody* rigidBody = new StadiumBody();

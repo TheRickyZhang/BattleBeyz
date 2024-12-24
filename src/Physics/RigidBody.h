@@ -21,7 +21,7 @@ public:
 
     virtual void update(float deltaTime);
 
-    void setupBuffers();
+    void setupRigidBodyBuffers();
     void renderDebug(ShaderProgram& shader, const glm::vec3& viewPos);
 
     void updateBoundingBoxes();

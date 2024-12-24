@@ -4,6 +4,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "ShaderProgram.h"
+#include "Utils.h"
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -37,6 +38,20 @@ ShaderProgram::ShaderProgram(const char* vertexPath, const char* fragmentPath) {
     }
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
+
+    // Debug active attributes
+    debugActiveAttributes(ID);
+
+    //validateUniforms({ "model", "view", "projection", "viewPos", "lightColor", "lightPos", "tint" });
+    //use();
+    //setMat4("model", glm::mat4(1.0f));
+    //setMat4("view", glm::mat4(1.0f));
+    //setMat4("projection", glm::mat4(1.0f));
+    //setVec3("viewPos", glm::vec3(0.0f));
+    //setVec3("lightColor", glm::vec3(1.0f));
+    //setVec3("lightPos", glm::vec3(0.0f));
+    //setVec3("tint", glm::vec3(1.0f));
+    //setMat4("backgroundTexture", glm::mat4(1.0f));
 }
 
 // Destructor
@@ -183,31 +198,105 @@ GLint ShaderProgram::getCachedUniformLocation(const std::string& name) const {
     return location;
 }
 
-
 void ShaderProgram::setMat4(const std::string& name, const glm::mat4& mat) const {
-    GLint location = getCachedUniformLocation(name);
+    GLint location = glGetUniformLocation(ID, name.c_str());
     if (location != -1) {
         glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(mat));
+    }
+    else {
+        std::cerr << "Mat4 " << name << std::endl;
+        debugActiveAttributes(ID);
     }
 }
 
 void ShaderProgram::setVec3(const std::string& name, const glm::vec3& vec) const {
-    GLint location = getCachedUniformLocation(name);
+    GLint location = glGetUniformLocation(ID, name.c_str());
     if (location != -1) {
         glUniform3fv(location, 1, glm::value_ptr(vec));
+    }
+    else {
+        std::cerr << "Vec3 " << name << std::endl;
+        debugActiveAttributes(ID);
     }
 }
 
 void ShaderProgram::setFloat(const std::string& name, float value) const {
-    GLint location = getCachedUniformLocation(name);
+    GLint location = glGetUniformLocation(ID, name.c_str());
     if (location != -1) {
         glUniform1f(location, value);
+    }
+    else {
+        std::cerr << "Float " << name << std::endl;
+        debugActiveAttributes(ID);
     }
 }
 
 void ShaderProgram::setInt(const std::string& name, int value) const {
-    GLint location = getCachedUniformLocation(name);
+    GLint location = glGetUniformLocation(ID, name.c_str());
     if (location != -1) {
         glUniform1i(location, value);
+    }
+    else {
+        std::cerr << "Int " << name << std::endl;
+        debugActiveAttributes(ID);
+    }
+}
+//void ShaderProgram::setMat4(const std::string& name, const glm::mat4& mat) const {
+//    GLint location = getCachedUniformLocation(name);
+//    if (location != -1) {
+//        glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(mat));
+//    }
+//}
+//
+//void ShaderProgram::setVec3(const std::string& name, const glm::vec3& vec) const {
+//    GLint location = getCachedUniformLocation(name);
+//    if (location != -1) {
+//        glUniform3fv(location, 1, glm::value_ptr(vec));
+//    }
+//}
+//
+//void ShaderProgram::setFloat(const std::string& name, float value) const {
+//    GLint location = getCachedUniformLocation(name);
+//    if (location != -1) {
+//        glUniform1f(location, value);
+//    }
+//}
+//
+//void ShaderProgram::setInt(const std::string& name, int value) const {
+//    GLint location = getCachedUniformLocation(name);
+//    if (location != -1) {
+//        glUniform1i(location, value);
+//    }
+//}
+
+
+
+
+void ShaderProgram::debugUniforms(const std::vector<std::string>& uniformNames) const {
+    std::cout << "Debugging Uniform Locations for Shader Program (ID: " << static_cast<int>(ID) << "):" << std::endl;
+
+    for (const auto& name : uniformNames) {
+        GLint location = glGetUniformLocation(ID, name.c_str());
+        if (location == -1) {
+            std::cerr << "WARNING::UNIFORM::NOT_FOUND::" << name << std::endl;
+        }
+        else {
+            std::cout << name << ": " << location << std::endl;
+        }
+    }
+}
+
+
+void ShaderProgram::validateUniforms(const std::vector<std::string>& uniformNames) const {
+    std::cout << "Validating Uniforms for Shader Program (ID: " << static_cast<int>(ID) << "):" << std::endl;
+
+    for (const auto& name : uniformNames) {
+        GLint location = glGetUniformLocation(ID, name.c_str());
+        if (location == -1) {
+            std::cerr << "WARNING::UNIFORM::NOT_FOUND::" << name << std::endl;
+        }
+        else {
+            std::cout << "Uniform '" << name << "' found at location: " << location << std::endl;
+        }
     }
 }

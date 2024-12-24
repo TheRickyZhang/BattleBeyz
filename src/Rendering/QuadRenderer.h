@@ -3,16 +3,18 @@
 // Copyright (c) 2024, Ricky Zhang.
 ////////////////////////////////////////////////////////////////////////////////
 
-# pragma once
-
+#pragma once
 #include <GL/glew.h>
+#include "ShaderProgram.h"
+
+// ONLY use for drawing screens with backgroundShader
 
 class QuadRenderer {
 public:
-    QuadRenderer(float vecScale = 1.0f);
+    explicit QuadRenderer(float vecScale = 1.0f);
     ~QuadRenderer();
-    void render() const;
+    void render(ShaderProgram& shader) const;
 
 private:
-    unsigned int quadVAO, quadVBO;
+    unsigned int quadVAO, quadVBO, quadEBO;
 };

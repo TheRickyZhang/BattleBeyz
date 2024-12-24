@@ -74,6 +74,11 @@ bool GameEngine::init(const char* title, int width, int height) {
 
 
     glfwMakeContextCurrent(window);
+    glfwSetWindowUserPointer(window, this); // Set window user pointer to GameEngine
+    glfwSetWindowSizeLimits(window, static_cast<int>(minWidth), static_cast<int>(minHeight), GLFW_DONT_CARE, GLFW_DONT_CARE);
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+
+    glfwSetFramebufferSizeCallback(window, GameEngine::framebufferSizeCallback);  // This handles window resizing
 
     // Initialize GLEW
     glewExperimental = GL_TRUE;
@@ -119,14 +124,18 @@ bool GameEngine::init(const char* title, int width, int height) {
     backgroundView = glm::mat4(1.0f);
     orthoProjection = glm::ortho(0.0f, float(windowWidth), 0.0f, float(windowHeight), 0.0f, 1.0f);
 
+    backgroundShader = new ShaderProgram(BACKGROUND_VERTEX_SHADER_PATH, BACKGROUND_FRAGMENT_SHADER_PATH);
+    backgroundShader->use();
+    backgroundShader->setFloat("wrapFactor", 4.0f);        // Number of repetitions
+    backgroundShader->setFloat("time", float(glfwGetTime()));     // Animated offset
+    backgroundShader->setInt("backgroundTexture", 0);      // Texture unit 0
+
     objectShader = new ShaderProgram(OBJECT_VERTEX_SHADER_PATH, OBJECT_FRAGMENT_SHADER_PATH);
+    objectShader->use();
     objectShader->setRenderMatrices(model, view, projection, initialCameraPos);
     objectShader->setLight(LightType::Directional, glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(0.0f, -1.0f, 0.0f));
 
-    backgroundShader = new ShaderProgram(BACKGROUND_VERTEX_SHADER_PATH, BACKGROUND_FRAGMENT_SHADER_PATH);
-    backgroundShader->setRenderMatrices(backgroundModel, backgroundView, orthoProjection, glm::vec3(0.0f)); // No cameraPosition needed
-    backgroundShader->setFloat("wrapFactor", 4.0f);
-
+    // NOTE: Object shader is first used in the camera instantiation so object MUST be the active one. Since background is secondary it can be on/off in short period
     camera = new Camera(initialCameraPos, lookAtPoint, physicsWorld, windowWidth / 2.0f, windowHeight / 2.0f);
 
     //    auto panoramaShader = new ShaderProgram(PANORAMA_VERTEX_SHADER_PATH, PANORAMA_FRAGMENT_SHADER_PATH);
@@ -140,13 +149,6 @@ bool GameEngine::init(const char* title, int width, int height) {
 
     // Set default profile at first (Needed in order to not crash)
     pm.addDefaultProfiles();
-
-    // Set window user pointer to GameEngine
-    glfwSetWindowUserPointer(window, this);
-    glfwSetWindowSizeLimits(window, static_cast<int>(minWidth), static_cast<int>(minHeight), GLFW_DONT_CARE, GLFW_DONT_CARE);
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-
-    glfwSetFramebufferSizeCallback(window, GameEngine::framebufferSizeCallback);  // This handles window resizing
 
     /**
     * Various callbacks for inputManager

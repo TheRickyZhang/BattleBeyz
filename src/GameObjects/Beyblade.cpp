@@ -37,6 +37,8 @@ Beyblade::Beyblade(int id, const string& name, bool isTemplate) :
 void Beyblade::render(ShaderProgram& shader)
 {
     shader.use();
+    //shader.debugUniforms({ "model", "view", "projection", "viewPos", "lightColor", "lightPos", "tint" });
+
 
     glm::mat4 model = glm::translate(glm::mat4(1.0f), rigidBody->getCenter().value());
 

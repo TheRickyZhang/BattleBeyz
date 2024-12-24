@@ -19,6 +19,7 @@ enum LightType {
 
 class ShaderProgram {
 public:
+    GLuint ID;
 
     ShaderProgram(const char* vertexPath, const char* fragmentPath);
     ~ShaderProgram();
@@ -37,9 +38,11 @@ public:
     void setFloat(const std::string& name, float value) const;
     void setInt(const std::string& name, int value) const;
 
+    void debugUniforms(const std::vector<std::string>& uniformNames) const;
+    void validateUniforms(const std::vector<std::string>& uniformNames) const;
+
     //void setUniforms(glm::mat4 model, glm::mat4 view, glm::mat4 projection) const;
 private:
-    GLuint ID;
     mutable std::unordered_map<std::string, GLint> uniformCache;
 
     GLint getCachedUniformLocation(const std::string& name) const;

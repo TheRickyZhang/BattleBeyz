@@ -246,9 +246,8 @@ void BeybladeMesh::initializeMesh() {
         vertexData.push_back(colors[i].y);
         vertexData.push_back(colors[i].z);
     }
-
     setupBuffers(VAO, VBO, EBO, vertexData.data(), vertexData.size() * sizeof(float), indices.data(),
-        indices.size() * sizeof(uint32_t));
+        indices.size() * sizeof(uint32_t), { 3, 3, 2, 3 });
 }
 
 void BeybladeMesh::printDebugInfo() {

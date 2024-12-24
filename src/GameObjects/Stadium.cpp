@@ -276,5 +276,5 @@ void Stadium::initializeMesh() {
         vertexData.push_back(colors[i].z);
     }
     setupBuffers(m->VAO, m->VBO, m->EBO, vertexData.data(), vertexData.size() * sizeof(float), indices.data(),
-        indices.size() * sizeof(unsigned int));
+        indices.size() * sizeof(unsigned int), { 3, 3, 2, 3 });
 }

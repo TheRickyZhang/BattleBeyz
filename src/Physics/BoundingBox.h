@@ -36,5 +36,5 @@ public:
     void expandToInclude(const BoundingBox& other);
     void expandToInclude(const glm::vec3& point);
 private:
-    void setupBuffers();
+    void setupBoundingBoxBuffers();
 };

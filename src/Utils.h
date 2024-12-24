@@ -55,3 +55,27 @@ struct CollisionAccelerations {
         linearAcceleration += increment.second;
     }
 };
+
+// TEMP
+
+inline void debugActiveAttributes(GLuint shaderProgramID) {
+    GLint numAttribs = 0;
+    glGetProgramiv(shaderProgramID, GL_ACTIVE_ATTRIBUTES, &numAttribs);
+
+    std::cout << "Active Attributes in Shader Program #" << shaderProgramID << ": " << numAttribs << std::endl;
+
+    for (int i = 0; i < numAttribs; i++) {
+        char name[256];
+        GLsizei length;
+        GLint size;
+        GLenum type;
+
+        glGetActiveAttrib(shaderProgramID, i, sizeof(name), &length, &size, &type, name);
+
+        GLint location = glGetAttribLocation(shaderProgramID, name);
+        std::cout << "Attrib " << i << ": " << name
+            << ", location=" << location
+            << ", size=" << size
+            << ", type=" << type << std::endl;
+    }
+}
