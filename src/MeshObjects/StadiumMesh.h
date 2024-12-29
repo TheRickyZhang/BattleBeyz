@@ -6,21 +6,12 @@
 #pragma once
 
 #include <vector>
-#include <GL/glew.h>
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include <iostream>
-#include <unordered_map>
-#include <iomanip>
-#include <glm/gtx/quaternion.hpp>
 
-#include "Beyblade.h"
-#include "ShaderProgram.h"
-#include "Buffers.h"
+#include <glm/glm.hpp>
+
 #include "Texture.h"
-#include "RigidBodies/StadiumBody.h"
-#include "ShaderPath.h"
+
+class Beyblade;
 
 // Note - radius is not stored anywhere here. I think the mesh data already indicates its size?
 class StadiumMesh {
@@ -33,7 +24,7 @@ public:
 
     Texture* getTexture() { return texture; }
 
-    void printDebugInfo();
+    //void printDebugInfo();
 protected:
     Texture* texture{};
 

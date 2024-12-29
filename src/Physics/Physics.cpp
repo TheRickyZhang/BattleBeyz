@@ -5,6 +5,9 @@
 
 #include "Physics.h"
 
+#include "BeybladeBody.h"
+#include "StadiumBody.h"
+
 using namespace std;
 /**
 * Calculate air resistance proportional to C * v^2 for both angular and linear components.

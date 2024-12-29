@@ -4,8 +4,12 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include <iostream>
+
+#include <glm/gtc/matrix_transform.hpp>
+
 #include "BoundingBox.h"
-#include "Utils.h"
+#include "ShaderProgram.h"
+#include "Buffers.h"
 
 using namespace std;
 /**

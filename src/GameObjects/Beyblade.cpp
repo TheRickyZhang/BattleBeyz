@@ -3,8 +3,19 @@
 // Copyright (c) 2024, Ricky Zhang.
 ////////////////////////////////////////////////////////////////////////////////
 
+#include <glm/gtc/matrix_transform.hpp>
+
 #include "Beyblade.h"
 #include "BeybladeParts.h"
+#include "Buffers.h"
+#include "GameObject.h"
+#include "MeshObjects/BeybladeMesh.h"
+#include "RigidBody.h"
+#include "RigidBodies/BeybladeBody.h"
+#include "ShaderProgram.h"
+#include "Texture.h"
+#include "Utils.h"
+
 using namespace std;
 using nlohmann::json;
 
@@ -33,6 +44,26 @@ Beyblade::Beyblade(int id, const string& name, bool isTemplate) :
         mesh = make_unique<BeybladeMesh>();
     }
 }
+
+int Beyblade::getId() const {
+    return id;
+}
+string Beyblade::getName() const {
+    return name;
+}
+BeybladeBody* Beyblade::getRigidBody() {
+    return rigidBody.get();
+}
+BeybladeMesh* Beyblade::getMesh() {
+    return mesh.get();
+}
+void Beyblade::setMesh(std::unique_ptr<BeybladeMesh> &newMesh) {
+    mesh = std::move(newMesh);
+}
+void Beyblade::setName(const std::string& newName) { 
+    name = newName;
+}
+
 
 void Beyblade::render(ShaderProgram& shader)
 {

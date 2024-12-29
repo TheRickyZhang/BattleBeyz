@@ -3,8 +3,14 @@
 // Copyright (c) 2024, Ricky Zhang.
 ////////////////////////////////////////////////////////////////////////////////
 
-#include <iostream>
 #include "RigidBody.h"
+
+#include <iostream>
+
+#include "Buffers.h"
+#include "ShaderProgram.h"
+#include "Utils.h"
+
 
 RigidBody::RigidBody(const  std::string& _name, const glm::vec3& pos, const glm::vec3& sz, float mass, std::vector<BoundingBox*> bboxes)
         : name(_name), position(pos), mass(mass), velocity(0.0f), acceleration(0.0f),

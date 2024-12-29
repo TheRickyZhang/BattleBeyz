@@ -32,6 +32,7 @@ INSTALL*
 *.swo
 
 # Exclude output binaries and debug directories
+docs/
 out/
 Debug/
 x64/

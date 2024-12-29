@@ -5,15 +5,11 @@
 
 #pragma once
 
-#include <GL/glew.h>
-#include <GLFW/glfw3.h>
-#include <GL/glu.h>
-#include "Utils.h"
-#include "RigidBodies/BeybladeBody.h"
-#include "RigidBodies/StadiumBody.h"
-
 #include "Units.h"
 using namespace Units;
+
+class BeybladeBody;
+class StadiumBody;
 
 namespace Physics {
     constexpr M_S2 GRAVITY = 9.81_m_s2;

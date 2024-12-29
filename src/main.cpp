@@ -57,10 +57,6 @@ int main() {
 
     /* ----------------------OBJECT SETUP-------------------------- */
 
-    // NEWMESH: Load meshes before bodies so we can get the actual object sizes. Then pass the
-    // mesh to the BeybladdeBody constructor.
-    // Also call mesh->initializeMesh() here.
-
     // These might be null for now, quell errors
 
     Beyblade* beyblade1 = engine.pm.getActiveProfile()->getBeyblade(1).get();

@@ -3,10 +3,11 @@
 // Copyright (c) 2024, Ricky Zhang.
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "QuadRenderer.h"
-#include "Utils.h"
 #include <vector>
+
+#include "QuadRenderer.h"
 #include "Buffers.h"
+#include "ShaderProgram.h"
 
 /**
  * Constructor.

@@ -3,15 +3,9 @@
 // Copyright (c) 2024, Ricky Zhang.
 ////////////////////////////////////////////////////////////////////////////////
 
+#include "Buffers.h"
 #include "Stadium.h"
-
-/**
-* Internal routine to create mesh.
-*/
-
-/**
-* Intrenal routine to initialize mesh.
-*/
+#include "ShaderProgram.h"
 
 /**
 * Stadium renderer
@@ -21,10 +15,6 @@
 
 void Stadium::render(ShaderProgram& shader) {
     shader.use();
-
-    // Activate texture unit and bind texture
-
-
 #if 0
     // TODO:  2024-11-03: Note that texture does not work here -- the colors defined in the stadium
     // definition are used.

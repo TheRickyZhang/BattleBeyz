@@ -5,7 +5,7 @@
 using namespace ImGui;
 
 void LoadingState::init() {
-    loadingMessage = tips[rand() % tips.size()];
+    loadingMessage = tips[(rand() * tips.size()) % tips.size()];
 }
 
 void LoadingState::cleanup() {

@@ -4,6 +4,10 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "Camera.h"
+
+#include "InputUtils.h"
+#include "PhysicsWorld.h"
+
 using namespace glm;
 
 const vec3 Camera::worldUp = vec3(0.0f, 1.0f, 0.0f);

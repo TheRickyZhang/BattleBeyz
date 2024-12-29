@@ -5,6 +5,7 @@
 #include "GameEngine.h"
 #include "BeybladeConstants.h"
 
+#include "ShaderProgram.h"
 #include "States/StateFactory.h"
 
 // Constructor with default values

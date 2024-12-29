@@ -1,7 +1,10 @@
-#include "GameState.h"
-#include "GameEngine.h"
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+
+#include "GameState.h"
+#include "GameEngine.h"
+
+#include "ShaderProgram.h"
 
 void GameState::renderBackground(GameEngine* game, const std::string& textureName) {
     auto backgroundShader = game->backgroundShader;

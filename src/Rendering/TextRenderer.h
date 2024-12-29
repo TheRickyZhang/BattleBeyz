@@ -7,12 +7,10 @@
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
-#include <map>
 #include <glm/glm.hpp>
 #include <GL/glew.h>
-#include "ShaderProgram.h"
-#include "Utils.h"
-#include "ShaderPath.h"
+
+class ShaderProgram;
 
 class TextRenderer {
 public:

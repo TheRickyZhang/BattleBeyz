@@ -2,6 +2,9 @@
 #include "GameEngine.h"
 #include "ActiveState.h"
 #include "StateIdentifiers.h"
+#include "Buffers.h"
+#include "ShaderProgram.h"
+
 using namespace glm;
 
 void ActiveState::init()

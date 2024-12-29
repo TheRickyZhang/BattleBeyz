@@ -3,12 +3,16 @@
 // Copyright (c) 2024, Ricky Zhang.
 ////////////////////////////////////////////////////////////////////////////////
 
+#include <iostream>
+
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 #include "TextRenderer.h"
 #include "ShaderProgram.h"
 
-#include <iostream>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
+//#include "Utils.h"
+#include "ShaderPath.h"
 
 /**
 * Constructor.

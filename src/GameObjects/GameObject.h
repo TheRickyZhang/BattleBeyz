@@ -6,14 +6,8 @@
 #pragma once
 
 #include <vector>
-#include <GL/glew.h>
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include <iostream>
 
-#include "ShaderProgram.h"
-#include "Buffers.h"
+class ShaderProgram;
 
 class GameObject {
 public:

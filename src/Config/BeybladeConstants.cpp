@@ -1,11 +1,11 @@
-#include "BeybladeConstants.h"
-#include "BeybladeBody.h"
-#include "imgui.h"
 #include <cmath>
+#include <imgui.h>
 
+#include "BeybladeBody.h"
+#include "BeybladeConstants.h"
 #include "Units.h"
-using namespace Units;
 
+using namespace Units;
 using namespace std;
 
 string BeybladeParameter::nameWithUnits() const {

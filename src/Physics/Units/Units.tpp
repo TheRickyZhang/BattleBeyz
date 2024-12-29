@@ -1,3 +1,5 @@
+#include <iomanip>
+
 namespace Units {
     // Quantity Member Function Definitions
     template<typename D, typename T>
@@ -109,7 +111,7 @@ namespace Units {
     }
     template<typename D, typename T>
     std::ostream& operator<<(std::ostream& os, const Quantity<D, T>& unit) {
-        os << fixed << setprecision(6) << unit.value();
+        os << std::fixed << std::setprecision(6) << unit.value();
         return os;
     }
 

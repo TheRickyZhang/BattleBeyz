@@ -5,9 +5,10 @@
 
 #pragma once
 
-#include <glm/gtx/quaternion.hpp>
-#include "ShaderProgram.h"
-#include "Buffers.h"
+#include <GL/glew.h>
+#include <glm/glm.hpp>
+
+class ShaderProgram;
 
 // Currently unused.
 class BoundingBox {

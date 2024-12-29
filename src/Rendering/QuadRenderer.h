@@ -5,10 +5,10 @@
 
 #pragma once
 #include <GL/glew.h>
-#include "ShaderProgram.h"
+
+class ShaderProgram;
 
 // ONLY use for drawing screens with backgroundShader
-
 class QuadRenderer {
 public:
     explicit QuadRenderer(float vecScale = 1.0f);
@@ -16,5 +16,5 @@ public:
     void render(ShaderProgram& shader) const;
 
 private:
-    unsigned int quadVAO, quadVBO, quadEBO;
+    GLuint quadVAO, quadVBO, quadEBO;
 };

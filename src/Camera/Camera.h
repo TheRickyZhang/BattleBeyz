@@ -6,14 +6,12 @@
 #pragma once
 
 #include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <GL/glew.h>
-#include <GLFW/glfw3.h>
-#include <map>
 #include "BoundingBox.h"
-#include "RigidBody.h"
-#include "PhysicsWorld.h"
-#include "InputManager.h"
+
+enum Action;
+class PhysicsWorld;
+class BeybladeBody;
+class StadiumBody;
 
 /*
 * Free: Unrestricted movement and view.
@@ -28,6 +26,7 @@ enum struct CameraMode {
 
 class Camera {
 public:
+    // TODO: Require boundingbox, move to .cpp
     Camera(const glm::vec3& position, const glm::vec3& viewPoint, PhysicsWorld* world, float x, float y, BoundingBox box = BoundingBox(glm::vec3(-1e6), glm::vec3(1e6)));
 
     // Must call these before changing the mode (initial only works in free UNTIL attached to beybalde/stadium)

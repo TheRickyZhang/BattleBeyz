@@ -4,7 +4,11 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include <iostream>
+
 #include "PhysicsWorld.h"
+
+#include "ShaderProgram.h"
+#include "MessageLog.h"
 
 /**
 * Add a beyblade body to the scene.

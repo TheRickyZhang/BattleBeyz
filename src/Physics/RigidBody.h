@@ -5,13 +5,15 @@
 
 #pragma once
 
+#include <vector>
+#include <memory>
+#include <string>
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/quaternion.hpp>
-#include <vector>
-#include <memory>
+
 #include "BoundingBox.h"
-#include "Utils.h"
 
 // Currently unused; likely outdated
 class RigidBody {

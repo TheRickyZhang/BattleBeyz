@@ -5,11 +5,11 @@
 
 #pragma once
 
-#include <GL/glew.h>
-#include <glm/glm.hpp>
-#include <glm/gtc/type_ptr.hpp>
 #include <string>
 #include <unordered_map>
+
+#include <GL/glew.h>
+#include <glm/glm.hpp>
 
 enum LightType {
     Directional = 0,

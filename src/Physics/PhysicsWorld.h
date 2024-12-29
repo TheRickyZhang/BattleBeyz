@@ -5,22 +5,20 @@
 
 #pragma once
 
+#include <vector>
+#include <unordered_map>
+
+#include <glm/glm.hpp>
+
 #include "Physics.h"
 #include "Beyblade.h"
 #include "Stadium.h"
-
-#include <vector>
-#include <glm/glm.hpp>
-#include <unordered_map>
-#include "Utils.h"
-#include "RigidBody.h"
-#include "ShaderProgram.h"
-#include "MessageLog.h"
 
 #include "Units.h"
 using namespace Units;
 
 class GameEngine;
+class ShaderProgram;
 
 class PhysicsWorld {
 public:

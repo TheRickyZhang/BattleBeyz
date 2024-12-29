@@ -1,6 +1,7 @@
-#include "Profile.h"
+#include <iostream>
 #include <memory>
 #include "MessageLog.h"
+#include "Profile.h"
 
 using namespace std;
 using namespace nlohmann;

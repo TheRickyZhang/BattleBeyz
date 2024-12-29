@@ -22,8 +22,6 @@
 
 void checkGLError(const char* stmt, const char* fname, int line);
 std::string checkIntersection(const glm::vec3 & ray_world);
-glm::vec3 dv3(float d);
-glm::vec3 getVecFromMagnitude(float magnitude, glm::vec3 vector3);
 void printVec3(const std::string& label, const glm::vec3& v);
 glm::vec3 screenToWorldCoordinates(GLFWwindow * window, float xpos, float ypos, const glm::mat4 & view, const glm::mat4 & projection);
 
