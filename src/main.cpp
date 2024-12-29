@@ -43,12 +43,7 @@
 #include <sstream>
 #include <atomic>
 
-//#include "UnitsTest.cpp"
 int main() {
-    showGLErrors("???");
-
-    //UnitsTest();
-
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     GameEngine engine;

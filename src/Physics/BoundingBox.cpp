@@ -172,8 +172,6 @@ void BoundingBox::renderDebug(ShaderProgram &shader, const glm::vec3& bodyPositi
     glBindVertexArray(0);
 
     //glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // Switch to shaded mode
-
-    //showGLErrors("BoundingBox::renderDebug");
 }
 
 /**
@@ -218,10 +216,8 @@ void BoundingBox::setupBoundingBoxBuffers() {
         std::cerr << "No current OpenGL context!" << std::endl;
     }
 #endif
-    // TOLOOK: Commenting out this code (224-227) causes a crash.
-    
+    // TOLOOK: Commenting out this code (224-227) causes a crash (probably occured before, openGL errors)
     //showGLErrors("BoundingBox::setupBoundingBoxBuffers");
-
     setupBuffers(VAO, VBO, EBO, vertices, sizeof(vertices), indices, sizeof(indices), {3, 3, 2, 3});
 }
 

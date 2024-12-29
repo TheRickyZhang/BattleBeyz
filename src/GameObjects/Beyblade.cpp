@@ -37,16 +37,12 @@ Beyblade::Beyblade(int id, const string& name, bool isTemplate) :
 void Beyblade::render(ShaderProgram& shader)
 {
     shader.use();
-    //shader.debugUniforms({ "model", "view", "projection", "viewPos", "lightColor", "lightPos", "tint" });
-
 
     glm::mat4 model = glm::translate(glm::mat4(1.0f), rigidBody->getCenter().value());
 
     shader.setMat4("model", model);
 
     mesh->render(shader);
-
-    // 12/23/24: Moved most logic to BeybladeMesh
 }
 
 void Beyblade::update(int layerIndex, int discIndex, int driverIndex) {

@@ -67,19 +67,66 @@ Follow these steps to clone, build, and run BattleBeyz using Visual Studio 2022:
 
 **Note**: Ensure that your system has the required dependencies, such as CMake (version 3.30.2 or later) and the correct Visual Studio C++ environment.
 
-### Libraries
+# Installation and Setup Guide for Dependencies
 
-#### GLFW, GLEW, GLM, FreeType, Imgui, stb, tinyobjoader
-These libraries are already built and included in the `lib` folder. If you want to build them yourself, you can follow
-the links below for the corresponding versions.
+## 1. Installing vcpkg
+vcpkg is a package manager for C++ libraries. Follow these steps to install and configure it:
+
+1. Open your terminal.
+2. Clone the vcpkg repository into your absolute root directory (or another suitable location):
+   ```sh
+   git clone https://github.com/microsoft/vcpkg.git
+   cd vcpkg
+   ```
+3. Bootstrap vcpkg:
+   ```sh
+   .ootstrap-vcpkg.bat
+   ```
+   This creates the `vcpkg.exe` file in the root of the `vcpkg` folder.
+
+4. Add vcpkg to your PATH:
+   ```sh
+   $env:PATH += ";C:\vcpkg"
+   ```
+
+5. Integrate vcpkg with CMake:
+   ```sh
+   .
+cpkg integrate install
+   ```
+   This enables automatic CMake toolchain configuration.
+
+## 2. Installing Required Libraries
+Install the required libraries, ensuring they are built as **static** versions:
+
+```sh
+.
+cpkg install glfw3:x64-windows-static
+.
+cpkg install glew:x64-windows-static
+.
+cpkg install glm:x64-windows-static
+.
+cpkg install freetype:x64-windows-static
+```
+
+## 3. Setting Up the Project
+Ensure your `vcpkg` folder is placed the corresponding location to your `CMakeLists.txt` to include the toolchain:
+
+```cmake
+set(CMAKE_TOOLCHAIN_FILE "${CMAKE_SOURCE_DIR}/vcpkg/scripts/buildsystems/vcpkg.cmake" CACHE STRING "Vcpkg toolchain file")
+set(CMAKE_PREFIX_PATH "${CMAKE_SOURCE_DIR}/vcpkg/installed/x64-windows-static" CACHE PATH "Path to vcpkg installed packages")
+```
+
+## 4. Libraries Included in `lib` Folder
+The following libraries are prebuilt and included in the `lib` folder:
+- **ImGui**: Version `1.90.8`
+- **stb_image**: Version `v0.8`
+- **tinyobjloader**: Latest release.
+
+To manually download and build these:
 ```sh
 cd lib
-curl -LO https://github.com/glfw/glfw/releases/download/3.4/glfw-3.4.zip
-unzip glfw-3.4.zip
-curl -LO https://sourceforge.net/projects/glew/files/glew/2.2.0/glew-2.2.0.zip
-unzip glew-2.2.0.zip
-curl -LO https://github.com/g-truc/glm/releases/download/0.9.9.8/glm-0.9.9.8.zip
-unzip glm-0.9.9.8.zip
 curl -LO https://download.savannah.gnu.org/releases/freetype/freetype-2.13.2.tar.gz
 tar -xzf freetype-2.13.2.tar.gz
 curl -LO https://github.com/ocornut/imgui/archive/refs/tags/v1.90.8.zip
@@ -88,3 +135,38 @@ curl -LO https://github.com/nothings/stb/archive/refs/tags/v0.8.zip
 unzip v0.8.zip
 curl -O https://raw.githubusercontent.com/tinyobjloader/tinyobjloader/release/tiny_obj_loader.h
 ```
+
+## 5. Final Project Folder Structure
+Your project should look like this after installation:
+```
+Project Root/
+├── src/                     # Source files
+├── lib/                     # Local libraries (ImGui, stb, tinyobjloader)
+│   ├── imgui-1.90.8/
+│   ├── stb/
+│   ├── tiny_obj_loader.h
+├── vcpkg/                   # vcpkg package manager
+├── CMakeLists.txt           # CMake build file
+└── assets/                  # Game assets like textures
+```
+
+## 6. Ensuring Static Builds
+To avoid issues with mixed library types:
+1. Ensure all libraries are installed with the `x64-windows-static` triplet.
+2. Use this command to list all installed packages and confirm:
+   ```sh
+   .
+cpkg list
+   ```
+3. Verify your `CMakeLists.txt` includes:
+   ```cmake
+   set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
+   ```
+
+## 7. Running the Project
+Once set up, build your project with:
+```sh
+cmake -S . -B build
+cmake --build build
+``` 
+

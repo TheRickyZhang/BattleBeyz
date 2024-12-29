@@ -28,12 +28,6 @@ GameEngine::~GameEngine() {
     cleanup();
 }
 
-#define CHECK_GL_ERROR() \
-    { GLenum err; \
-      while ((err = glGetError()) != GL_NO_ERROR) { \
-          std::cerr << "OpenGL Error: " << err << std::endl; \
-      } }
-
 
 bool GameEngine::init(const char* title, int width, int height) {
     windowWidth = width;
@@ -66,7 +60,6 @@ bool GameEngine::init(const char* title, int width, int height) {
         cleanup();
         return false;
     }
-
     // Set the OpenGL context for this window
     glfwMakeContextCurrent(window);
     glfwSetWindowAspectRatio(window, static_cast<int>(aspectRatio * 100), 100);
@@ -83,8 +76,7 @@ bool GameEngine::init(const char* title, int width, int height) {
     glfwSetWindowSizeLimits(window, static_cast<int>(minWidth), static_cast<int>(minHeight), GLFW_DONT_CARE, GLFW_DONT_CARE);
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 
-    CHECK_GL_ERROR();
-    glewExperimental = GL_TRUE;  // Required
+    glewExperimental = GL_TRUE;
     if (glewInit() != GLEW_OK) {
         std::cerr << "Failed to initialize GLEW" << std::endl;
         glfwTerminate();
@@ -92,47 +84,15 @@ bool GameEngine::init(const char* title, int width, int height) {
         cleanup();
         return false;
     }
-    std::cout << "Here" << std::endl;
-    CHECK_GL_ERROR();
 
-    // Enable depth testing
     glEnable(GL_DEPTH_TEST);
-
-    GLint depthBits = 0;
-    glGetIntegerv(GL_DEPTH_BITS, &depthBits);
-    if (depthBits > 0) {
-        std::cout << "Default framebuffer depth bits: " << depthBits << std::endl;
-    }
-    else {
-        std::cerr << "No depth buffer attached to the default framebuffer." << std::endl;
-    }
-    showGLErrors("???");
-
-
-    //// ALL DEBUG INFO
-    //// Verify OpenGL context
-    //const GLubyte* version = glGetString(GL_VERSION);
-    //const GLubyte* renderer = glGetString(GL_RENDERER);
-    //std::cout << "OpenGL Version: " << version << "\nRenderer: " << renderer << std::endl;
-
-    // Check default framebuffer binding
-    //GLint framebufferDefault;
-    //glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &framebufferDefault);
-    //std::cout << "Default framebuffer binding: " << framebufferDefault << std::endl;
-    //void* enablePointer = glfwGetProcAddress("glEnable");
-    //std::cout << "glEnable loaded address: " << enablePointer << std::endl;
-    //std::cout << "glEnable pointer: " << (void*)glEnable << std::endl;
-    //std::cout << "GL_DEPTH_TEST: " << GL_DEPTH_TEST << std::endl;
-
-    // Set color blinding and depth testing
+    while (glGetError() != GL_NO_ERROR) {}  // Do not remove; flushes error buffer
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     // Set window user pointer and input modes
     glfwSetWindowUserPointer(window, this);
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-
-    //glDisable(GL_DEPTH_TEST);
 
     // Setup ImGui context
     IMGUI_CHECKVERSION();
@@ -154,7 +114,6 @@ bool GameEngine::init(const char* title, int width, int height) {
     // Camera and initial view initialization
     glm::vec3 initialCameraPos(2.0f, 1.5f, 0.0f);
     glm::vec3 lookAtPoint(0.0f, 0.0f, 0.0f);
-
 
     model = glm::mat4(1.0f);
     view = glm::lookAt(initialCameraPos, lookAtPoint, glm::vec3(0.0f, 1.0f, 0.0f));
