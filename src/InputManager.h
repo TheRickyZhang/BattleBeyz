@@ -14,7 +14,7 @@ public:
     static InputManager& getInstance();
 
     /* General */
-    void setWindow(GLFWwindow* window);
+    //void setWindow(GLFWwindow* window);
     void updateState();
 
     /* Keys */
@@ -44,7 +44,7 @@ private:
     InputManager(const InputManager&) = delete;
     InputManager& operator=(const InputManager&) = delete;
 
-    GLFWwindow* window = nullptr;
+    //GLFWwindow* window = nullptr;
     std::unordered_map<int, bool> keyStates;
     std::unordered_map<int, bool> prevKeyStates;
 

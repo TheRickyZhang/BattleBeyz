@@ -81,8 +81,6 @@ void checkGLError(const char* stmt, const char* fname, int line) {
     GLenum err = glGetError();
     if (err != GL_NO_ERROR) {
         std::cerr << "OpenGL error " << err << " at " << fname << ":" << line << " for " << stmt << std::endl;
-
-        exit(0);
     }
 }
 
@@ -115,4 +113,20 @@ int floatToDiscreteInt(float val, float mn, float mx) {
 
 float discreteIntToFloat(int val, float mn, float mx) {
     return mn + ((val - 1) / 9.0f) * (mx - mn);
+}
+
+/**
+* Show any accumulated OpenGL errors.
+*
+* @param where              [in] An error message prefix so yous can see
+*                           where the call came from.
+*/
+
+void showGLErrors(const char* where)
+{
+    GLenum err;
+
+    while ((err = glGetError()) != GL_NO_ERROR) {
+        std::cerr << "OpenGL error in " << where << ": " << err << std::endl;
+    }
 }

@@ -45,6 +45,8 @@
 
 //#include "UnitsTest.cpp"
 int main() {
+    showGLErrors("???");
+
     //UnitsTest();
 
     IMGUI_CHECKVERSION();
@@ -58,8 +60,6 @@ int main() {
     // Declare physics world with default parameters
     auto physicsWorld = new PhysicsWorld();
 
-    auto stadiumTexture = new Texture("./assets/textures/Hexagon.jpg", "texture1");
-    
     /* ----------------------OBJECT SETUP-------------------------- */
 
     // NEWMESH: Load meshes before bodies so we can get the actual object sizes. Then pass the
@@ -97,7 +97,7 @@ int main() {
         engine.deltaTime = 0.0052f; // fixed frame rate, lower = slower
 #endif
 
-        if(!engine.paused) engine.handleEvents();  // External inputs: user/system
+        if (!engine.paused) engine.handleEvents();  // External inputs: user/system
         engine.update();        // Time-based state updates
         engine.draw();          // Render the current state
     }

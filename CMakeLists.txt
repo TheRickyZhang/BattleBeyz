@@ -1,26 +1,53 @@
 cmake_minimum_required(VERSION 3.10)
 project(BattleBeyz)
 
-# Use vcpkg toolchain
-set(CMAKE_TOOLCHAIN_FILE "${CMAKE_SOURCE_DIR}/vcpkg/scripts/buildsystems/vcpkg.cmake" CACHE STRING "Vcpkg toolchain file")
+# Toolchain and Prefix Path
+set(CMAKE_VERBOSE_MAKEFILE ON)
 
-set(CMAKE_PREFIX_PATH "${CMAKE_SOURCE_DIR}/vcpkg/installed/x64-windows" CACHE PATH "Path to vcpkg installed packages")
+set(CMAKE_TOOLCHAIN_FILE "C:/vcpkg/scripts/buildsystems/vcpkg.cmake" CACHE STRING "Vcpkg toolchain file")
+set(CMAKE_PREFIX_PATH "C:/vcpkg/installed/x64-windows-static" CACHE PATH "Path to vcpkg installed packages")
 
+# C++ Standard
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-# Find packages
+# Build Type
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Debug CACHE STRING "Choose the build type: Debug or Release" FORCE)
+endif()
+
+# Libraries (non-vcpkg)
+include_directories(${PROJECT_SOURCE_DIR}/lib)      
+include_directories(${PROJECT_SOURCE_DIR}/lib/headers)                 # For tinyobjloader, stb_image, json
+include_directories(${PROJECT_SOURCE_DIR}/lib/imgui)                  # Local ImGui
+include_directories(${PROJECT_SOURCE_DIR}/lib/imgui/backends)
+
+# Libraries (vcpkg)
+include_directories("C:/vcpkg/installed/x64-windows/include")
+link_directories("C:/vcpkg/installed/x64-windows/lib")
+
+# Find Packages
 find_package(OpenGL REQUIRED)
+find_package(glfw3 CONFIG REQUIRED)
+find_package(GLEW CONFIG REQUIRED)
+find_package(freetype CONFIG REQUIRED)
+find_package(ZLIB REQUIRED)
+
 
 # Include directories
 include_directories(${PROJECT_SOURCE_DIR}/lib)
-include_directories(${PROJECT_SOURCE_DIR}/lib/glew-2.2.0/include)
-include_directories(${PROJECT_SOURCE_DIR}/lib/glfw-3.4/include)
-include_directories(${PROJECT_SOURCE_DIR}/lib/glm-1.0.1)
-include_directories(${PROJECT_SOURCE_DIR}/lib/freetype-2.13.2/include)
-include_directories(${PROJECT_SOURCE_DIR}/lib/stb)
 include_directories(${PROJECT_SOURCE_DIR}/lib/imgui-1.90.8)
 include_directories(${PROJECT_SOURCE_DIR}/lib/imgui-1.90.8/backends)
+# ImGui Sources
+set(IMGUI_SOURCES
+        ${PROJECT_SOURCE_DIR}/lib/imgui-1.90.8/imgui.cpp
+        ${PROJECT_SOURCE_DIR}/lib/imgui-1.90.8/imgui_draw.cpp
+        ${PROJECT_SOURCE_DIR}/lib/imgui-1.90.8/imgui_tables.cpp
+        ${PROJECT_SOURCE_DIR}/lib/imgui-1.90.8/imgui_widgets.cpp
+        ${PROJECT_SOURCE_DIR}/lib/imgui-1.90.8/backends/imgui_impl_opengl3.cpp
+        ${PROJECT_SOURCE_DIR}/lib/imgui-1.90.8/backends/imgui_impl_glfw.cpp
+        ${PROJECT_SOURCE_DIR}/lib/ImGuiFileDialog/ImGuiFileDialog.cpp
+)
 
 # Include the src/ directory and all its subdirectories
 include_directories(${PROJECT_SOURCE_DIR}/assets)
@@ -36,54 +63,30 @@ include_directories(${PROJECT_SOURCE_DIR}/src/RigidBodies)
 include_directories(${PROJECT_SOURCE_DIR}/src/States)
 include_directories(${PROJECT_SOURCE_DIR}/src/Config)
 
-
-# Specify ImGui source files
-set(IMGUI_SOURCES
-        ${PROJECT_SOURCE_DIR}/lib/imgui-1.90.8/imgui.cpp
-        ${PROJECT_SOURCE_DIR}/lib/imgui-1.90.8/imgui_draw.cpp
-        ${PROJECT_SOURCE_DIR}/lib/imgui-1.90.8/imgui_tables.cpp
-        ${PROJECT_SOURCE_DIR}/lib/imgui-1.90.8/imgui_widgets.cpp
-        ${PROJECT_SOURCE_DIR}/lib/imgui-1.90.8/backends/imgui_impl_opengl3.cpp
-        ${PROJECT_SOURCE_DIR}/lib/imgui-1.90.8/backends/imgui_impl_glfw.cpp
-        ${PROJECT_SOURCE_DIR}/lib/ImGuiFileDialog/ImGuiFileDialog.cpp
-)
-
-# Add the preprocessor definitions. Otherwise you have trouble with cmath and opengl
-add_compile_definitions(_USE_MATH_DEFINES)
-add_compile_definitions(GLM_ENABLE_EXPERIMENTAL)
-
-# Add source and header files
+# Add Source and Header Files
 file(GLOB_RECURSE HEADER_FILES "src/*.h" "assets/*.h")
 file(GLOB_RECURSE SOURCE_FILES "src/*.cpp" "assets/*.cpp" ${IMGUI_SOURCES})
 set(SOURCES ${SOURCE_FILES} ${HEADER_FILES})
 
-# Add GLFW
-set(GLFW_DIR ${PROJECT_SOURCE_DIR}/lib/glfw-3.4)
-add_subdirectory(${GLFW_DIR})
+# Libraries
+set(LIBS glfw OpenGL::GL GLEW::GLEW freetype ZLIB::ZLIB)
 
-# Add GLEW
-set(GLEW_DIR ${PROJECT_SOURCE_DIR}/lib/glew-2.2.0)
-link_directories(${GLEW_DIR}/lib/Release/x64)
-add_definitions(-DGLEW_STATIC)
+# Add Assets to Build Directory
+file(COPY ${PROJECT_SOURCE_DIR}/assets DESTINATION ${CMAKE_BINARY_DIR}/assets)
 
-# Add FreeType
-set(FREETYPE_DIR ${PROJECT_SOURCE_DIR}/lib/freetype-2.13.2)
-link_directories(${FREETYPE_DIR}/static/vs2015-2022/win64)
+# Setup
+add_executable(BattleBeyz ${SOURCES})
+target_link_libraries(BattleBeyz PRIVATE ${LIBS})
 
-# Add external libraries
-set(LIBS glfw glew32s ${OPENGL_LIBRARIES} freetype glu32 opengl32)
+# Debugging Settings (must come after the target is created)
+set_property(TARGET BattleBeyz PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}")
+set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT BattleBeyz)
 
-# Add assets directory to be copied to the build directory.  We don't need this in the build
-# output, but assets must be a subfolder of the working directory at runtime.  Later we will
-# create an installer that will set up assets properly.
-#### file(COPY ${PROJECT_SOURCE_DIR}/assets DESTINATION ${CMAKE_BINARY_DIR})
+# Preprocessor Definitions
+add_compile_definitions(_USE_MATH_DEFINES)
+add_compile_definitions(GLM_ENABLE_EXPERIMENTAL)
 
-# Add our own sources
-# file(GLOB_RECURSE MAIN_SOURCES src/*.cpp src/*.h)
-# Combine sources
-# set(SOURCES ${MAIN_SOURCES} ${IMGUI_SOURCES})
-
-# Create source groups to appear in our Visual Studio project.
+# Organize Files for Visual Studio
 foreach(_source IN ITEMS ${SOURCES})
     get_filename_component(_source_path "${_source}" PATH)
     file(RELATIVE_PATH _source_path_rel "${PROJECT_SOURCE_DIR}" "${_source_path}")
@@ -91,14 +94,8 @@ foreach(_source IN ITEMS ${SOURCES})
     source_group("${_group_path}" FILES "${_source}")
 endforeach()
 
-# Add executable or library targets
-add_executable(BattleBeyz ${SOURCES})
-
-# Default runtime folder for debugging in Visual Studio:
-set_property(TARGET BattleBeyz PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}")
-
-# Set Battlebeyz as the default startup project in Visual Studio
-set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT BattleBeyz)
-
-# Link libraries
-target_link_libraries(BattleBeyz PRIVATE ${LIBS})
+# Status Messages
+message(STATUS "Using CMAKE_TOOLCHAIN_FILE: ${CMAKE_TOOLCHAIN_FILE}")
+message(STATUS "CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
+message(STATUS "CMAKE_PREFIX_PATH: ${CMAKE_PREFIX_PATH}")
+message(STATUS "Linked Libraries: ${LIBS}")

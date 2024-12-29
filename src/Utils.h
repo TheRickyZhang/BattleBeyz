@@ -21,13 +21,14 @@
     } while (0)
 
 
-glm::vec3 screenToWorldCoordinates(GLFWwindow* window, float xpos, float ypos, const glm::mat4& view, const glm::mat4& projection);
+void checkGLError(const char* stmt, const char* fname, int line);
+std::string checkIntersection(const glm::vec3 & ray_world);
+void cleanup(GLFWwindow * window);
 glm::vec3 dv3(float d);
 glm::vec3 getVecFromMagnitude(float magnitude, glm::vec3 vector3);
-std::string checkIntersection(const glm::vec3& ray_world);
-void checkGLError(const char* stmt, const char* fname, int line);
-void cleanup(GLFWwindow* window);
 void printVec3(const std::string& label, const glm::vec3& v);
+glm::vec3 screenToWorldCoordinates(GLFWwindow * window, float xpos, float ypos, const glm::mat4 & view, const glm::mat4 & projection);
+void showGLErrors(const char* where);
 
 int floatToDiscreteInt(float val, float mn, float mx);
 float discreteIntToFloat(int val, float mn, float mx);
@@ -58,24 +59,3 @@ struct CollisionAccelerations {
 
 // TEMP
 
-inline void debugActiveAttributes(GLuint shaderProgramID) {
-    GLint numAttribs = 0;
-    glGetProgramiv(shaderProgramID, GL_ACTIVE_ATTRIBUTES, &numAttribs);
-
-    std::cout << "Active Attributes in Shader Program #" << shaderProgramID << ": " << numAttribs << std::endl;
-
-    for (int i = 0; i < numAttribs; i++) {
-        char name[256];
-        GLsizei length;
-        GLint size;
-        GLenum type;
-
-        glGetActiveAttrib(shaderProgramID, i, sizeof(name), &length, &size, &type, name);
-
-        GLint location = glGetAttribLocation(shaderProgramID, name);
-        std::cout << "Attrib " << i << ": " << name
-            << ", location=" << location
-            << ", size=" << size
-            << ", type=" << type << std::endl;
-    }
-}

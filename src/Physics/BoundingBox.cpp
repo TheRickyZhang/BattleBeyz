@@ -173,10 +173,7 @@ void BoundingBox::renderDebug(ShaderProgram &shader, const glm::vec3& bodyPositi
 
     //glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // Switch to shaded mode
 
-    GLenum err;
-    while ((err = glGetError()) != GL_NO_ERROR) {
-        std::cerr << "OpenGL error: " << err << std::endl;
-    }
+    //showGLErrors("BoundingBox::renderDebug");
 }
 
 /**
@@ -210,6 +207,7 @@ void BoundingBox::setupBoundingBoxBuffers() {
         3, 0, 4, 4, 7, 3  // Left face
     };
 
+#if 0
     // Debugging active attributes
     GLint currentProgram;
     glGetIntegerv(GL_CURRENT_PROGRAM, &currentProgram);
@@ -219,12 +217,10 @@ void BoundingBox::setupBoundingBoxBuffers() {
     if (!glfwGetCurrentContext()) {
         std::cerr << "No current OpenGL context!" << std::endl;
     }
-
+#endif
     // TOLOOK: Commenting out this code (224-227) causes a crash.
-    GLenum err;
-    while ((err = glGetError()) != GL_NO_ERROR) {
-        std::cerr << "OpenGL error before setupBuffers: " << err << std::endl;
-    }
+    
+    //showGLErrors("BoundingBox::setupBoundingBoxBuffers");
 
     setupBuffers(VAO, VBO, EBO, vertices, sizeof(vertices), indices, sizeof(indices), {3, 3, 2, 3});
 }

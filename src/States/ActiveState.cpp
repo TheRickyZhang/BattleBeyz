@@ -12,7 +12,6 @@ void ActiveState::init()
 
     // TODO: Use quadrender instead
     //floor = new QuadRenderer(100.0f);
-    GLuint floorVAO, floorVBO, floorEBO; // TOLOOK: Make infinite? Like pass in world position and calculate positioning dynamically in the shader
     float floorVertices[] = {
         // Positions        // Normals       // TexCoords // Colors
         -30.0f, 0.0f, -30.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.5f, 0.5f, 0.5f,
@@ -190,7 +189,7 @@ void ActiveState::draw() {
     ImGui::Text("WASDQE: camera movement");
     ImGui::Text("Right Click + Drag: camera rotation");
     ImGui::Text("Scroll wheel: movement speed");
-    ImGui::Text("Position: ", positionText.c_str());
+    ImGui::Text((positionText).c_str());
     ImGui::End();
 }
 
