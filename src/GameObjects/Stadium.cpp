@@ -35,14 +35,13 @@ void Stadium::render(ShaderProgram& shader) {
         shader.setInt("texture1", 0);
     }
 #endif
-
     // Bind appropriate uniforms (model, view, projection matrices)
     glm::mat4 model = glm::translate(glm::mat4(1.0f), rigidBody->getCenter().value());
-    shader.setUniformMat4("model", model);
+    shader.setMat4("model", model);
 
-    //    shader.setUniformVec3("viewPos", viewPos);
-    shader.setUniformVec3("lightColor", glm::vec3(1.0f));
-    shader.setUniformVec3("lightPos", glm::vec3(1.0f, 1e6, 1.0f));
+    // shader.setVec3("viewPos", viewPos);
+    // shader.setVec3("lightColor", glm::vec3(1.0f));
+    // shader.setVec3("lightPos", glm::vec3(1.0f, 1e6, 1.0f));
 
     glBindVertexArray(mesh->VAO);
     glDrawElements(GL_TRIANGLES, (GLsizei)mesh->indices.size(), GL_UNSIGNED_INT, nullptr);
@@ -277,5 +276,5 @@ void Stadium::initializeMesh() {
         vertexData.push_back(colors[i].z);
     }
     setupBuffers(m->VAO, m->VBO, m->EBO, vertexData.data(), vertexData.size() * sizeof(float), indices.data(),
-        indices.size() * sizeof(unsigned int));
+        indices.size() * sizeof(unsigned int), { 3, 3, 2, 3 });
 }

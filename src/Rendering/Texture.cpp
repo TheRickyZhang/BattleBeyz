@@ -12,7 +12,7 @@
 */
 
 Texture::Texture(const char* imagePath, std::string texType) : type(std::move(texType)), path(imagePath) {
-    std::cout << "Loading texture: " << imagePath << std::endl;
+    //std::cout << "Loading texture: " << imagePath << std::endl;
 
     glGenTextures(1, &ID);
     if (ID == 0) {

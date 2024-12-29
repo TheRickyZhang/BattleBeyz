@@ -40,27 +40,9 @@ void Beyblade::render(ShaderProgram& shader)
 
     glm::mat4 model = glm::translate(glm::mat4(1.0f), rigidBody->getCenter().value());
 
-    shader.setUniformMat4("model", model);
+    shader.setMat4("model", model);
 
-    shader.setUniformVec3("lightColor", glm::vec3(1.0f));
-    shader.setUniformVec3("lightPos", glm::vec3(0.0f, 1e6f, 0.0f));
-
-    for (const auto& material : mesh->getMaterialColors()) {
-        shader.setUniformVec3("VertexColor", material.second);
-    }
-
-    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Switch to wireframe mode
-
-    glBindVertexArray(mesh->getVAO());
-    glDrawElements(GL_TRIANGLES, (GLsizei)mesh->getIndicesSize(), GL_UNSIGNED_INT, nullptr);
-    glBindVertexArray(0);
-
-    //glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // Switch to polygon mode
-
-    GLenum err;
-    while ((err = glGetError()) != GL_NO_ERROR) {
-        std::cerr << "OpenGL error: " << err << std::endl;
-    }
+    mesh->render(shader);
 }
 
 void Beyblade::update(int layerIndex, int discIndex, int driverIndex) {

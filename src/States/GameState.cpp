@@ -6,17 +6,19 @@
 void GameState::renderBackground(GameEngine* game, const std::string& textureName) {
     auto backgroundShader = game->backgroundShader;
     auto quadRenderer = game->quadRenderer;
-    auto backgroundTexture = game->tm.getTexture(textureName);  // Use the string to get the texture
+    auto backgroundTexture = game->tm.getTexture(textureName);
 
     if (backgroundTexture && backgroundTexture->ID != 0) {
         glm::mat4 ortho = glm::ortho(0.0f, (float)game->windowWidth, 0.0f, (float)game->windowHeight, -1.0f, 1.0f);
+
         backgroundShader->use();
-        backgroundShader->setUniform1f("time", (float)glfwGetTime());
+        backgroundShader->setFloat("time", (float)glfwGetTime());
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, backgroundTexture->ID);
-        backgroundShader->setInt("background", 0);
-        quadRenderer->render();
+        //backgroundShader->setInt("background", 0);
+
+        quadRenderer->render(*backgroundShader); // Pass the shader to render
     }
 }
 

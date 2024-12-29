@@ -41,25 +41,6 @@ glm::vec3 screenToWorldCoordinates(GLFWwindow* window, float xpos, float ypos, c
     return ray_wor;
 }
 
-
-/**
-* Convert a float to a glm::vec3 for vector or matrix operations
-*/
-
-glm::vec3 dv3(float d) {
-    return glm::vec3(float(d));
-}
-
-/**
-* Convert a magnitude to a glm::vec3 for vector operations
-*/
-glm::vec3 getVecFromMagnitude(float magnitude, glm::vec3 vector3)
-{
-    glm::vec3 direction = glm::normalize(vector3);
-    return direction * dv3(magnitude);
-}
-
-
 /**
 * Perform intersection test with objects in your scene and return the object name.
 * 
@@ -81,17 +62,6 @@ void checkGLError(const char* stmt, const char* fname, int line) {
     GLenum err = glGetError();
     if (err != GL_NO_ERROR) {
         std::cerr << "OpenGL error " << err << " at " << fname << ":" << line << " for " << stmt << std::endl;
-    }
-}
-
-/**
-* OpenGL cleanup.
-*/
-
-void cleanup(GLFWwindow* window) {
-    if (window) {
-        glfwDestroyWindow(window);
-        glfwTerminate();
     }
 }
 

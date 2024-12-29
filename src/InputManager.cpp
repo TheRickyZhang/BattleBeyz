@@ -5,9 +5,9 @@ InputManager& InputManager::getInstance() {
     return instance;
 }
 
-void InputManager::setWindow(GLFWwindow* window) {
-    this->window = window;
-}
+//void InputManager::setWindow(GLFWwindow* window) {
+//    this->window = window;
+//}
 void InputManager::updateState() {
     prevKeyStates = keyStates;
     prevMouseButtonStates = mouseButtonStates;

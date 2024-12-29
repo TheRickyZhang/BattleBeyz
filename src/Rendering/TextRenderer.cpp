@@ -88,7 +88,7 @@ void TextRenderer::initRenderData() {
     // Set up projection matrix as default size.
     glm::mat4 projection = glm::ortho(0.0f, 800.0f, 0.0f, 600.0f);
     shaderProgram->use();
-    shaderProgram->setUniformMat4("projection", projection);
+    shaderProgram->setMat4("projection", projection);
 }
 
 /**
@@ -107,7 +107,7 @@ void TextRenderer::initRenderData() {
 
 void TextRenderer::renderText(const std::string& text, float x, float y, float scale, const glm::vec3& color) {
     shaderProgram->use();
-    glUniform3f(glGetUniformLocation(shaderProgram->ID, "textColor"), color.x, color.y, color.z);
+    shaderProgram->setVec3("textColor", color);
     glActiveTexture(GL_TEXTURE0);
     glBindVertexArray(VAO);
 
@@ -166,5 +166,5 @@ void TextRenderer::renderText(const std::string& text, float x, float y, float s
 void TextRenderer::resize(int width, int height) {
     glm::mat4 projection = glm::ortho(0.0f, static_cast<float>(width), 0.0f, static_cast<float>(height));
     shaderProgram->use();
-    shaderProgram->setUniformMat4("projection", projection);
+    shaderProgram->setMat4("projection", projection);
 }

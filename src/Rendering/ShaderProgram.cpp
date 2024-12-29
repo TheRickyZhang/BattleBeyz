@@ -4,14 +4,17 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "ShaderProgram.h"
+#include "Utils.h"
 #include <iostream>
 #include <fstream>
 #include <sstream>
 
 /**
-* Constructor
-*/
-
+ * Constructor for loading and linking vertex and fragment shaders.
+ * 
+ * @param vertexPath        Vertex shader source code
+ * @param fragmentPath      Fragment shader source code
+ */
 ShaderProgram::ShaderProgram(const char* vertexPath, const char* fragmentPath) {
     // Read shader source files
     std::string vertexCode = readFile(vertexPath);
@@ -36,189 +39,165 @@ ShaderProgram::ShaderProgram(const char* vertexPath, const char* fragmentPath) {
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
 
-    // Initialize uniform locations
-    modelLoc = glGetUniformLocation(ID, "model");
-    viewLoc = glGetUniformLocation(ID, "view");
-    projectionLoc = glGetUniformLocation(ID, "projection");
+    use(); // Use by default
 }
 
-/**
-* Destructor.
-*/
-
+// Destructor
 ShaderProgram::~ShaderProgram() {
     glDeleteProgram(ID);
 }
 
-/**
-* Compile a shader program.
-*/
 
-GLuint ShaderProgram::compileShader(GLenum type, const char* source)
+/**
+ * This function updates the transformation and camera-related uniforms in the shader.
+ *
+ * @param model            Model transformation matrix.
+ * @param view             View matrix (camera transformation).
+ * @param projection       Projection matrix (perspective or orthographic).
+ * @param cameraPosition   World-space position of the camera.
+ */
+void ShaderProgram::setRenderMatrices(const glm::mat4& model, const glm::mat4& view, const glm::mat4& projection, const glm::vec3& cameraPosition) const {
+    setMat4("model", model);
+    setMat4("view", view);
+    setMat4("projection", projection);
+    setVec3("viewPos", cameraPosition);
+}
+
+
+/**
+ * Set the light properties for the shader, including type, color, and position. See object.vs for the type ENUM.
+ *
+ * @param lightType     0 for directional, 1 for point light
+ * @param lightColor    RGB color of the light source.
+ * @param lightPos      Position or direction of the light in world space.
+ */
+void ShaderProgram::setLight(LightType lightType, const glm::vec3& lightColor, const glm::vec3& lightPos) const {
+    setInt("lightType", static_cast<int>(lightType));
+    setVec3("lightColor", lightColor);
+    setVec3("lightPos", lightPos);
+}
+
+// Update based on camera movement
+void ShaderProgram::setCameraView(const glm::vec3& cameraPosition, const glm::mat4& viewMatrix) const
 {
+    setVec3("viewPos", cameraPosition);
+    setMat4("view", viewMatrix);
+}
+
+
+/**
+ * Applies tint to all vertices.
+ Should only be used when a distinct tint is necessary, NOT for applying vertex colors
+ *
+ * @param tint      RGB tint color (default is vec3(1.0, 1.0, 1.0) for no tint).
+ */
+void ShaderProgram::setTint(const glm::vec3& tint) const {
+    setVec3("tint", tint);
+}
+
+/**
+ * Compile a shader of the specified type using the provided source code.
+ *
+ * @param type      Type of the shader (e.g., GL_VERTEX_SHADER or GL_FRAGMENT_SHADER).
+ * @param source    Shader source code
+ *
+ * @return The compiled shader object ID. Returns 0 if compilation fails.
+ */
+GLuint ShaderProgram::compileShader(GLenum type, const char* source) {
     GLuint shader = glCreateShader(type);
     glShaderSource(shader, 1, &source, nullptr);
     glCompileShader(shader);
 
     int success;
-    char infoLog[512];
     glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
     if (!success) {
+        char infoLog[512];
         glGetShaderInfoLog(shader, 512, nullptr, infoLog);
-        std::cerr << "ERROR::SHADER::COMPILATION_FAILED\n" << infoLog << std::endl;
+        std::cerr << "ERROR::SHADER::COMPILATION_FAILED ["
+            << (type == GL_VERTEX_SHADER ? "VERTEX" : "FRAGMENT") << "]\n"
+            << infoLog << std::endl;
     }
-
     return shader;
 }
 
-/**
-* Get the location (offset) of a uniform.
-*
-* @param name                       [in] The uniform name.
-*/
-
-GLint ShaderProgram::getUniformLocation(const std::string& name) const {
-    return glGetUniformLocation(ID, name.c_str());
-}
 
 /**
-* Test if a named uniform item is available.
-*
-* @param name                   [in] Uniform name.
-*
-* @return The uniform location value, -1 if does not exist.
-*/
-
-bool ShaderProgram::isUniformAvailable(const std::string& name) const
-{
-    GLint location = glGetUniformLocation(ID, name.c_str());
-    return location != -1;
-}
-
-/**
-* Load a shader program from a file.
-*/
-
-std::string ShaderProgram::readFile(const char* filePath)
-{
+ * Read the entire contents of a file and return it as a string.
+ * Typically used to load shader source code from disk.
+ *
+ * @param filePath   Path to the file.
+ *
+ * @return A string containing the file contents.
+ */
+std::string ShaderProgram::readFile(const char* filePath) {
     std::ifstream file(filePath);
     std::stringstream buffer;
     buffer << file.rdbuf();
     return buffer.str();
 }
 
-/**
-* Set a boolean uniform.
-*/
+// Activate the shader program for rendering.
+void ShaderProgram::use() const {
+    if (ID != 0) glUseProgram(ID);
+}
 
-void ShaderProgram::setBool(const std::string& name, bool value) const
-{
-    GLint location = getUniformLocation(name);
+
+/* Private Helper Methods */
+GLint ShaderProgram::getCachedUniformLocation(const std::string& name) const {
+    // Check cache first
+    if (uniformCache.find(name) != uniformCache.end()) {
+        return uniformCache[name];
+    }
+
+    // Fetch from OpenGL and cache it
+    GLint location = glGetUniformLocation(ID, name.c_str());
     if (location != -1) {
-        glUniform1i(location, value);
+        uniformCache[name] = location;
+    }
+    else {
+        std::cerr << "WARNING::UNIFORM::NOT_FOUND::" << name << std::endl;
+    }
+    return location;
+}
+
+void ShaderProgram::setMat4(const std::string& name, const glm::mat4& mat) const {
+    GLint location = getCachedUniformLocation(name);
+    if (location != -1) {
+        glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(mat));
     }
 }
 
-/**
-* Set an integer uniform.
-*/
-
-void ShaderProgram::setInt(const std::string& name, int value) const
-{
-    GLint location = getUniformLocation(name);
+void ShaderProgram::setVec3(const std::string& name, const glm::vec3& vec) const {
+    GLint location = getCachedUniformLocation(name);
     if (location != -1) {
-        glUniform1i(location, value);
+        glUniform3fv(location, 1, glm::value_ptr(vec));
     }
 }
 
-/**
-* Set a uniform float value.
-*
-* @param name                   [in] The uniform name.
-*
-* @param value                  [in] A float vector.
-*/
-
-void ShaderProgram::setUniform1f(const std::string& name, float value) const
-{
-    GLint location = getUniformLocation(name);
+void ShaderProgram::setFloat(const std::string& name, float value) const {
+    GLint location = getCachedUniformLocation(name);
     if (location != -1) {
         glUniform1f(location, value);
     }
 }
 
-/**
-* Set the material uniform.
-*/
-
-void ShaderProgram::setUniformMat4(const std::string& name, const glm::mat4& mat) const
-{
-    glUniformMatrix4fv(glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE, glm::value_ptr(mat));
-}
-
-/**
-* Set a uniform vec3 by name.
-*
-* @param name                   [in] The uniform name.
-*
-* @param value                  [in] A vec3 vector.
-*/
-
-void ShaderProgram::setUniformVec3(const std::string& name, const glm::vec3& value) const
-{
-    GLint location = glGetUniformLocation(ID, name.c_str());
+void ShaderProgram::setInt(const std::string& name, int value) const {
+    GLint location = getCachedUniformLocation(name);
     if (location != -1) {
-        glUniform3fv(location, 1, glm::value_ptr(value));
+        glUniform1i(location, value);
     }
 }
 
-/**
-* Set uniforms for model, view, and projection matrices.
-*/
-
-void ShaderProgram::setUniforms(glm::mat4 model, glm::mat4 view, glm::mat4 projection) const
-{
-    use(); // Activate the shader program
-    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-    glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-    glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
-}
-
-/**
-* Set object color.
-* 
-* This sets the useObjectColor flag and objectColor vectors in the shader program object.vs.
-* This will override the colors defined in the vertex data.
-* 
-* IMPORTANT:  Turns this off when you are finished using it!
-* 
-* @param color                          [in] Pointer to color.  If null, the objectColor
-*                                       handing is disabled.
-*/
-
-void ShaderProgram::setObjectColor(const glm::vec3* color) const
-{
-    setBool("useObjectColor", color == nullptr ? false : true);
-    if (color != nullptr) {
-        setUniformVec3("objectColor", *color);
-    }
-}
-
-/**
-* Update camera position and view matrix.
-*/
-
-void ShaderProgram::updateCameraPosition(const glm::vec3& cameraPosition, const glm::mat4& viewMatrix) const
-{
-    setUniformVec3("viewPos", cameraPosition);
-    setUniformMat4("view", viewMatrix);
-}
-
-/**
-* Use the current program.
-*/
-
-void ShaderProgram::use() const
-{
-    glUseProgram(ID);
-}
+//void ShaderProgram::debugUniforms(const std::vector<std::string>& uniformNames) const {
+//    std::cout << "Debugging Uniform Locations for Shader Program (ID: " << static_cast<int>(ID) << "):" << std::endl;
+//
+//    for (const auto& name : uniformNames) {
+//        GLint location = glGetUniformLocation(ID, name.c_str());
+//        if (location == -1) {
+//            std::cerr << "WARNING::UNIFORM::NOT_FOUND::" << name << std::endl;
+//        }
+//        else {
+//            std::cout << name << ": " << location << std::endl;
+//        }
+//    }
+//}

@@ -30,6 +30,8 @@
 ** THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+#include <stdio.h>
+
 #ifndef GLEW_INCLUDE
 #  include <GL/glew.h>
 #else
@@ -23098,16 +23100,31 @@ const GLubyte * GLEWAPIENTRY glewGetString (GLenum name)
 
 /* ------------------------------------------------------------------------ */
 
+#define CHECK_GL_ERROR() \
+    { GLenum err; \
+      while ((err = glGetError()) != GL_NO_ERROR) { \
+          printf("OpenGL Error: %d\n", err); \
+      } }
+
 GLboolean glewExperimental = GL_FALSE;
 
 GLenum GLEWAPIENTRY glewInit (void)
 {
+    printf("Starting glewInit()\n");
+
   GLenum r;
 #if defined(GLEW_EGL)
   PFNEGLGETCURRENTDISPLAYPROC getCurrentDisplay = NULL;
 #endif
   r = glewContextInit();
-  if ( r != 0 ) return r;
+  CHECK_GL_ERROR();
+
+  if (r != 0) {
+      CHECK_GL_ERROR();
+      return r;
+  }
+  CHECK_GL_ERROR();
+
 #if defined(GLEW_EGL)
   getCurrentDisplay = (PFNEGLGETCURRENTDISPLAYPROC) glewGetProcAddress("eglGetCurrentDisplay");
   return eglewInit(getCurrentDisplay());
@@ -23120,6 +23137,7 @@ GLenum GLEWAPIENTRY glewInit (void)
 #else
   return r;
 #endif /* _WIN32 */
+  CHECK_GL_ERROR();
 }
 
 #if defined(_WIN32) && defined(GLEW_BUILD) && defined(__GNUC__)

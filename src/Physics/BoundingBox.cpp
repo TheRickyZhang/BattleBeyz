@@ -5,6 +5,7 @@
 
 #include <iostream>
 #include "BoundingBox.h"
+#include "Utils.h"
 
 using namespace std;
 /**
@@ -17,12 +18,12 @@ BoundingBox::BoundingBox() :
     // allow you to immediately check for min/max values of the object that
     // you are bounding.
 
-    setupBuffers();
+    setupBoundingBoxBuffers();
 }
 
 BoundingBox::BoundingBox(const glm::vec3& min, const glm::vec3& max)
         : min(min), max(max) {
-    setupBuffers();
+    setupBoundingBoxBuffers();
 }
 
 /**
@@ -158,55 +159,31 @@ bool BoundingBox::intersectsSphere(const glm::vec3& center, float radius) const 
 */
 
 void BoundingBox::renderDebug(ShaderProgram &shader, const glm::vec3& bodyPosition) {
-    //shader.use();
-
-    setupBuffers();
+    shader.use();
+    setupBoundingBoxBuffers();
 
     glm::mat4 model = glm::translate(glm::mat4(1.0f), bodyPosition);
-    shader.setUniformMat4("model", model);
+    shader.setMat4("model", model);
 
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Switch to wireframe mode
 
-    //glm::vec3 color(0.0f, 1.0f, 1.0f);  // Set uniform for object color to white.
-    //shader.setObjectColor(&color);
-
-    // TODO: How about quads instead of triangles?
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, nullptr); // 36 is the number of indices for 12 triangles
     glBindVertexArray(0);
 
     //glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // Switch to shaded mode
-
-    //shader.setObjectColor(nullptr);  // Now disable this feature
-
-    GLenum err;
-    while ((err = glGetError()) != GL_NO_ERROR) {
-        std::cerr << "OpenGL error: " << err << std::endl;
-    }
 }
 
 /**
 * Set up glfw vertex data.
 */
 
-void BoundingBox::setupBuffers() {
+void BoundingBox::setupBoundingBoxBuffers() {
     // TODO: You need to set this to 1 to align the stadium data, but then it is statdium-specific.
     // Instead, the renderer needs to know the position of it's parent.
     float offset = 0.0f;
 
-#if 0
-    float vertices[] = {
-        // Positions         // Normals         // Texture Coords  // Colors (RGB)
-        min.x, min.y - offset, min.z,  0.0f, 0.0f, -1.0f,  0.0f, 0.0f,      1.0f, 0.0f, 0.0f, // Red
-        max.x, min.y - offset, min.z,   1.0f, 0.0f, 0.0f,   1.0f, 0.0f,      0.0f, 1.0f, 0.0f, // Green
-        max.x, max.y - offset, min.z,   0.0f, 1.0f, 0.0f,   1.0f, 1.0f,      0.0f, 0.0f, 1.0f, // Blue
-        min.x, max.y - offset, min.z, -1.0f, 0.0f, 0.0f,   0.0f, 1.0f,      1.0f, 1.0f, 0.0f, // Yellow
-        min.x, min.y - offset, max.z,  0.0f, -1.0f, 0.0f,  0.0f, 0.0f,      1.0f, 0.0f, 1.0f, // Magenta
-        max.x, min.y - offset, max.z,   1.0f, 0.0f, 0.0f,   1.0f, 0.0f,      0.0f, 1.0f, 1.0f, // Cyan
-        max.x, max.y - offset, max.z,   0.0f, 1.0f, 0.0f,   1.0f, 1.0f,      1.0f, 0.5f, 0.0f, // Orange
-        min.x, max.y - offset, max.z, -1.0f, 0.0f, 0.0f,   0.0f, 1.0f,      0.5f, 0.5f, 0.5f  // Grey
-    };
-#else  // Changed all colors to white
+    // Vertex data
     float vertices[] = {
         // Positions                    // Normals          // Texture Coords   // Colors (RGB)
         min.x, min.y - offset, min.z,   0.0f, 0.0f, -1.0f,  0.0f, 0.0f,         1.0f, 1.0f, 1.0f,
@@ -218,18 +195,30 @@ void BoundingBox::setupBuffers() {
         max.x, max.y - offset, max.z,   0.0f, 1.0f, 0.0f,   1.0f, 1.0f,         1.0f, 1.0f, 1.0f,
         min.x, max.y - offset, max.z,   -1.0f, 0.0f, 0.0f,  0.0f, 1.0f,         1.0f, 1.0f, 1.0f
     };
-#endif
 
     unsigned int indices[] = {
-            0, 1, 2, 2, 3, 0, // Bottom face
-            4, 5, 6, 6, 7, 4, // Top face
-            0, 1, 5, 5, 4, 0, // Front face
-            1, 2, 6, 6, 5, 1, // Right face
-            2, 3, 7, 7, 6, 2, // Back face
-            3, 0, 4, 4, 7, 3  // Left face
+        0, 1, 2, 2, 3, 0, // Bottom face
+        4, 5, 6, 6, 7, 4, // Top face
+        0, 1, 5, 5, 4, 0, // Front face
+        1, 2, 6, 6, 5, 1, // Right face
+        2, 3, 7, 7, 6, 2, // Back face
+        3, 0, 4, 4, 7, 3  // Left face
     };
 
-    ::setupBuffers(VAO, VBO, EBO, vertices, sizeof(vertices), indices, sizeof(indices));
+#if 0
+    // Debugging active attributes
+    GLint currentProgram;
+    glGetIntegerv(GL_CURRENT_PROGRAM, &currentProgram);
+    std::cout << "Active Shader Program ID in BoundingBox: " << currentProgram << std::endl;
+
+    debugActiveAttributes(currentProgram);
+    if (!glfwGetCurrentContext()) {
+        std::cerr << "No current OpenGL context!" << std::endl;
+    }
+#endif
+    // TOLOOK: Commenting out this code (224-227) causes a crash (probably occured before, openGL errors)
+    //showGLErrors("BoundingBox::setupBoundingBoxBuffers");
+    setupBuffers(VAO, VBO, EBO, vertices, sizeof(vertices), indices, sizeof(indices), {3, 3, 2, 3});
 }
 
 /**
@@ -256,15 +245,4 @@ void BoundingBox::update(const glm::vec3& position, const glm::quat& orientation
     max = newCenter + halfSize;
 
     // No angular for now
-//    glm::vec3 halfSize = (max - min) * 0.5f;
-//    glm::vec3 localCenter = min + halfSize;
-//
-//    // Transform local center to new center position
-//    glm::vec3 newCenter = position + glm::rotate(orientation, localCenter - position);
-//
-//    // Rotate the half-size vector to account for the bounding box orientation
-//    glm::vec3 rotatedHalfSize = glm::abs(glm::rotate(orientation, halfSize));
-//
-//    min = newCenter - rotatedHalfSize;
-//    max = newCenter + rotatedHalfSize;
 }

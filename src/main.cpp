@@ -43,10 +43,7 @@
 #include <sstream>
 #include <atomic>
 
-//#include "UnitsTest.cpp"
 int main() {
-    //UnitsTest();
-
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     GameEngine engine;
@@ -58,12 +55,7 @@ int main() {
     // Declare physics world with default parameters
     auto physicsWorld = new PhysicsWorld();
 
-    auto stadiumTexture = new Texture("./assets/textures/Hexagon.jpg", "texture1");
-    
     /* ----------------------OBJECT SETUP-------------------------- */
-
-    //setupBuffers(tetrahedronVAO, tetrahedronVBO, tetrahedronEBO, tetrahedronVertices,
-    //    sizeof(tetrahedronVertices), tetrahedronIndices, sizeof(tetrahedronIndices));
 
     // NEWMESH: Load meshes before bodies so we can get the actual object sizes. Then pass the
     // mesh to the BeybladdeBody constructor.
@@ -100,7 +92,7 @@ int main() {
         engine.deltaTime = 0.0052f; // fixed frame rate, lower = slower
 #endif
 
-        if(!engine.paused) engine.handleEvents();  // External inputs: user/system
+        if (!engine.paused) engine.handleEvents();  // External inputs: user/system
         engine.update();        // Time-based state updates
         engine.draw();          // Render the current state
     }

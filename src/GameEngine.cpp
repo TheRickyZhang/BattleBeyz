@@ -28,6 +28,7 @@ GameEngine::~GameEngine() {
     cleanup();
 }
 
+
 bool GameEngine::init(const char* title, int width, int height) {
     windowWidth = width;
     windowHeight = height;
@@ -46,9 +47,9 @@ bool GameEngine::init(const char* title, int width, int height) {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);      // Resizing
-    glfwWindowHint(GLFW_DECORATED, GLFW_TRUE);      // Decoration
-
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
+    glfwWindowHint(GLFW_DECORATED, GLFW_TRUE);
+    glfwWindowHint(GLFW_DEPTH_BITS, 24); // Request depth buffer
 
     // Create the window
     window = glfwCreateWindow(static_cast<int>(width), static_cast<int>(height), title, nullptr, nullptr);
@@ -59,11 +60,11 @@ bool GameEngine::init(const char* title, int width, int height) {
         cleanup();
         return false;
     }
-
-    // Set the aspect ratio for the window
+    // Set the OpenGL context for this window
+    glfwMakeContextCurrent(window);
     glfwSetWindowAspectRatio(window, static_cast<int>(aspectRatio * 100), 100);
 
-    // Multiple monitors
+    // Center window on the primary monitor
     monitors = glfwGetMonitors(&nMonitors);
     videoMode = glfwGetVideoMode(monitors[0]);
     glfwGetMonitorPos(monitors[0], &monitorX, &monitorY);
@@ -71,10 +72,10 @@ bool GameEngine::init(const char* title, int width, int height) {
         monitorX + static_cast<int>(videoMode->width - windowWidth) / 2,
         monitorY + static_cast<int>(videoMode->height - windowHeight) / 2);
 
+    glfwSetWindowUserPointer(window, this);
+    glfwSetWindowSizeLimits(window, static_cast<int>(minWidth), static_cast<int>(minHeight), GLFW_DONT_CARE, GLFW_DONT_CARE);
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 
-    glfwMakeContextCurrent(window);
-
-    // Initialize GLEW
     glewExperimental = GL_TRUE;
     if (glewInit() != GLEW_OK) {
         std::cerr << "Failed to initialize GLEW" << std::endl;
@@ -84,10 +85,14 @@ bool GameEngine::init(const char* title, int width, int height) {
         return false;
     }
 
-    // Set color blinding and depth testing
+    glEnable(GL_DEPTH_TEST);
+    while (glGetError() != GL_NO_ERROR) {}  // Do not remove; flushes error buffer
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glDisable(GL_DEPTH_TEST);
+
+    // Set window user pointer and input modes
+    glfwSetWindowUserPointer(window, this);
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 
     // Setup ImGui context
     IMGUI_CHECKVERSION();
@@ -110,8 +115,6 @@ bool GameEngine::init(const char* title, int width, int height) {
     glm::vec3 initialCameraPos(2.0f, 1.5f, 0.0f);
     glm::vec3 lookAtPoint(0.0f, 0.0f, 0.0f);
 
-    camera = new Camera(initialCameraPos, lookAtPoint, physicsWorld, windowWidth / 2.0f, windowHeight / 2.0f);
-
     model = glm::mat4(1.0f);
     view = glm::lookAt(initialCameraPos, lookAtPoint, glm::vec3(0.0f, 1.0f, 0.0f));
     projection = glm::perspective(glm::radians(45.0f), float(windowWidth) / float(windowHeight), 0.1f, 100.0f);
@@ -119,14 +122,16 @@ bool GameEngine::init(const char* title, int width, int height) {
     backgroundView = glm::mat4(1.0f);
     orthoProjection = glm::ortho(0.0f, float(windowWidth), 0.0f, float(windowHeight), 0.0f, 1.0f);
 
-    objectShader = new ShaderProgram(OBJECT_VERTEX_SHADER_PATH, OBJECT_FRAGMENT_SHADER_PATH);
-    objectShader->setUniforms(model, view, projection);
-    objectShader->setUniformVec3("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
-    objectShader->setUniformVec3("lightPos", glm::vec3(0.0f, 1e5f, 0.0f));  // Light very high
-
     backgroundShader = new ShaderProgram(BACKGROUND_VERTEX_SHADER_PATH, BACKGROUND_FRAGMENT_SHADER_PATH);
-    backgroundShader->setUniforms(backgroundModel, backgroundView, orthoProjection);
-    backgroundShader->setUniform1f("wrapFactor", 4.0f);
+    backgroundShader->setFloat("wrapFactor", 4.0f);
+    backgroundShader->setFloat("time", float(glfwGetTime()));
+    backgroundShader->setInt("backgroundTexture", 0);
+
+    objectShader = new ShaderProgram(OBJECT_VERTEX_SHADER_PATH, OBJECT_FRAGMENT_SHADER_PATH);
+    objectShader->setRenderMatrices(model, view, projection, initialCameraPos);
+    objectShader->setLight(LightType::Directional, glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(0.0f, -1.0f, 0.0f));
+
+    camera = new Camera(initialCameraPos, lookAtPoint, physicsWorld, windowWidth / 2.0f, windowHeight / 2.0f);
 
     //    auto panoramaShader = new ShaderProgram(PANORAMA_VERTEX_SHADER_PATH, PANORAMA_FRAGMENT_SHADER_PATH);
     //    panoramaShader->setUniforms(panoramaModel, panoramaView, panoramaProjection);
@@ -139,13 +144,6 @@ bool GameEngine::init(const char* title, int width, int height) {
 
     // Set default profile at first (Needed in order to not crash)
     pm.addDefaultProfiles();
-
-    // Set window user pointer to GameEngine
-    glfwSetWindowUserPointer(window, this);
-    glfwSetWindowSizeLimits(window, static_cast<int>(minWidth), static_cast<int>(minHeight), GLFW_DONT_CARE, GLFW_DONT_CARE);
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-
-    glfwSetFramebufferSizeCallback(window, GameEngine::framebufferSizeCallback);  // This handles window resizing
 
     /**
     * Various callbacks for inputManager
@@ -212,11 +210,6 @@ bool GameEngine::init(const char* title, int width, int height) {
 
     prevTime = 0.0f;
     deltaTime = 0.0f;
-
-    // LOOK: Only for testing?
-    imguiColor[0] = 0.8f;
-    imguiColor[1] = 0.8f;
-    imguiColor[2] = 0.8f;
 
     quadRenderer = new QuadRenderer();
 
@@ -423,7 +416,7 @@ void GameEngine::framebufferSizeCallback(GLFWwindow* window, int width, int heig
     glViewport(0, 0, width, height);
     engine->projection = glm::perspective(glm::radians(45.0f), (float)width / height, 0.1f, 100.0f);
     engine->objectShader->use();
-    engine->objectShader->setUniformMat4("projection", engine->projection);
+    engine->objectShader->setMat4("projection", engine->projection);
 }
 
 void GameEngine::handleGlobalEvents() {
@@ -438,5 +431,5 @@ void GameEngine::handleGlobalEvents() {
         if (stateStack.empty()) return;
         paused ? stateStack.back()->pause() : stateStack.back()->resume();
     }
-    // TODO: Add more global events
+
 }

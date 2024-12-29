@@ -93,8 +93,6 @@ public:
     float prevTime{};
     float deltaTime{};
 
-    float imguiColor[3];
-
     // Singleton Managers
     TextureManager& tm;     // Textures
     ProfileManager& pm;     // Profiles (and corresponding data)
