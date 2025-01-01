@@ -3,6 +3,7 @@
 // Copyright (c) 2024, Ricky Zhang.
 ////////////////////////////////////////////////////////////////////////////////
 
+#include <glm/gtc/matrix_transform.hpp>
 #include "Buffers.h"
 #include "Stadium.h"
 #include "ShaderProgram.h"

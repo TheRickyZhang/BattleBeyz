@@ -97,5 +97,5 @@ endforeach()
 # Status Messages
 message(STATUS "Using CMAKE_TOOLCHAIN_FILE: ${CMAKE_TOOLCHAIN_FILE}")
 message(STATUS "CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
-message(STATUS "CMAKE_PREFIX_PATH: ${CMAKE_PREFIX_PATH}")
-message(STATUS "Linked Libraries: ${LIBS}")
+# message(STATUS "CMAKE_PREFIX_PATH: ${CMAKE_PREFIX_PATH}")
+# message(STATUS "Linked Libraries: ${LIBS}")

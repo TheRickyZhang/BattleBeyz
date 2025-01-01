@@ -1,16 +1,24 @@
 #pragma once
 
-#include "Beyblade.h"
+#include <algorithm>
+#include <memory>
+#include <mutex>
+#include <optional>
 #include <string>
 #include <vector>
-#include <memory>
-#include <algorithm>
-#include <optional>
-#include <mutex>
-#include "json.hpp"
+
+#include <json.hpp>
+
 #include "Settings.h"
 
 struct Layer; struct Disc; struct Driver;
+class Beyblade;
+
+/*
+* Contains information about beyblades, stats, and settings for a user's profile. 
+* 
+* Query by ID
+*/
 class Profile {
 public:
     static constexpr size_t MAX_BEYBLADES_PER_PROFILE = 50;
@@ -46,12 +54,7 @@ private:
     std::string name{};
     int nextBladeID = 0;                    // Next blade id is #1.
 
-
     mutable std::mutex mtx;
 
-    // Can convert to map, but with <= 50 beys per profile lookup time is negligible
-    std::vector<std::shared_ptr<Beyblade>>::const_iterator getBeybladeIterator(int id) const {
-        return std::find_if(beybladesOwned.begin(), beybladesOwned.end(),
-            [&](const std::shared_ptr<Beyblade>& b) { return b->getId() == id; });
-    }
+    std::vector<std::shared_ptr<Beyblade>>::const_iterator getBeybladeIterator(int id) const;
 };

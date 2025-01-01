@@ -1,6 +1,6 @@
 #include <iostream>
+
 #include "MessageLog.h"
-#include "imgui.h"
 #include "UI.h"
 
 void MessageLog::open() {

@@ -10,12 +10,10 @@
 #include <optional>
 
 #include "BeybladeParts.h"
-#include "BoundingBox.h"
-#include "BeybladeMesh.h"  // NEWMESH Added this, changed constructor definitions.
-#include "Utils.h"
 
-#include "Units.h"
-using namespace Units;
+
+class BoundingBox;
+class BeybladeMesh;
 
 /**
  * BeybladeBody. Contains all of the physical properties of a beyblade.

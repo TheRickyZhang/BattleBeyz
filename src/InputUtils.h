@@ -1,7 +1,7 @@
 #pragma once
 #include <unordered_map>
 #include <vector>
-#include <initializer_list>
+
 #include <GLFW/glfw3.h>
 
 enum Action {

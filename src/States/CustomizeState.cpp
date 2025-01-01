@@ -1,8 +1,10 @@
 #include "CustomizeState.h"
+
 #include "StateIdentifiers.h"
+#include "Beyblade.h"
+#include "BeybladeConstants.h"
 #include "ProfileManager.h"
 #include "UI.h"
-#include "BeybladeConstants.h"
 #include "../lib/ImGuiFileDialog/ImGuiFileDialog.h"
 #include "../lib/ImGuiFileDialog/ImGuiFileDialogConfig.h"
 

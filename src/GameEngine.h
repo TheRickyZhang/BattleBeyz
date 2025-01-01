@@ -2,24 +2,29 @@
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
-#include "GameState.h"
-#include <unordered_map>
 #include <memory>
 #include <iostream>
 #include <functional>
-#include "States/StateFactory.h"
-#include "PhysicsWorld.h"
-#include "Camera.h"
-#include "QuadRenderer.h"
-#include "TextRenderer.h"
-#include "TextureManager.h"
-#include "ProfileManager.h"
-#include "MessageLog.h"
-#include "InputManager.h"
-#include "Timer.h"
+#include <glm/glm.hpp>
+
+#include <imgui.h>
+
+#include "StateIdentifiers.h"
 
 #define MINI_CASE_SENSITIVE
-#include "mini/ini.h"
+#include <mini/ini.h>
+
+class GameState;
+class ShaderProgram;
+class PhysicsWorld;
+class Camera;
+class QuadRenderer;
+class TextRenderer;
+class TextureManager;
+class ProfileManager;
+class MessageLog;
+class InputManager;
+class Timer;
 
 class GameEngine {
 public:

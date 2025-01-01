@@ -1,22 +1,13 @@
 #pragma once
 
-#include <GL/glew.h>
-#include <GLFW/glfw3.h>
 #include <string>
-#include <glm/glm.hpp>
 #include <unordered_map>
-#include <functional>
-#include <glm/gtc/matrix_transform.hpp>
 
-#include "imgui.h"
-#include "imgui_impl_glfw.h"
-#include "imgui_impl_opengl3.h"
-
-#include "BeybladeBody.h"
 #include "StateIdentifiers.h"
 
-
-class GameEngine;
+// Used by every state
+#include "GameEngine.h"
+#include "MessageLog.h"   
 
 class GameState {
 public:

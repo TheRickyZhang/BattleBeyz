@@ -1,11 +1,12 @@
 #pragma once
 
-#include <string>
-#include <unordered_map>
 #include <memory>
 #include <mutex>
+#include <string>
+#include <unordered_map>
 
-class Texture;
+// Since Textures should ALWAYS be interacted with through TextureManager
+#include "Texture.h"
 
 // Manages string->Texture* map
 class TextureManager {

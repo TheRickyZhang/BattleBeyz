@@ -3,9 +3,10 @@
 // Copyright (c) 2024, Ricky Zhang.
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "Texture.h"
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
+
+#include "Texture.h"
 
 /**
 * Constructor.

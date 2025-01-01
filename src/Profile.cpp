@@ -1,7 +1,9 @@
 #include <iostream>
-#include <memory>
-#include "MessageLog.h"
+
 #include "Profile.h"
+
+#include "Beyblade.h"
+#include "MessageLog.h"
 
 using namespace std;
 using namespace nlohmann;
@@ -140,4 +142,11 @@ void Profile::fromJson(const json& js) {
             beybladesOwned.push_back(make_unique<Beyblade>(Beyblade::fromJson(beybladeJson)));
         }
     }
+}
+
+// Can convert to map, but with <= 50 beys per profile lookup time is negligible
+std::vector<std::shared_ptr<Beyblade>>::const_iterator Profile::getBeybladeIterator(int id) const {
+  return std::find_if(
+      beybladesOwned.begin(), beybladesOwned.end(),
+      [&](const std::shared_ptr<Beyblade> &b) { return b->getId() == id; });
 }

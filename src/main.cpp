@@ -11,13 +11,12 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "imgui.h"
+#include <imgui.h>
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 
 #include "ShaderProgram.h"
 #include "TextRenderer.h"
-#include "Texture.h"
 #include "ShaderPath.h"
 
 #include "Buffers.h"
@@ -36,6 +35,7 @@
 #include "MeshObjects/StadiumMesh.h"
 
 #include "GameEngine.h"
+#include "ProfileManager.h"
 
 #include <iomanip>
 #include <algorithm>

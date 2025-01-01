@@ -1,4 +1,5 @@
 #include "BeybladeBody.h"
+#include "BoundingBox.h"
 
 BeybladeBody::BeybladeBody(Layer layer, Disc disc, Driver driver) :
     layer(layer), disc(disc), driver(driver),

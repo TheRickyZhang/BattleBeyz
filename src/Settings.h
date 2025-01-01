@@ -1,3 +1,4 @@
+
 struct Settings {
     float volume = 0.5f;
     bool isMuted = false;

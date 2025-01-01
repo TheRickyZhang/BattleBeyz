@@ -1,12 +1,26 @@
-#include <GL/glew.h>
 #include <iostream>
+
+#include <GL/glew.h>
+#include <imgui.h>
+#include <imgui_impl_glfw.h>
+#include <imgui_impl_opengl3.h>
+
 #include "Utils.h"
 #include "ShaderPath.h"
 #include "GameEngine.h"
 #include "BeybladeConstants.h"
-
-#include "ShaderProgram.h"
 #include "States/StateFactory.h"
+#include "PhysicsWorld.h"
+#include "Camera.h"
+#include "QuadRenderer.h"
+#include "TextRenderer.h"
+#include "TextureManager.h"
+#include "ProfileManager.h"
+#include "MessageLog.h"
+#include "InputManager.h"
+#include "Timer.h"
+#include "ShaderProgram.h"
+
 
 // Constructor with default values
 GameEngine::GameEngine()

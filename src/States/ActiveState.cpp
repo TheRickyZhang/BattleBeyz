@@ -1,9 +1,19 @@
-#include "UI.h"
-#include "GameEngine.h"
 #include "ActiveState.h"
-#include "StateIdentifiers.h"
+
+#include "GameEngine.h"
+#include "PhysicsWorld.h"
 #include "Buffers.h"
+#include "StateIdentifiers.h"
 #include "ShaderProgram.h"
+#include "UI.h"
+#include "Camera.h"
+#include "InputManager.h"
+#include "GameMessage.h"
+#include "ProfileManager.h"
+#include "TextureManager.h"
+#include "MessageLog.h"
+
+#include "Utils.h"
 
 using namespace glm;
 

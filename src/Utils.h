@@ -6,12 +6,13 @@
 #pragma once
 
 #include <string>
-#include <GL/glew.h>
-#include <GLFW/glfw3.h>
-#include <glm/glm.hpp>
 #include <fstream>
 #include <sstream>
 #include <iostream>
+
+#include <GL/glew.h>
+#include <GLFW/glfw3.h>
+#include <glm/glm.hpp>
 #include <stb_image.h>
 
 // Macro to wrap OpenGL calls for error checking

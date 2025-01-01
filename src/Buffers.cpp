@@ -3,8 +3,8 @@
 // Copyright (c) 2024 Ricky Zhang
 ////////////////////////////////////////////////////////////////////////////////
 
+#include <GL/glew.h>
 #include "Buffers.h"
-#include "Utils.h"
 
 /**
 * Set up the vertex data and indices.  This variation requires that colors be embedded

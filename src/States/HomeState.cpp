@@ -1,8 +1,9 @@
+#include <algorithm>
+
 #include "UI.h"
 #include "GameEngine.h"
 #include "HomeState.h"
 #include "StateIdentifiers.h"
-#include <algorithm>
 
 using namespace ImGui;
 

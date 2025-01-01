@@ -1,10 +1,13 @@
 #include "AboutState.h"
+
 #include "GameEngine.h"
 #include "StateIdentifiers.h"
 #include "UI.h"
 
 using namespace ImGui;
 using namespace std;
+
+class GameEngine;
 
 void AboutState::init() {}
 void AboutState::cleanup() {}

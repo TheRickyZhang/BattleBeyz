@@ -1,7 +1,10 @@
-#include "ProfileManager.h"
-#include "json.hpp"
 #include <iostream>
 #include <fstream>
+#include <json.hpp>
+
+#include "ProfileManager.h"
+
+#include "Beyblade.h"
 
 using namespace std;
 using namespace nlohmann;
@@ -113,7 +116,7 @@ const vector<shared_ptr<Profile>>& ProfileManager::getAllProfiles() const {
     return profiles;
 }
 
-void ProfileManager::saveProfilesToFile(const std::string& filePath) {
+void ProfileManager::saveProfilesToFile(const string& filePath) {
     json js;
     for (const auto& profile : profiles) {
         js["profiles"].push_back(profile->toJson()); // Save all relevant profile details
@@ -121,30 +124,30 @@ void ProfileManager::saveProfilesToFile(const std::string& filePath) {
     if (activeProfileId.has_value()) {
         js["activeProfileId"] = activeProfileId.value();
     }
-    std::ofstream file(filePath);
+    ofstream file(filePath);
     if (file.is_open()) {
         file << js.dump(4); // Pretty print with 4 spaces
     }
 }
 
-void ProfileManager::loadProfilesFromFile(const std::string& filePath) {
-    std::ifstream file(filePath);
+void ProfileManager::loadProfilesFromFile(const string& filePath) {
+    ifstream file(filePath);
     if (file.is_open()) {
         json js;
         file >> js;
 
         for (const auto& profileJson : js["profiles"]) {
             // Extract profile details
-            std::string name = profileJson["name"];
+            string name = profileJson["name"];
             int id = profileJson["id"];
 
             // Use `addProfile` to add a pre-created profile to ensure proper initialization
-            auto profile = std::make_shared<Profile>(id, name);
+            auto profile = make_shared<Profile>(id, name);
             profile->fromJson(profileJson); // Populate the profile's details
 
             // Add the profile via your addProfile function
             if (!addProfile(profile)) {
-                std::cerr << "Error: Failed to add profile during load. Name: " << name << std::endl;
+                cerr << "Error: Failed to add profile during load. Name: " << name << endl;
             }
         }
 
@@ -153,4 +156,11 @@ void ProfileManager::loadProfilesFromFile(const std::string& filePath) {
             setActiveProfile(js["activeProfileId"]);
         }
     }
+}
+
+
+vector<shared_ptr<Profile>>::const_iterator ProfileManager::getProfileIterator(int profileId) const {
+    return find_if(profiles.begin(), profiles.end(), [&](const shared_ptr<Profile> &p) {
+        return p->getId() == profileId;
+    });
 }

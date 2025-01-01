@@ -5,14 +5,6 @@
 
 #pragma once
 
-// NOTE: This ordering is necessary to not have a glew inclusion error
-#include <GL/glew.h>
-#include <GLFW/glfw3.h>
-#include "imgui.h"
-#include "imgui_impl_glfw.h"
-#include "imgui_impl_opengl3.h"
-
-#include "Texture.h"
 #include <algorithm>
 #include <cmath>
 #include <vector>
@@ -20,6 +12,10 @@
 #include <stb_image.h>
 #include <functional>
 #include <utility>
+
+#include <GL/glew.h>
+#include <GLFW/glfw3.h>
+#include <imgui.h>
 
 const ImGuiWindowFlags MinimalWindow = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize; // No decorations, navigation, moving, or resizing
 const ImGuiWindowFlags OverlayWindow = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_AlwaysAutoResize; // No decorations, background, inputs; auto-resizes

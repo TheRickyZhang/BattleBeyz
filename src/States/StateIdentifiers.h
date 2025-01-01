@@ -1,4 +1,3 @@
-// StateIdentifiers.h
 #pragma once
 
 enum class GameStateType {

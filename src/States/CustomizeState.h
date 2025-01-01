@@ -1,13 +1,14 @@
 #pragma once
 
-#include "GameState.h"
-#include "GameEngine.h"
-#include "Profile.h"
-#include "Beyblade.h"
-#include "BeybladeBody.h"
 #include <vector>
 #include <memory>
 #include <string>
+
+#include "GameState.h"
+#include "BeybladeBody.h"
+
+class Profile;
+class Beyblade;
 
 class CustomizeState : public GameState {
 public:

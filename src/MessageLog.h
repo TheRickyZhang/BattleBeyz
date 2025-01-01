@@ -2,8 +2,8 @@
 
 #include <vector>
 #include <string>
+
 #include "GameMessage.h"
-#include "imgui.h"
 
 /*
 * Singleton

@@ -2,9 +2,8 @@
 
 #include <memory>
 #include "GameState.h"
-#include "StateIdentifiers.h"
 
-// Forward declaration of state classes
+// TODO: Forward declaration of state classes
 class HomeState;
 class ActiveState;
 class CustomizeState;

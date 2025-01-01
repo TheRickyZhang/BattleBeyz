@@ -5,9 +5,6 @@
 
 #pragma once
 
-#include "RandomDistribution.h"
-
-#include <glm/gtc/matrix_transform.hpp>
 #include <glm/glm.hpp>
 #include <random>
 

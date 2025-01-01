@@ -1,3 +1,5 @@
+#include <initializer_list>
+
 #include "InputUtils.h"
 
 std::unordered_map<int, Action> movementKeys = {

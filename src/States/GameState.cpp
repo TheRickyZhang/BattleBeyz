@@ -1,10 +1,15 @@
+#include <GL/glew.h>
+#include <GLFW/glfw3.h>
+#include <string>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <imgui.h>
 
 #include "GameState.h"
-#include "GameEngine.h"
 
 #include "ShaderProgram.h"
+#include "TextureManager.h"
+#include "QuadRenderer.h"
 
 void GameState::renderBackground(GameEngine* game, const std::string& textureName) {
     auto backgroundShader = game->backgroundShader;

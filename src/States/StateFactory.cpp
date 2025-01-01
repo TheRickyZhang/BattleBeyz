@@ -1,4 +1,6 @@
 #include "StateFactory.h"
+#include "StateIdentifiers.h"
+
 #include "HomeState.h"
 #include "ActiveState.h"
 #include "CustomizeState.h"

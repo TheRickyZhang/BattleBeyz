@@ -5,14 +5,15 @@
 
 #pragma once
 
-#include "BeybladeParts.h"
-#include "BoundingBox.h"
-#include <glm/gtc/matrix_transform.hpp>
+#include <vector>
 #include <glm/glm.hpp>
-#include <glm/gtx/vector_angle.hpp>
+
+#include "BoundingBox.h"
 
 #include "Units.h"
 using namespace Units;
+
+class BoundingBox;
 /**
  * StadiumBody. Contains all of the physical properties of a Stadium.
  * 

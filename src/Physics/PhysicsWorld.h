@@ -14,8 +14,6 @@
 #include "Beyblade.h"
 #include "Stadium.h"
 
-#include "Units.h"
-using namespace Units;
 
 class GameEngine;
 class ShaderProgram;

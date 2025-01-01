@@ -1,6 +1,6 @@
-#include "UI.h"
-#include "GameEngine.h"
 #include "LoadingState.h"
+#include "GameEngine.h"
+#include "UI.h"
 
 using namespace ImGui;
 
