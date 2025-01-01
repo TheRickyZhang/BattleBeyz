@@ -61,7 +61,6 @@ int main() {
 
     Beyblade* beyblade1 = engine.pm.getActiveProfile()->getBeyblade(1).get();
     Beyblade* beyblade2 = engine.pm.getActiveProfile()->getBeyblade(2).get();
-
     // Add beys
     physicsWorld->addBeyblade(beyblade1);
     physicsWorld->addBeyblade(beyblade2);
@@ -70,7 +69,6 @@ int main() {
     glm::vec3 initialVelocity1 = glm::vec3(0.0f, 0.0f, -0.1f);
     glm::vec3 initialVelocity2 = glm::vec3(0.0f, 0.0f, 0.1f);
     glm::vec3 initialAngularVelocity = glm::vec3(0.0f, -450.0f, 0.0f);
-
     beyblade1->getRigidBody()->setInitialLaunch(initialPosition1, initialVelocity1, initialAngularVelocity);
     beyblade2->getRigidBody()->setInitialLaunch(initialPosition2, initialVelocity2, initialAngularVelocity);
 

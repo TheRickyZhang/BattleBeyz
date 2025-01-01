@@ -1,6 +1,7 @@
 #include "AboutState.h"
 
 #include "GameEngine.h"
+#include "FontManager.h"
 #include "StateIdentifiers.h"
 #include "UI.h"
 
@@ -24,7 +25,7 @@ void AboutState::draw() {
     float windowWidth = static_cast<float>(game->windowWidth);
 
     // Title Section
-    PushFont(game->titleFont);
+    PushFont(game->fm.getFont("title"));
     centerWrappedText(windowWidth/2, wrapWidth, "About BattleBeyz");
     PopFont();
 

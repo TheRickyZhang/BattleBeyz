@@ -18,13 +18,15 @@ class GameState;
 class ShaderProgram;
 class PhysicsWorld;
 class Camera;
+class MessageLog;
+class Timer;
+
+class FontManager;
+class InputManager;
+class ProfileManager;
+class TextureManager;
 class QuadRenderer;
 class TextRenderer;
-class TextureManager;
-class ProfileManager;
-class MessageLog;
-class InputManager;
-class Timer;
 
 class GameEngine {
 public:
@@ -73,11 +75,6 @@ public:
 
     ImGuiIO& io;
 
-    // TODO: Modify to a <string, ImFont*> map
-    ImFont* defaultFont{};
-    ImFont* titleFont{};
-    ImFont* attackFont{};
-
     glm::mat4 model{};
     glm::mat4 view{};
     glm::mat4 projection{};
@@ -98,11 +95,12 @@ public:
     float prevTime{};
     float deltaTime{};
 
-    // Singleton Managers
-    TextureManager& tm;     // Textures
-    ProfileManager& pm;     // Profiles (and corresponding data)
+    // Singleton Managers   
+    FontManager& fm;        // ImGui fonts
     InputManager& im;       // Key/Mouse Input
     MessageLog& ml;         // Message Logging
+    ProfileManager& pm;     // Profiles (and corresponding data)
+    TextureManager& tm;     // Textures
 
     // INI handling
     mINI::INIFile* iniFile{};

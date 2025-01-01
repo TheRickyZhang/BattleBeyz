@@ -62,6 +62,7 @@ include_directories(${PROJECT_SOURCE_DIR}/src/Rendering)
 include_directories(${PROJECT_SOURCE_DIR}/src/RigidBodies)
 include_directories(${PROJECT_SOURCE_DIR}/src/States)
 include_directories(${PROJECT_SOURCE_DIR}/src/Config)
+include_directories(${PROJECT_SOURCE_DIR}/src/UI)
 
 # Add Source and Header Files
 file(GLOB_RECURSE HEADER_FILES "src/*.h" "assets/*.h")

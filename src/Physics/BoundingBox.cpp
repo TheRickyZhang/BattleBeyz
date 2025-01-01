@@ -16,17 +16,13 @@ using namespace std;
 * Constructor.
 */
 BoundingBox::BoundingBox() :
-    min(glm::vec3(1e6)), max(glm::vec3(-1e6))
+    min(glm::vec3(1e6)), max(glm::vec3(-1e6)), VAO(0), VBO(0), EBO(0)
 {
-    // 2024-12-03 CAUTION: You must initialize the bounds.  The values set here
-    // allow you to immediately check for min/max values of the object that
-    // you are bounding.
-
     setupBoundingBoxBuffers();
 }
 
 BoundingBox::BoundingBox(const glm::vec3& min, const glm::vec3& max)
-        : min(min), max(max) {
+        : min(min), max(max), VAO(0), VBO(0), EBO(0) {
     setupBoundingBoxBuffers();
 }
 
@@ -181,8 +177,18 @@ void BoundingBox::renderDebug(ShaderProgram &shader, const glm::vec3& bodyPositi
 /**
 * Set up glfw vertex data.
 */
+#include <GLFW/glfw3.h>
 
 void BoundingBox::setupBoundingBoxBuffers() {
+    if (!glfwGetCurrentContext()) {
+        std::cerr << "No current OpenGL context!" << std::endl;
+    }
+
+
+    glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &VBO);
+    glGenBuffers(1, &EBO);
+
     // TODO: You need to set this to 1 to align the stadium data, but then it is statdium-specific.
     // Instead, the renderer needs to know the position of it's parent.
     float offset = 0.0f;
@@ -220,6 +226,9 @@ void BoundingBox::setupBoundingBoxBuffers() {
         std::cerr << "No current OpenGL context!" << std::endl;
     }
 #endif
+    if (VAO == 0 || VBO == 0 || EBO == 0) {
+        std::cerr << "Failed to initialize VAO, VBO, or EBO in BoundingBox!" << std::endl;
+    }
     // TOLOOK: Commenting out this code (224-227) causes a crash (probably occured before, openGL errors)
     //showGLErrors("BoundingBox::setupBoundingBoxBuffers");
     setupBuffers(VAO, VBO, EBO, vertices, sizeof(vertices), indices, sizeof(indices), {3, 3, 2, 3});

@@ -1,4 +1,5 @@
 #include <iostream>
+#include <exception>
 
 #include <GL/glew.h>
 #include <imgui.h>
@@ -16,26 +17,32 @@
 #include "TextRenderer.h"
 #include "TextureManager.h"
 #include "ProfileManager.h"
+#include "FontManager.h"
 #include "MessageLog.h"
 #include "InputManager.h"
 #include "Timer.h"
 #include "ShaderProgram.h"
+#include "UI.h"
+#include "ImGuiUtils.h"
 
+using namespace std;
 
 // Constructor with default values
 GameEngine::GameEngine()
     : window(nullptr),
     isRunning(false),
     // Need to initialize these as references from constructor, as opposed to init()
+    io(ImGui::GetIO()),
     tm(TextureManager::getInstance()),
     pm(ProfileManager::getInstance()),
     ml(MessageLog::getInstance()),
     im(InputManager::getInstance()),
-    io(ImGui::GetIO()) 
+    fm(FontManager::getInstance())
 {
     (void)io;
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
     ImGui::StyleColorsDark();
+    std::cout << "HERE" << std::endl;
 }
 
 
@@ -109,20 +116,40 @@ bool GameEngine::init(const char* title, int width, int height) {
     glfwSetWindowUserPointer(window, this);
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 
-    // Setup ImGui context
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-    io = ImGui::GetIO(); (void)io;
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+    // Catch any errors from file importing, returning a blue screen of informational death if failing
+    //pm.addDefaultProfiles();
+    try {
+        pm.loadProfilesFromFile(PROFILE_SAVE_PATH);
+        setupImGui(window);
+    }
+    catch (const nlohmann::json::exception& e) {
+        // Add critical error messages to the message log
+        ml.addMessage("Critical error during initialization: " + std::string(e.what()), MessageType::ERROR);
+        ml.addMessage("Please investigate the issue, and reach out to the contact email for further support");
 
-    // Initialize ImGui fonts
-    defaultFont = io.Fonts->AddFontFromFileTTF(DEFAULT_FONT_PATH, 24.0f);
-    titleFont = io.Fonts->AddFontFromFileTTF(TITLE_FONT_PATH, 48.0f);
-    attackFont = io.Fonts->AddFontFromFileTTF(ATTACK_FONT_PATH, 128.0f);
-    io.Fonts->Build();
-    ImGui::StyleColorsDark();
-    ImGui_ImplGlfw_InitForOpenGL(window, true);
-    ImGui_ImplOpenGL3_Init("#version 330");
+        // Enter error handling loop
+        while (!glfwWindowShouldClose(window)) {
+            glfwPollEvents();
+            ImGui_ImplOpenGL3_NewFrame();
+            ImGui_ImplGlfw_NewFrame();
+            ImGui::NewFrame();
+
+            ml.render();
+
+            ImGui::Render();
+            ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+            glfwSwapBuffers(window);
+        }
+    }
+    catch (exception& e) {
+        cerr << "Exception: " << e.what() << endl;
+    }
+    catch (...) {
+        cerr << "An unknown error occurred during initialization." << endl;
+    }
+
+
+    fm.loadDefaultFonts();
 
     physicsWorld = new PhysicsWorld();
 
@@ -157,11 +184,8 @@ bool GameEngine::init(const char* title, int width, int height) {
     tm.loadTexture("stadium", "./assets/textures/Hexagon.jpg");
     tm.loadTexture("floor", "./assets/textures/Wood1.jpg");
 
-    // Set default profile at first (Needed in order to not crash)
-    pm.addDefaultProfiles();
-
     /**
-    * Various callbacks for inputManager
+    * Various callbacks for inputManager. Important to forward to ImGui if needed!
     *
     * @param window                 [in] The parent window.
     *
@@ -182,8 +206,6 @@ bool GameEngine::init(const char* title, int width, int height) {
         }
     });
     glfwSetMouseButtonCallback(window, [](GLFWwindow* window, int button, int action, int mods) {
-        //std::cout << "DBG Click" << std::endl;
-        // Forward to ImGui if needed
         ImGui_ImplGlfw_MouseButtonCallback(window, button, action, mods);
         if (ImGui::GetIO().WantCaptureMouse) {
             return;
@@ -196,8 +218,6 @@ bool GameEngine::init(const char* title, int width, int height) {
         }
     });
     glfwSetCursorPosCallback(window, [](GLFWwindow* window, double xpos, double ypos) {
-        //std::cout << "DBG Move" << std::endl;
-        // Forward to ImGui if needed
         ImGui_ImplGlfw_CursorPosCallback(window, xpos, ypos);
         if (ImGui::GetIO().WantCaptureMouse) return;
 
@@ -207,7 +227,6 @@ bool GameEngine::init(const char* title, int width, int height) {
         }
     });
     glfwSetScrollCallback(window, [](GLFWwindow* window, double xoffset, double yoffset) {
-        // Forward to ImGui if needed
         ImGui_ImplGlfw_ScrollCallback(window, xoffset, yoffset);
         if (ImGui::GetIO().WantCaptureMouse) return;
 
@@ -373,6 +392,23 @@ void GameEngine::draw() {
 }
 
 void GameEngine::cleanup() {
+    // Save current state
+    try {
+        ImGui::SaveIniSettingsToDisk(IMGUI_SAVE_PATH);
+        pm.saveProfilesToFile(PROFILE_SAVE_PATH);
+        ml.save(MESSAGE_LOG_SAVE_DIR);
+    }
+    catch (const nlohmann::json::exception& e) {
+        ml.addMessage("Error saving json: " + std::string(e.what()), MessageType::ERROR);
+        ml.addMessage("Please investigate the issue, and reach out to the contact email for further support");
+    }
+    catch (exception& e) {
+        cerr << "Exception: " << e.what() << endl;
+    }
+    catch (...) {
+        cerr << "An unknown error occurred during cleanup." << endl;
+    }
+
     // Clean up all states in the stack
     while (!stateStack.empty()) {
         stateStack.back()->cleanup();

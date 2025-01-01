@@ -9,6 +9,7 @@
 #define NOMINMAX
 #include <windows.h>
 #include <shellapi.h>
+#include <filesystem>
 #include <iostream>
 
 #include "UI.h"
@@ -17,11 +18,12 @@
 using namespace std;
 using namespace ImGui;
 
+
 // Centers and wraps text in CURRENT IMGUI window.
-void centerWrappedText(float centerX, float wrapWidth, const std::string& text)
+void centerWrappedText(float centerX, float wrapWidth, const string& text)
 {
-    std::istringstream iss(text);
-    std::string word, line;
+    istringstream iss(text);
+    string word, line;
     while (iss >> word)
     {
         float lineWidth = ImGui::CalcTextSize((line + (line.empty() ? "" : " ") + word).c_str()).x;
@@ -133,15 +135,15 @@ void centerColoredText(float windowCenterX, const ImVec4& color, const char* tex
     TextColored(color, "%s", text);
 }
 
-void DrawDiscreteFloatControl(const char* parameterText, float maxTextSize, const char* prefix, float& value, float minVal, float maxVal, float step, float stepFast, const char* format, std::function<void()> onModified) {
+void DrawDiscreteFloatControl(const char* parameterText, float maxTextSize, const char* prefix, float& value, float minVal, float maxVal, float step, float stepFast, const char* format, function<void()> onModified) {
     float spacing = GetStyle().ItemSpacing.x, padding = GetStyle().WindowPadding.x;
     float availableWidth = GetContentRegionAvail().x - maxTextSize - 2 * padding - 2 * spacing;
     float sliderWidth = availableWidth * 0.65f;
     float inputWidth = availableWidth * 0.35f;
 
     // Unique identifier from parameter text
-    std::string sliderLabel = std::string("##slider_") + prefix + parameterText;
-    std::string inputLabel = std::string("##input_") + prefix + parameterText;
+    string sliderLabel = string("##slider_") + prefix + parameterText;
+    string inputLabel = string("##input_") + prefix + parameterText;
 
     // [--Label--|------Slider------|--Input--]
     BeginGroup();
@@ -161,7 +163,7 @@ void DrawDiscreteFloatControl(const char* parameterText, float maxTextSize, cons
 
     PushItemWidth(inputWidth);
     if (InputFloat(inputLabel.c_str(), &value, step, stepFast, format, ImGuiInputTextFlags_CharsDecimal)) {
-        value = std::clamp(value, minVal, maxVal);
+        value = clamp(value, minVal, maxVal);
         discrete = floatToDiscreteInt(value, minVal, maxVal);
         onModified();
     }
@@ -171,7 +173,7 @@ void DrawDiscreteFloatControl(const char* parameterText, float maxTextSize, cons
 }
 
 
-float getMaxWidth(const std::vector<std::string>& text) {
+float getMaxWidth(const vector<string>& text) {
     float maxWidth = 0.0f;
     for (int i = 0; i < text.size(); i++) {
         ImVec2 textSize = CalcTextSize(text[i].c_str());

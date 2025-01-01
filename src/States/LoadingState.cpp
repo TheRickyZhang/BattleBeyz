@@ -1,5 +1,8 @@
 #include "LoadingState.h"
+
 #include "GameEngine.h"
+#include "FontManager.h"
+
 #include "UI.h"
 
 using namespace ImGui;
@@ -30,7 +33,7 @@ void LoadingState::draw() {
 
     Begin("Loading Screen", nullptr, MinimalWindow);
 
-    PushFont(game->titleFont);
+    PushFont(game->fm.getFont("title"));
     centerWrappedText(centerX, wrapWidth, "Loading...");
     PopFont();
 

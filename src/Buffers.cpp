@@ -12,7 +12,8 @@
 * 
 * Refer to OpenGL documentation for detailed descriptions of the various objects.
 * 
-* @param VAO                    [in] OpenGL Vertex Array Object
+* @param 
+[in] OpenGL Vertex Array Object
 * 
 * @param VBO                    [in] OpenGL Vertex Buffer Object.
 * 

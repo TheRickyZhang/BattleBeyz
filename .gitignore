@@ -1,8 +1,6 @@
 # Exclude build directories and system-specific files
 **/build/
 **/.vs/
-**/src-old/
-legacycode.cpp
 
 # Exclude CMake-generated files
 CMakeCache.txt
@@ -18,12 +16,12 @@ ZERO_CHECK*
 ALL_BUILD*
 INSTALL*
 
-# Exclude IDE/editor-specific directories
+# IDE/editor-specific directories
 .idea/
 .vscode/
 .vs/
 
-# Exclude temporary and backup files
+# Temporary and backup files
 *.out
 *.log
 *.tmp
@@ -31,12 +29,11 @@ INSTALL*
 *.swp
 *.swo
 
-# Exclude output binaries and debug directories
+# Output directories
 docs/
+logs/
 out/
-Debug/
-x64/
 
-# Exclude OS-specific system files
+# OS-specific system files
 Thumbs.db
 .DS_Store

@@ -7,7 +7,7 @@
 enum Action {
     MoveForward, MoveBackward, MoveLeft, MoveRight, MoveUp, MoveDown
 };
-extern std::unordered_map<int, Action> movementKeys;
+extern std::unordered_map<int, Action> movementKeys; // TOLOOK: use of extern
 
 struct KeyCombination {
     int primaryKey;

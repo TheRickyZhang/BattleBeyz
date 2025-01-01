@@ -1,6 +1,9 @@
 #pragma once
 
+#include <array>
 #include <string>
+#include <stdexcept>
+
 #include <imgui.h>
 
 enum class MessageType {
@@ -10,6 +13,12 @@ enum class MessageType {
     SUCCESS
 };
 
+static const std::array<std::string, 4> typeStrings = {
+    "NORMAL",
+    "ERROR",
+    "WARNING",
+    "SUCCESS"
+};
 
 struct GameMessage {
     std::string text;
@@ -18,6 +27,12 @@ struct GameMessage {
 
     GameMessage(const std::string& message, MessageType messageType)
         : text(message), type(messageType), color(getDefaultColor(messageType)) {}
+
+    std::string getTypeString() const {
+        size_t index = static_cast<size_t>(type);
+        if (index >= typeStrings.size()) throw std::out_of_range("Invalid MessageType index");
+        return typeStrings[index];
+    }
 
 private:
     static ImVec4 getDefaultColor(MessageType messageType) {

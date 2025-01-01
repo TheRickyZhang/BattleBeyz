@@ -13,6 +13,7 @@
 #include "RigidBody.h"
 #include "RigidBodies/BeybladeBody.h"
 #include "ShaderProgram.h"
+#include "MessageLog.h"
 
 #include "Texture.h"
 #include "Utils.h"
