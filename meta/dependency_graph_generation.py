@@ -134,7 +134,7 @@ def file_label(path):
 
 def visualize_graph():
     """
-    Visualize the dependency graph, ensuring no duplicate nodes by using canonical paths.
+    Visualize the dependency graph with highlighting and proper rendering of no-edge nodes.
     """
     print("Visualizing dependency graph...")
 
@@ -161,10 +161,32 @@ def visualize_graph():
     for file in all_nodes:
         graph.add_node(file, label=file_label(file))
 
-    # Add edges for dependencies
+    # Add edges for dependencies and count incoming/outgoing edges
+    incoming_counts = {file: 0 for file in all_nodes}
+    outgoing_counts = {file: 0 for file in all_nodes}
+
     for file, dependencies in dependency_graph.items():
         for dep in dependencies:
             graph.add_edge(file, dep)
+            incoming_counts[dep] += 1
+            outgoing_counts[file] += 1
+
+    # Highlight nodes with 3+ incoming/outgoing edges
+    for file in all_nodes:
+        node = graph.get_node(file)
+        if incoming_counts[file] >= 3:
+            node.attr["fillcolor"] = "yellow"
+            node.attr["style"] = "filled"
+        if outgoing_counts[file] >= 3:
+            node.attr["fillcolor"] = "lightgreen"
+            node.attr["style"] = "filled"
+
+    # Ensure all no-edge nodes are rendered at the bottom
+    no_edge_nodes = [file for file in all_nodes if incoming_counts[file] == 0 and outgoing_counts[file] == 0]
+    if no_edge_nodes:
+        bottom_rank = graph.subgraph(name="cluster_no_edges", rank="same", label="No Edges", style="invis")
+        for file in no_edge_nodes:
+            bottom_rank.add_node(file)
 
     # Highlight nodes included by main.cpp
     for included_file in main_includes:
@@ -176,6 +198,7 @@ def visualize_graph():
     # Write to the DOT file
     graph.write(OUTPUT_GRAPH)
     print(f"Dependency graph saved to {OUTPUT_GRAPH}")
+
 
 if __name__ == "__main__":
     build_graph()
