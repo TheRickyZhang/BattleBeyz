@@ -17,7 +17,7 @@ Config.set_library_file(r"C:\Program Files\LLVM\bin\libclang.dll")
 SRC_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../src"))
 OUTPUT_GRAPH = os.path.join(os.path.dirname(__file__), "dependencies.dot")
 
-# Logical grouping of headers into clusters (use only folder names)
+# Logical grouping (unused now, but left for reference)
 logical_groups = {
     "Camera":     "Camera",
     "Config":     "Config",
@@ -30,31 +30,70 @@ logical_groups = {
     "UI":         "UI",
 }
 
-# Dependency graph
 dependency_graph = {}
-main_includes = set()  # Store files included by main.cpp
-
+main_includes = set()
 
 def get_files_by_folder(groups, src_dir):
-    """
-    Automatically gather .h files for each folder in logical_groups.
-    """
     grouped_files = {key: [] for key in groups.keys()}
+    file_to_groups = {}
+
     for root, _, files in os.walk(src_dir):
         for file in files:
             if file.endswith(".h"):
                 rel_path = os.path.relpath(os.path.join(root, file), src_dir).replace("\\", "/")
                 for group_name, folder in groups.items():
                     if rel_path.startswith(folder + "/"):
-                        grouped_files[group_name].append(rel_path)
-                        break
+                        if rel_path not in file_to_groups:
+                            file_to_groups[rel_path] = set()
+                        file_to_groups[rel_path].add(group_name)
+
+                        if rel_path not in grouped_files[group_name]:
+                            grouped_files[group_name].append(rel_path)
+
+    for file, groups_set in file_to_groups.items():
+        if len(groups_set) > 1:
+            print(f"File '{file}' belongs to multiple groups: {', '.join(groups_set)}")
+
     return grouped_files
 
+# Define all include directories from your build system
+INCLUDE_DIRS = [
+    os.path.abspath(os.path.join(SRC_DIR, "..", "assets")),
+    SRC_DIR,
+    os.path.abspath(os.path.join(SRC_DIR, "Camera")),
+    os.path.abspath(os.path.join(SRC_DIR, "GameObjects")),
+    os.path.abspath(os.path.join(SRC_DIR, "MeshObjects")),
+    os.path.abspath(os.path.join(SRC_DIR, "mini")),
+    os.path.abspath(os.path.join(SRC_DIR, "Physics")),
+    os.path.abspath(os.path.join(SRC_DIR, "Physics", "Units")),
+    os.path.abspath(os.path.join(SRC_DIR, "Rendering")),
+    os.path.abspath(os.path.join(SRC_DIR, "RigidBodies")),
+    os.path.abspath(os.path.join(SRC_DIR, "States")),
+    os.path.abspath(os.path.join(SRC_DIR, "Config")),
+    os.path.abspath(os.path.join(SRC_DIR, "UI")),
+]
+
+def resolve_include(include_path, current_file):
+    """
+    Resolve an #include path to its canonical absolute path using INCLUDE_DIRS.
+    Tries each include directory in order and returns the first match.
+    """
+    for include_dir in INCLUDE_DIRS:
+        candidate_abs = os.path.abspath(os.path.join(include_dir, include_path))
+        if os.path.exists(candidate_abs):
+            return os.path.normpath(candidate_abs)
+
+    # Fall back to resolving relative to the current file's directory
+    candidate_abs = os.path.abspath(os.path.join(os.path.dirname(current_file), include_path))
+    if os.path.exists(candidate_abs):
+        return os.path.normpath(candidate_abs)
+
+    return None  # Return None if the file cannot be resolved
 
 def parse_file(file_path):
     """
-    Parse a file and collect all #include dependencies that exist within SRC_DIR.
-    Ensures every included file is normalized to the same canonical path.
+    Parse a file and collect all #include dependencies.
+    Resolves each include using resolve_include().
     """
     includes = set()
     try:
@@ -63,179 +102,80 @@ def parse_file(file_path):
                 match = re.match(r'#include\s+"(.+)"', line)
                 if match:
                     inc = match.group(1).replace("\\", "/")
-
-                    # 1) Try building from SRC_DIR so "ActiveState.h"
-                    #    becomes "States/ActiveState.h" if it physically lives there.
-                    candidate_abs = os.path.abspath(os.path.join(SRC_DIR, inc))
-
-                    # 2) If that exact path doesn't exist, fallback to local dir.
-                    if not os.path.exists(candidate_abs):
-                        candidate_abs = os.path.abspath(
-                            os.path.join(os.path.dirname(file_path), inc)
-                        )
-
-                    # 3) If still under SRC_DIR, convert to rel path
-                    if candidate_abs.startswith(SRC_DIR):
-                        rel_path = os.path.relpath(candidate_abs, SRC_DIR).replace("\\", "/")
-                        includes.add(rel_path)
-
+                    resolved_path = resolve_include(inc, file_path)
+                    if resolved_path:
+                        includes.add(resolved_path)
     except Exception as e:
         print(f"Error reading {file_path}: {e}")
     return includes
 
 def build_graph():
     """
-    Build the dependency graph by parsing all header files in SRC_DIR
-    and store files included by main.cpp separately.
+    Build the dependency graph, using canonical paths for uniqueness.
     """
     global main_includes
     for root, _, files in os.walk(SRC_DIR):
         for file in files:
-            file_path = os.path.join(root, file)
-            rel_path = os.path.relpath(file_path, SRC_DIR).replace("\\", "/")
-
+            file_path = os.path.abspath(os.path.join(root, file))
             if file.endswith(".h"):
-                dependency_graph[rel_path] = parse_file(file_path)
-            elif rel_path == "main.cpp":
-                main_includes = parse_file(file_path)  # Store includes for main.cpp
+                canonical_path = os.path.normpath(file_path)
+                dependency_graph[canonical_path] = parse_file(file_path)
+            elif os.path.basename(file_path) == "main.cpp":
+                main_includes = parse_file(file_path)
+
+# Visualization logic remains unchanged
 
 
 def file_label(path):
-    return path.split("/")[-1]
-
-
-def topological_sort(graph):
     """
-    Kahn's algorithm for topological sorting.
+    Create a display label using only the file name.
     """
-    all_files = set(graph.keys())
-    for deps in graph.values():
-        all_files.update(deps)
-
-    in_degree = {f: 0 for f in all_files}
-    for node, deps in graph.items():
-        for d in deps:
-            in_degree[d] += 1
-
-    queue = [n for n in in_degree if in_degree[n] == 0]
-    sorted_nodes = []
-    while queue:
-        node = queue.pop(0)
-        sorted_nodes.append(node)
-        if node in graph:
-            for d in graph[node]:
-                in_degree[d] -= 1
-                if in_degree[d] == 0:
-                    queue.append(d)
-
-    # Append any cycles or leftover
-    for f in in_degree:
-        if in_degree[f] > 0 and f not in sorted_nodes:
-            sorted_nodes.append(f)
-
-    return sorted_nodes
-
+    return os.path.basename(path)
 
 def visualize_graph():
+    """
+    Visualize the dependency graph, ensuring no duplicate nodes by using canonical paths.
+    """
     print("Visualizing dependency graph...")
 
-    # Build a mapping of folder->files but don't add nodes yet
-    grouped_files = get_files_by_folder(logical_groups, SRC_DIR)
-
-    # Gather all nodes (files + dependencies)
+    # Flatten the graph to include all unique nodes
     all_nodes = set(dependency_graph.keys())
     for deps in dependency_graph.values():
         all_nodes.update(deps)
 
-    sorted_nodes = topological_sort(dependency_graph)
-
-    # Initialize the main graph
-    graph = pgv.AGraph(strict=True, directed=True)
+    # Create the graph
+    graph = pgv.AGraph(directed=True, strict=True)  # strict=True ensures no duplicate edges
     graph.graph_attr.update({
-        "rankdir": "TB",  # Top-to-bottom layout
+        "rankdir": "TB",
         "splines": "true",
-        "size": "10,8!",
-        "pack": "true",
-        "packmode": "clust",
     })
     graph.node_attr.update({
         "shape": "rect",
         "fontsize": "8",
     })
     graph.edge_attr.update({
-        "len": "0.3",
         "arrowsize": "0.4",
     })
 
-    # Create subgraphs for each folder
-    subgraphs = {}
-    for group_name in sorted(grouped_files.keys()):
-        subg = graph.subgraph(name=f"cluster_{group_name}", label=group_name)
-        subg.graph_attr.update({"style": "rounded", "rankdir": "TB"})
-        subgraphs[group_name] = subg
+    # Add all nodes using their canonical paths, but display only the file name
+    for file in all_nodes:
+        graph.add_node(file, label=file_label(file))
 
-    # Keep track of added nodes
-    nodes_in_subgraphs = set()
-
-    # --- Add nodes and edges ---
-    for file in sorted_nodes:
-        dependencies = dependency_graph.get(file, set())
-
-        # Add the file to the correct subgraph
-        placed_in_subgraph = False
-        for group_name, folder_subg in subgraphs.items():
-            if file.startswith(logical_groups[group_name] + "/"):
-                if file not in nodes_in_subgraphs:
-                    folder_subg.add_node(file, label=file_label(file))
-                    nodes_in_subgraphs.add(file)
-                placed_in_subgraph = True
-                break
-
-        # If the file does not belong to any subgraph, add it to the main graph
-        if not placed_in_subgraph and file not in nodes_in_subgraphs:
-            graph.add_node(file, label=file_label(file))
-            nodes_in_subgraphs.add(file)  # Still track it
-
-        # Add dependencies as edges
+    # Add edges for dependencies
+    for file, dependencies in dependency_graph.items():
         for dep in dependencies:
-            # Add the dependency to the correct subgraph or the main graph
-            dep_placed_in_subgraph = False
-            for group_name, folder_subg in subgraphs.items():
-                if dep.startswith(logical_groups[group_name] + "/"):
-                    if dep not in nodes_in_subgraphs:
-                        folder_subg.add_node(dep, label=file_label(dep))
-                        nodes_in_subgraphs.add(dep)
-                    dep_placed_in_subgraph = True
-                    break
-
-            # If dependency does not belong to any subgraph, add it to the main graph
-            if not dep_placed_in_subgraph and dep not in nodes_in_subgraphs:
-                graph.add_node(dep, label=file_label(dep))
-                nodes_in_subgraphs.add(dep)
-
-            # Add the edge
             graph.add_edge(file, dep)
 
-    # Highlight nodes included by main.cpp (now all nodes are properly in subgraphs or main graph)
+    # Highlight nodes included by main.cpp
     for included_file in main_includes:
-        # Highlight the node only if it exists in nodes_in_subgraphs (ensured now)
-        if included_file in nodes_in_subgraphs:
-            n = graph.get_node(included_file)
-            n.attr["shape"] = "rect"
-            n.attr["style"] = "bold, filled"
-            n.attr["fillcolor"] = "cyan"
+        if included_file in all_nodes:
+            node = graph.get_node(included_file)
+            node.attr["style"] = "bold, filled"
+            node.attr["fillcolor"] = "cyan"
 
-    # Place the legend explicitly in the top-left corner
-    legend = graph.subgraph(name="cluster_legend", label="Legend", style="filled, rounded", color="lightgrey")
-    legend.graph_attr.update({"rank": "source"})  # Ensure it stays at the top
-    legend.add_node("legend_incoming", label="3+ Incoming Edges", shape="rect", fillcolor="yellow", style="filled")
-    legend.add_node("legend_outgoing", label="3+ Outgoing Edges", shape="rect", fillcolor="lightgreen", style="filled")
-    legend.add_node("legend_main_includes", label="Included by main.cpp", shape="rect", fillcolor="cyan", style="bold,filled")
-
-    # Write the graph to a .dot file
+    # Write to the DOT file
     graph.write(OUTPUT_GRAPH)
     print(f"Dependency graph saved to {OUTPUT_GRAPH}")
-
 
 if __name__ == "__main__":
     build_graph()
