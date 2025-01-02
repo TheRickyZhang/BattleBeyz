@@ -1,0 +1,216 @@
+strict digraph "" {
+	graph [pack=true,
+		packmode=clust,
+		rankdir=TB,
+		size="10,8!",
+		splines=true
+	];
+	node [fontsize=8,
+		label="\N",
+		shape=rect
+	];
+	edge [arrowsize=0.4,
+		len=0.3
+	];
+	subgraph cluster_Camera {
+		graph [label=Camera,
+			rankdir=TB,
+			style=rounded
+		];
+		"Camera/Camera.h"	[label="Camera.h"];
+		"Camera/BoundingBox.h"	[label="BoundingBox.h"];
+	}
+	subgraph cluster_Config {
+		graph [label=Config,
+			rankdir=TB,
+			style=rounded
+		];
+		"Config/BeybladeTemplatePath.h"	[label="BeybladeTemplatePath.h"];
+		"Config/BeybladeTemplate.h"	[label="BeybladeTemplate.h"];
+		"Config/BeybladeConstants.h"	[label="BeybladeConstants.h"];
+		"Config/ShaderPath.h"	[label="ShaderPath.h"];
+	}
+	subgraph cluster_GameObjects {
+		graph [label=GameObjects,
+			rankdir=TB,
+			style=rounded
+		];
+		"GameObjects/Beyblade.h"	[label="Beyblade.h"];
+		"GameObjects/BeybladeTemplate.h"	[label="BeybladeTemplate.h"];
+		"GameObjects/json.hpp"	[label="json.hpp"];
+		"GameObjects/BeybladeBody.h"	[label="BeybladeBody.h"];
+		"GameObjects/BeybladeMesh.h"	[label="BeybladeMesh.h"];
+		"GameObjects/GameObject.h"	[label="GameObject.h"];
+		"GameObjects/Stadium.h"	[label="Stadium.h"];
+		"GameObjects/StadiumMesh.h"	[label="StadiumMesh.h"];
+		"GameObjects/StadiumBody.h"	[label="StadiumBody.h"];
+	}
+	subgraph cluster_MeshObjects {
+		graph [label=MeshObjects,
+			rankdir=TB,
+			style=rounded
+		];
+		"MeshObjects/BeybladeMesh.h"	[fillcolor=cyan,
+			label="BeybladeMesh.h",
+			style="bold, filled"];
+		"MeshObjects/BoundingBox.h"	[label="BoundingBox.h"];
+		"MeshObjects/StadiumMesh.h"	[fillcolor=cyan,
+			label="StadiumMesh.h",
+			style="bold, filled"];
+		"MeshObjects/Texture.h"	[label="Texture.h"];
+	}
+	subgraph cluster_Physics {
+		graph [label=Physics,
+			rankdir=TB,
+			style=rounded
+		];
+		"Physics/RigidBody.h"	[label="RigidBody.h"];
+		"Physics/BoundingBox.h"	[label="BoundingBox.h"];
+		"Physics/PhysicsWorld.h"	[label="PhysicsWorld.h"];
+		"Physics/Stadium.h"	[label="Stadium.h"];
+		"Physics/Beyblade.h"	[label="Beyblade.h"];
+		"Physics/Physics.h"	[label="Physics.h"];
+		"Physics/Units/Units.h"	[label="Units.h"];
+		"Physics/Units/Units.tpp"	[label="Units.tpp"];
+		"Physics/Units.h"	[label="Units.h"];
+	}
+	subgraph cluster_Rendering {
+		graph [label=Rendering,
+			rankdir=TB,
+			style=rounded
+		];
+		"Rendering/TextureManager.h"	[label="TextureManager.h"];
+		"Rendering/Texture.h"	[label="Texture.h"];
+		"Rendering/QuadRenderer.h"	[label="QuadRenderer.h"];
+		"Rendering/ShaderProgram.h"	[label="ShaderProgram.h"];
+		"Rendering/TextRenderer.h"	[label="TextRenderer.h"];
+	}
+	subgraph cluster_RigidBodies {
+		graph [label=RigidBodies,
+			rankdir=TB,
+			style=rounded
+		];
+		"RigidBodies/BeybladeBody.h"	[fillcolor=cyan,
+			label="BeybladeBody.h",
+			style="bold, filled"];
+		"RigidBodies/BeybladeParts.h"	[fillcolor=cyan,
+			label="BeybladeParts.h",
+			style="bold, filled"];
+		"RigidBodies/StadiumBody.h"	[fillcolor=cyan,
+			label="StadiumBody.h",
+			style="bold, filled"];
+		"RigidBodies/Units.h"	[label="Units.h"];
+		"RigidBodies/BoundingBox.h"	[label="BoundingBox.h"];
+		"RigidBodies/RandomDistribution.h"	[label="RandomDistribution.h"];
+	}
+	subgraph cluster_States {
+		graph [label=States,
+			rankdir=TB,
+			style=rounded
+		];
+		"States/PauseState.h"	[label="PauseState.h"];
+		"States/GameState.h"	[label="GameState.h"];
+		"States/HomeState.h"	[label="HomeState.h"];
+		"States/SettingsState.h"	[label="SettingsState.h"];
+		"States/ActiveState.h"	[label="ActiveState.h"];
+		"States/Beyblade.h"	[label="Beyblade.h"];
+		"States/Stadium.h"	[label="Stadium.h"];
+		"States/QuadRenderer.h"	[label="QuadRenderer.h"];
+		"States/CustomizeState.h"	[label="CustomizeState.h"];
+		"States/BeybladeBody.h"	[label="BeybladeBody.h"];
+		"States/StateFactory.h"	[label="StateFactory.h"];
+		"States/LoadingState.h"	[label="LoadingState.h"];
+		"States/AboutState.h"	[label="AboutState.h"];
+		"States/StateIdentifiers.h"	[label="StateIdentifiers.h"];
+	}
+	subgraph cluster_UI {
+		graph [label=UI,
+			rankdir=TB,
+			style=rounded
+		];
+		"UI/FontManager.h"	[label="FontManager.h"];
+		"UI/UI.h"	[label="UI.h"];
+		"UI/ImGuiUtils.h"	[label="ImGuiUtils.h"];
+	}
+	subgraph cluster_legend {
+		graph [color=lightgrey,
+			label=Legend,
+			rank=source,
+			style="filled, rounded"
+		];
+		legend_incoming	[fillcolor=yellow,
+			label="3+ Incoming Edges",
+			style=filled];
+		legend_outgoing	[fillcolor=lightgreen,
+			label="3+ Outgoing Edges",
+			style=filled];
+		legend_main_includes	[fillcolor=cyan,
+			label="Included by main.cpp",
+			style="bold,filled"];
+	}
+	"States/PauseState.h" -> "States/GameState.h";
+	"States/GameState.h" -> "States/StateIdentifiers.h";
+	"GameEngine.h"	[fillcolor=cyan,
+		label="GameEngine.h",
+		style="bold, filled"];
+	"States/GameState.h" -> "GameEngine.h";
+	"MessageLog.h"	[label="MessageLog.h"];
+	"States/GameState.h" -> "MessageLog.h";
+	"States/HomeState.h" -> "States/GameState.h";
+	"GameObjects/Beyblade.h" -> "GameObjects/BeybladeTemplate.h";
+	"GameObjects/Beyblade.h" -> "GameObjects/json.hpp";
+	"GameObjects/Beyblade.h" -> "GameObjects/BeybladeBody.h";
+	"GameObjects/Beyblade.h" -> "GameObjects/BeybladeMesh.h";
+	"States/SettingsState.h" -> "States/GameState.h";
+	"Rendering/TextureManager.h" -> "Rendering/Texture.h";
+	"States/ActiveState.h" -> "States/GameState.h";
+	"States/ActiveState.h" -> "States/Beyblade.h";
+	"States/ActiveState.h" -> "States/Stadium.h";
+	"States/ActiveState.h" -> "States/QuadRenderer.h";
+	"Physics/RigidBody.h" -> "Physics/BoundingBox.h";
+	"States/CustomizeState.h" -> "States/GameState.h";
+	"States/CustomizeState.h" -> "States/BeybladeBody.h";
+	"States/StateFactory.h" -> "States/GameState.h";
+	"InputManager.h"	[label="InputManager.h"];
+	"InputUtils.h"	[label="InputUtils.h"];
+	"InputManager.h" -> "InputUtils.h";
+	"Buffers.h"	[fillcolor=cyan,
+		label="Buffers.h",
+		style="bold, filled"];
+	"States/LoadingState.h" -> "States/GameState.h";
+	"Physics/PhysicsWorld.h" -> "Physics/Stadium.h";
+	"Physics/PhysicsWorld.h" -> "Physics/Beyblade.h";
+	"Physics/PhysicsWorld.h" -> "Physics/Physics.h";
+	"Physics/Physics.h" -> "Physics/Units.h";
+	"Timer.h"	[label="Timer.h"];
+	"Utils.h"	[label="Utils.h"];
+	"GameObjects/Stadium.h" -> "GameObjects/StadiumMesh.h";
+	"GameObjects/Stadium.h" -> "GameObjects/StadiumBody.h";
+	"ProfileManager.h"	[fillcolor=cyan,
+		label="ProfileManager.h",
+		style="bold, filled"];
+	"Profile.h"	[label="Profile.h"];
+	"ProfileManager.h" -> "Profile.h";
+	"Settings.h"	[label="Settings.h"];
+	"Profile.h" -> "Settings.h";
+	"RigidBodies/BeybladeBody.h" -> "RigidBodies/BeybladeParts.h";
+	"RigidBodies/BeybladeParts.h" -> "RigidBodies/Units.h";
+	"RigidBodies/BeybladeParts.h" -> "RigidBodies/RandomDistribution.h";
+	"Camera/Camera.h" -> "Camera/BoundingBox.h";
+	"mini/ini.h"	[label="ini.h"];
+	"States/AboutState.h" -> "States/GameState.h";
+	"RigidBodies/StadiumBody.h" -> "RigidBodies/Units.h";
+	"RigidBodies/StadiumBody.h" -> "RigidBodies/BoundingBox.h";
+	"SaveManager.h"	[label="SaveManager.h"];
+	"Physics/Units/Units.h" -> "Physics/Units/Units.tpp";
+	"MeshObjects/BeybladeMesh.h" -> "MeshObjects/BoundingBox.h";
+	"MeshObjects/StadiumMesh.h" -> "MeshObjects/Texture.h";
+	"Settings.h" -> "MessageLog.h";
+	"json.hpp"	[label="json.hpp"];
+	"Settings.h" -> "json.hpp";
+	"RigidBodies/RandomDistribution.h" -> "RigidBodies/Units.h";
+	"StateIdentifiers.h"	[label="StateIdentifiers.h"];
+	"GameEngine.h" -> "StateIdentifiers.h";
+	"GameMessage.h"	[label="GameMessage.h"];
+	"MessageLog.h" -> "GameMessage.h";
+}
