@@ -21,7 +21,8 @@ void Stadium::render(ShaderProgram& shader) {
     // definition are used.
 
     if (mesh->texture) {
-        glActiveTexture(GL_TEXTURE0);
+        
+        (GL_TEXTURE0);
         mesh->texture->use();
         shader.setInt("texture1", 0);
     }

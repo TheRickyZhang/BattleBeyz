@@ -1,6 +1,8 @@
+#include <memory>
+#include <string>
+
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
-#include <string>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <imgui.h>
@@ -11,28 +13,33 @@
 #include "TextureManager.h"
 #include "QuadRenderer.h"
 
-void GameState::renderBackground(GameEngine* game, const std::string& textureName) {
-    auto backgroundShader = game->backgroundShader;
-    auto quadRenderer = game->quadRenderer;
-    auto backgroundTexture = game->tm.getTexture(textureName);
+using namespace std;
+using namespace glm;
+
+void GameState::renderBackground(GameEngine* game, const string& textureName) {
+    ShaderProgram* backgroundShader = game->backgroundShader;
+    QuadRenderer* quadRenderer = game->quadRenderer;
+    shared_ptr<Texture> backgroundTexture = game->tm.getTexture(textureName);
+    int width = game->windowWidth;
+    int height = game->windowHeight;
 
     if (backgroundTexture && backgroundTexture->ID != 0) {
-        glm::mat4 ortho = glm::ortho(0.0f, (float)game->windowWidth, 0.0f, (float)game->windowHeight, -1.0f, 1.0f);
+        glm::mat4 model = glm::scale(glm::mat4(1.0f), glm::vec3(game->windowWidth, game->windowHeight, 1.0f));
 
-        backgroundShader->use();
+        // TOLOOK: Removing these causes background to not render until window is resized, even though it should be initialized with correct matrices.
+        game->quadRenderer->setModelMatrix(scale(mat4(1.0f), vec3(width, height, 1.0f)));
+        game->quadRenderer->setProjectionMatrix(ortho(0.0f, (float)width, 0.0f, (float)height, -1.0f, 1.0f));
+        
         backgroundShader->setFloat("time", (float)glfwGetTime());
 
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, backgroundTexture->ID);
-        //backgroundShader->setInt("background", 0);
-
-        quadRenderer->render(*backgroundShader); // Pass the shader to render
+        backgroundTexture->use();
+        quadRenderer->render(*backgroundShader);
     }
 }
 
-void GameState::renderWindowWithButtons(GameEngine* game, const std::string& windowTitle,
-    const std::vector<std::string>& buttonTexts,
-    const std::string& beforeText, const std::string& afterText) {
+void GameState::renderWindowWithButtons(GameEngine* game, const string& windowTitle,
+    const vector<string>& buttonTexts,
+    const string& beforeText, const string& afterText) {
 
     // Define padding and spacing
     const ImVec2 padding(50.0f, 50.0f);
@@ -51,7 +58,7 @@ void GameState::renderWindowWithButtons(GameEngine* game, const std::string& win
     }
 
     // Calculate total width and height required for the window
-    float totalWidth = std::max({ beforeTextSize.x, maxButtonWidth, afterTextSize.x }) + padding.x * 2;
+    float totalWidth = max({ beforeTextSize.x, maxButtonWidth, afterTextSize.x }) + padding.x * 2;
     float totalHeight = padding.y * 2; // Start with top and bottom padding
 
     if (!beforeText.empty()) {

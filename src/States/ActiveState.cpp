@@ -15,6 +15,7 @@
 
 #include "Utils.h"
 
+using namespace std;
 using namespace glm;
 
 void ActiveState::init()
@@ -24,19 +25,26 @@ void ActiveState::init()
     PhysicsWorld* physicsWorld = game->physicsWorld;
 
     // TODO: Use quadrender instead
-    //floor = new QuadRenderer(100.0f);
-    float floorVertices[] = {
-        // Positions        // Normals       // TexCoords // Colors
-        -30.0f, 0.0f, -30.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.5f, 0.5f, 0.5f,
-        30.0f, 0.0f, -30.0f, 0.0f, 1.0f, 0.0f, 4.0f, 0.0f, 0.5f, 0.5f, 0.5f,
-        30.0f, 0.0f,  30.0f, 0.0f, 1.0f, 0.0f, 4.0f, 4.0f, 0.5f, 0.5f, 0.5f,
-        -30.0f, 0.0f,  30.0f, 0.0f, 1.0f, 0.0f, 0.0f, 4.0f, 0.5f, 0.5f, 0.5f,
-    };
-    unsigned int floorIndices[] = {
-            0, 1, 2,
-            2, 3, 0
-    };
-    setupBuffers(floorVAO, floorVBO, floorEBO, floorVertices, sizeof(floorVertices), floorIndices, sizeof(floorIndices), { 3, 3, 2, 3 });
+    floor = new QuadRenderer(glm::mat4(1.0f), glm::mat4(1.0f));
+    // Create a model matrix for the floor
+    glm::mat4 floorModel = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -5.0f, 0.0f)) * // Position at y = -5
+        glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f)) * // Rotate to lie on XZ plane
+        glm::scale(glm::mat4(1.0f), glm::vec3(30.0f, 30.0f, 1.0f)); // Scale to desired size
+    game->objectShader->setMat4("model", floorModel);
+    game->objectShader->setMat4("projection", game->projection);
+
+    //float floorVertices[] = {
+    //    // Positions        // Normals       // TexCoords // Colors
+    //    -30.0f, 0.0f, -30.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.5f, 0.5f, 0.5f,
+    //    30.0f, 0.0f, -30.0f, 0.0f, 1.0f, 0.0f, 4.0f, 0.0f, 0.5f, 0.5f, 0.5f,
+    //    30.0f, 0.0f,  30.0f, 0.0f, 1.0f, 0.0f, 4.0f, 4.0f, 0.5f, 0.5f, 0.5f,
+    //    -30.0f, 0.0f,  30.0f, 0.0f, 1.0f, 0.0f, 0.0f, 4.0f, 0.5f, 0.5f, 0.5f,
+    //};
+    //unsigned int floorIndices[] = {
+    //        0, 1, 2,
+    //        2, 3, 0
+    //};
+    //setupBuffers(floorVAO, floorVBO, floorEBO, floorVertices, sizeof(floorVertices), floorIndices, sizeof(floorIndices), { 3, 3, 2, 3 });
 
 
     // TODO: this should add stadiums dynamically in future, but use default single one for now
@@ -172,11 +180,12 @@ void ActiveState::draw() {
 
     // Render the floor
     // TODO: inspect texture loaidng. This should be abstracted into the texture manager
-    glActiveTexture(GL_TEXTURE0);
+    //glActiveTexture(GL_TEXTURE0);
     tm.getTexture("floor")->use(); // SHould use texture, used to be small hexagon pattern
-    glBindVertexArray(floorVAO);
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
-    //floor->render(*game->objectShader);
+    //glBindVertexArray(floorVAO);
+    //glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+
+    floor->render(*game->objectShader);
 
     // update and render the stadium (uses this texture)
     for(auto stadium : stadiums) stadium->render(*objectShader);

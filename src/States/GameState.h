@@ -3,8 +3,6 @@
 #include <string>
 #include <unordered_map>
 
-#include "StateIdentifiers.h"
-
 // Used by every state
 #include "GameEngine.h"
 #include "MessageLog.h"   

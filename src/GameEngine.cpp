@@ -5,27 +5,30 @@
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
+#include <glm/gtc/matrix_transform.hpp>
 
-#include "Utils.h"
-#include "ShaderPath.h"
 #include "GameEngine.h"
+
 #include "BeybladeConstants.h"
-#include "States/StateFactory.h"
-#include "PhysicsWorld.h"
 #include "Camera.h"
+#include "FontManager.h"
+#include "ImGuiUtils.h"
+#include "InputManager.h"
+#include "Utils.h"
+#include "UI.h"
+#include "MessageLog.h"
+#include "PhysicsWorld.h"
+#include "ProfileManager.h"
 #include "QuadRenderer.h"
+#include "ShaderPath.h"
+#include "ShaderProgram.h"
+#include "StateFactory.h"
 #include "TextRenderer.h"
 #include "TextureManager.h"
-#include "ProfileManager.h"
-#include "FontManager.h"
-#include "MessageLog.h"
-#include "InputManager.h"
 #include "Timer.h"
-#include "ShaderProgram.h"
-#include "UI.h"
-#include "ImGuiUtils.h"
 
 using namespace std;
+using namespace glm;
 
 // Constructor with default values
 GameEngine::GameEngine()
@@ -42,7 +45,6 @@ GameEngine::GameEngine()
     (void)io;
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
     ImGui::StyleColorsDark();
-    std::cout << "HERE" << std::endl;
 }
 
 
@@ -60,7 +62,7 @@ bool GameEngine::init(const char* title, int width, int height) {
 
     // Initialize everything
     if (!glfwInit()) {
-        std::cerr << "Failed to initialize GLFW" << std::endl;
+        cerr << "Failed to initialize GLFW" << endl;
         isRunning = false;
         return false;
     }
@@ -76,7 +78,7 @@ bool GameEngine::init(const char* title, int width, int height) {
     // Create the window
     window = glfwCreateWindow(static_cast<int>(width), static_cast<int>(height), title, nullptr, nullptr);
     if (!window) {
-        std::cerr << "Failed to create window" << std::endl;
+        cerr << "Failed to create window" << endl;
         glfwTerminate();
         isRunning = false;
         cleanup();
@@ -100,7 +102,7 @@ bool GameEngine::init(const char* title, int width, int height) {
 
     glewExperimental = GL_TRUE;
     if (glewInit() != GLEW_OK) {
-        std::cerr << "Failed to initialize GLEW" << std::endl;
+        cerr << "Failed to initialize GLEW" << endl;
         glfwTerminate();
         isRunning = false;
         cleanup();
@@ -124,7 +126,7 @@ bool GameEngine::init(const char* title, int width, int height) {
     }
     catch (const nlohmann::json::exception& e) {
         // Add critical error messages to the message log
-        ml.addMessage("Critical error during initialization: " + std::string(e.what()), MessageType::ERROR);
+        ml.addMessage("Critical error during initialization: " + string(e.what()), MessageType::ERROR);
         ml.addMessage("Please investigate the issue, and reach out to the contact email for further support");
 
         // Enter error handling loop
@@ -154,15 +156,15 @@ bool GameEngine::init(const char* title, int width, int height) {
     physicsWorld = new PhysicsWorld();
 
     // Camera and initial view initialization
-    glm::vec3 initialCameraPos(2.0f, 1.5f, 0.0f);
-    glm::vec3 lookAtPoint(0.0f, 0.0f, 0.0f);
+    vec3 initialCameraPos(2.0f, 1.5f, 0.0f);
+    vec3 lookAtPoint(0.0f, 0.0f, 0.0f);
 
-    model = glm::mat4(1.0f);
-    view = glm::lookAt(initialCameraPos, lookAtPoint, glm::vec3(0.0f, 1.0f, 0.0f));
-    projection = glm::perspective(glm::radians(45.0f), float(windowWidth) / float(windowHeight), 0.1f, 100.0f);
-    backgroundModel = glm::mat4(1.0f);
-    backgroundView = glm::mat4(1.0f);
-    orthoProjection = glm::ortho(0.0f, float(windowWidth), 0.0f, float(windowHeight), 0.0f, 1.0f);
+    model = mat4(1.0f);
+    view = lookAt(initialCameraPos, lookAtPoint, vec3(0.0f, 1.0f, 0.0f));
+    projection = perspective(radians(45.0f), float(windowWidth) / float(windowHeight), 0.1f, 100.0f);
+    backgroundModel = mat4(1.0f);
+    backgroundView = mat4(1.0f);
+    orthoProjection = ortho(0.0f, float(windowWidth), 0.0f, float(windowHeight), 0.0f, 1.0f);
 
     backgroundShader = new ShaderProgram(BACKGROUND_VERTEX_SHADER_PATH, BACKGROUND_FRAGMENT_SHADER_PATH);
     backgroundShader->setFloat("wrapFactor", 4.0f);
@@ -171,7 +173,7 @@ bool GameEngine::init(const char* title, int width, int height) {
 
     objectShader = new ShaderProgram(OBJECT_VERTEX_SHADER_PATH, OBJECT_FRAGMENT_SHADER_PATH);
     objectShader->setRenderMatrices(model, view, projection, initialCameraPos);
-    objectShader->setLight(LightType::Directional, glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(0.0f, -1.0f, 0.0f));
+    objectShader->setLight(LightType::Directional, vec3(1.0f, 1.0f, 1.0f), vec3(0.0f, -1.0f, 0.0f));
 
     camera = new Camera(initialCameraPos, lookAtPoint, physicsWorld, windowWidth / 2.0f, windowHeight / 2.0f);
 
@@ -184,57 +186,11 @@ bool GameEngine::init(const char* title, int width, int height) {
     tm.loadTexture("stadium", "./assets/textures/Hexagon.jpg");
     tm.loadTexture("floor", "./assets/textures/Wood1.jpg");
 
-    /**
-    * Various callbacks for inputManager. Important to forward to ImGui if needed!
-    *
-    * @param window                 [in] The parent window.
-    *
-    * @param key                    [in] The GLFW key code such as the letter 'A'.
-    *
-    * @param scancode               [in] The raw key number.  For example, the cursor
-    *                               keys do not correspond to letters.
-    *
-    * @param action                 [in] The key action that occured (press, release,
-    *                               or release).
-    */
-    glfwSetKeyCallback(window, [](GLFWwindow* window, int key, int scancode, int action, int mods) {
-        ImGui_ImplGlfw_KeyCallback(window, key, scancode, action, mods);
-        GameEngine* engine = static_cast<GameEngine*>(glfwGetWindowUserPointer(window));
-        if (engine) {
-            bool isPressed = (action == GLFW_PRESS || action == GLFW_REPEAT);
-            engine->im.setKey(key, isPressed);
-        }
-    });
-    glfwSetMouseButtonCallback(window, [](GLFWwindow* window, int button, int action, int mods) {
-        ImGui_ImplGlfw_MouseButtonCallback(window, button, action, mods);
-        if (ImGui::GetIO().WantCaptureMouse) {
-            return;
-        }
-
-        GameEngine* engine = static_cast<GameEngine*>(glfwGetWindowUserPointer(window));
-        if (engine) {
-            bool isPressed = (action == GLFW_PRESS);
-            engine->im.setMouseButton(button, isPressed);
-        }
-    });
-    glfwSetCursorPosCallback(window, [](GLFWwindow* window, double xpos, double ypos) {
-        ImGui_ImplGlfw_CursorPosCallback(window, xpos, ypos);
-        if (ImGui::GetIO().WantCaptureMouse) return;
-
-        GameEngine* engine = static_cast<GameEngine*>(glfwGetWindowUserPointer(window));
-        if (engine) {
-            engine->im.setMousePosition(xpos, ypos);
-        }
-    });
-    glfwSetScrollCallback(window, [](GLFWwindow* window, double xoffset, double yoffset) {
-        ImGui_ImplGlfw_ScrollCallback(window, xoffset, yoffset);
-        if (ImGui::GetIO().WantCaptureMouse) return;
-
-        GameEngine* engine = static_cast<GameEngine*>(glfwGetWindowUserPointer(window));
-        if (engine) {
-            engine->im.setScrollOffset(xoffset, yoffset);
-        }
-    });
+    glfwSetFramebufferSizeCallback(window, framebufferSizeCallback);
+    glfwSetKeyCallback(window, keyCallback);
+    glfwSetMouseButtonCallback(window, mouseButtonCallback);
+    glfwSetCursorPosCallback(window, cursorPosCallback);
+    glfwSetScrollCallback(window, scrollCallback);
 
     // Initialize INI handling if needed
     iniFile = nullptr;
@@ -245,7 +201,9 @@ bool GameEngine::init(const char* title, int width, int height) {
     prevTime = 0.0f;
     deltaTime = 0.0f;
 
-    quadRenderer = new QuadRenderer();
+    mat4 backgroundProjection = ortho(0.0f, (float)windowWidth, 0.0f, (float)windowHeight, -1.0f, 1.0f);
+    mat4 backgroundModel = mat4(1.0f);
+    quadRenderer = new QuadRenderer(backgroundProjection, backgroundModel);
 
     isRunning = true;
     return true;
@@ -255,16 +213,16 @@ void GameEngine::initTimers() {
     // Frame rate timer - updates every second, repeats indefinitely
     timers.push_back(Timer(1.0f, true, -1.0f));
     timerCallbacks.push_back([this]() {
-        std::stringstream ss;
-        ss << std::fixed << std::setprecision(1) << "FPS: " << ImGui::GetIO().Framerate;
+        stringstream ss;
+        ss << fixed << setprecision(1) << "FPS: " << ImGui::GetIO().Framerate;
         fpsText = ss.str();
     });
 
     // Coordinate timer - updates every 0.1 seconds, repeats indefinitely
     timers.push_back(Timer(0.1f, true, -1.0f));
     timerCallbacks.push_back([this]() {
-        std::stringstream ss;
-        ss << std::fixed << std::setprecision(1) << "X: " << camera->position.x << " Y: " << camera->position.y << " Z: " << camera->position.z;
+        stringstream ss;
+        ss << fixed << setprecision(1) << "X: " << camera->position.x << " Y: " << camera->position.y << " Z: " << camera->position.z;
     });
 }
 
@@ -279,7 +237,7 @@ void GameEngine::changeState(GameStateType stateType) {
     auto newState = createState(stateType);
     if (newState) {
         newState->init();
-        stateStack.push_back(std::move(newState));
+        stateStack.push_back(move(newState));
     }
 }
 
@@ -290,7 +248,7 @@ void GameEngine::pushState(GameStateType stateType) {
     auto newState = createState(stateType);
     if (newState) {
         newState->init();
-        stateStack.push_back(std::move(newState));
+        stateStack.push_back(move(newState));
     }
 }
 
@@ -304,12 +262,12 @@ void GameEngine::popState() {
         stateStack.back()->resume();
     }
     else {
-        std::cout << "No states left in stack. Quitting." << std::endl;
+        cout << "No states left in stack. Quitting." << endl;
         quit();
     }
 }
 
-std::unique_ptr<GameState> GameEngine::createState(GameStateType stateType) {
+unique_ptr<GameState> GameEngine::createState(GameStateType stateType) {
     return StateFactory::createState(this, stateType);
 }
 
@@ -399,7 +357,7 @@ void GameEngine::cleanup() {
         ml.save(MESSAGE_LOG_SAVE_DIR);
     }
     catch (const nlohmann::json::exception& e) {
-        ml.addMessage("Error saving json: " + std::string(e.what()), MessageType::ERROR);
+        ml.addMessage("Error saving json: " + string(e.what()), MessageType::ERROR);
         ml.addMessage("Please investigate the issue, and reach out to the contact email for further support");
     }
     catch (exception& e) {
@@ -437,37 +395,7 @@ void GameEngine::cleanup() {
     }
     glfwTerminate();
 
-    std::cout << "GameEngine cleaned up successfully." << std::endl;
-}
-
-/**
-* Callback function to adjust the viewport when the window is resized.
-*/
-
-/*static*/
-void GameEngine::framebufferSizeCallback(GLFWwindow* window, int width, int height) {
-    auto* engine = static_cast<GameEngine*>(glfwGetWindowUserPointer(window));
-
-    // Optimization: return if no change in size
-    if (!engine || (width == engine->windowWidth && height == engine->windowHeight)) {
-        return;
-    }
-
-    // Skip updates if the window is minimized
-    if (!engine || width == 0 || height == 0) {
-        return;
-    }
-
-    // All logic related to resizing windows should go here
-    engine->windowWidth = width;
-    engine->windowHeight = height;
-
-    engine->textRenderer->resize(width, height);  
-
-    glViewport(0, 0, width, height);
-    engine->projection = glm::perspective(glm::radians(45.0f), (float)width / height, 0.1f, 100.0f);
-    engine->objectShader->use();
-    engine->objectShader->setMat4("projection", engine->projection);
+    cout << "GameEngine cleaned up successfully." << endl;
 }
 
 void GameEngine::handleGlobalEvents() {
@@ -483,4 +411,83 @@ void GameEngine::handleGlobalEvents() {
         paused ? stateStack.back()->pause() : stateStack.back()->resume();
     }
 
+}
+
+
+/**
+* Various callbacks for inputManager. Important to forward to ImGui if needed!
+*
+* @param window                 [in] The parent window.
+*
+* @param key                    [in] The GLFW key code such as the letter 'A'.
+*
+* @param scancode               [in] The raw key number.  For example, the cursor
+*                               keys do not correspond to letters.
+*
+* @param action                 [in] The key action that occured (press, release,
+*                               or release).
+*/
+
+// Adjust the viewport when the window is resized.
+void GameEngine::framebufferSizeCallback(GLFWwindow* window, int width, int height) {
+    auto* engine = static_cast<GameEngine*>(glfwGetWindowUserPointer(window));
+
+    // Optimization: return if no change in size
+    if (!engine || (width == engine->windowWidth && height == engine->windowHeight)) {
+        return;
+    }
+
+    // Skip updates if the window is minimized
+    if (!engine || width == 0 || height == 0) {
+        return;
+    }
+
+    // All logic related to resizing windows should go here. ALERT: Use this instead of recalculated window-based transformations every time!
+    engine->windowWidth = width;
+    engine->windowHeight = height;
+
+    engine->textRenderer->resize(width, height); 
+    engine->quadRenderer->setModelMatrix(scale(mat4(1.0f), vec3(width, height, 1.0f)));
+    engine->quadRenderer->setProjectionMatrix(ortho(0.0f, (float)width, 0.0f, (float)height, -1.0f, 1.0f));
+
+    glViewport(0, 0, width, height);
+    engine->projection = perspective(radians(45.0f), (float)width / height, 0.1f, 100.0f);
+    engine->objectShader->use();
+    engine->objectShader->setMat4("projection", engine->projection);
+}
+
+void GameEngine::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+    ImGui_ImplGlfw_KeyCallback(window, key, scancode, action, mods);
+    auto* engine = static_cast<GameEngine*>(glfwGetWindowUserPointer(window));
+    if (engine) {
+        bool isPressed = (action == GLFW_PRESS || action == GLFW_REPEAT);
+        engine->im.setKey(key, isPressed);
+    }
+}
+
+void GameEngine::mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
+    ImGui_ImplGlfw_MouseButtonCallback(window, button, action, mods);
+    if (ImGui::GetIO().WantCaptureMouse) return;
+    auto* engine = static_cast<GameEngine*>(glfwGetWindowUserPointer(window));
+    if (engine) {
+        engine->im.setMouseButton(button, action == GLFW_PRESS);
+    }
+}
+
+void GameEngine::cursorPosCallback(GLFWwindow* window, double xpos, double ypos) {
+    ImGui_ImplGlfw_CursorPosCallback(window, xpos, ypos);
+    if (ImGui::GetIO().WantCaptureMouse) return;
+    auto* engine = static_cast<GameEngine*>(glfwGetWindowUserPointer(window));
+    if (engine) {
+        engine->im.setMousePosition(xpos, ypos);
+    }
+}
+
+void GameEngine::scrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
+    ImGui_ImplGlfw_ScrollCallback(window, xoffset, yoffset);
+    if (ImGui::GetIO().WantCaptureMouse) return;
+    auto* engine = static_cast<GameEngine*>(glfwGetWindowUserPointer(window));
+    if (engine) {
+        engine->im.setScrollOffset(xoffset, yoffset);
+    }
 }

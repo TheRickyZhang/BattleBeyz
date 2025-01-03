@@ -3,45 +3,9 @@
 // Copyright (c) 2024, Ricky Zhang.
 ////////////////////////////////////////////////////////////////////////////////
 
-// Among other things, this includes <windows.h>, imgui_xxx, and GLFW/glfw3.h
-#include "UI.h"
-
-#include <GL/glew.h>
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-
-#include <imgui.h>
-#include "imgui_impl_glfw.h"
-#include "imgui_impl_opengl3.h"
-
-#include "ShaderProgram.h"
-#include "TextRenderer.h"
-#include "ShaderPath.h"
-
-#include "Buffers.h"
-#include "Stadium.h"
-#include "Camera.h"
-#include "QuadRenderer.h"
-#include "Physics.h"
-
 #include "PhysicsWorld.h"
-#include "RigidBody.h"
-#include "Beyblade.h"
-#include "RigidBodies/BeybladeParts.h"
-#include "RigidBodies/BeybladeBody.h"
-#include "RigidBodies/StadiumBody.h"
-#include "MeshObjects/BeybladeMesh.h"
-#include "MeshObjects/StadiumMesh.h"
-
 #include "GameEngine.h"
 #include "ProfileManager.h"
-
-#include <iomanip>
-#include <algorithm>
-#include <iostream>
-#include <sstream>
-#include <atomic>
 
 int main() {
     IMGUI_CHECKVERSION();

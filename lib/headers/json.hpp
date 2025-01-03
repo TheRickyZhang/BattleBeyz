@@ -17941,11 +17941,7 @@ class basic_json
         // at only works for objects
         if (JSON_HEDLEY_LIKELY(is_object()))
         {
-            // UPDATED: Throw an exception to allow for passing during debug mode
-            // assert(m_value.object->find(key) != m_value.object->end());
-            if (m_value.object->find(key) == m_value.object->end()) {
-                throw std::runtime_error("Key not found in JSON object: " + std::string(key));
-            }
+            assert(m_value.object->find(key) != m_value.object->end());
             return m_value.object->find(key)->second;
         }
 

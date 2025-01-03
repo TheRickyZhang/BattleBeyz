@@ -1,8 +1,19 @@
-# Exclude build directories and system-specific files
+# Output/data directories
+game_data/
+docs/
+logs/
+out/
+
+# General
 **/build/
 **/.vs/
+.idea/
+.vscode/
+.vs/
+Thumbs.db
+.DS_Store
 
-# Exclude CMake-generated files
+# CMake-generated files
 CMakeCache.txt
 CMakeFiles/
 cmake_install.cmake
@@ -16,11 +27,6 @@ ZERO_CHECK*
 ALL_BUILD*
 INSTALL*
 
-# IDE/editor-specific directories
-.idea/
-.vscode/
-.vs/
-
 # Temporary and backup files
 *.out
 *.log
@@ -28,12 +34,3 @@ INSTALL*
 *.bak
 *.swp
 *.swo
-
-# Output directories
-docs/
-logs/
-out/
-
-# OS-specific system files
-Thumbs.db
-.DS_Store
