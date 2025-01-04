@@ -21,7 +21,8 @@
 #include "ProfileManager.h"
 #include "QuadRenderer.h"
 #include "ShaderPath.h"
-#include "ShaderProgram.h"
+#include "ObjectShader.h"
+#include "BackgroundShader.h"
 #include "StateFactory.h"
 #include "TextRenderer.h"
 #include "TextureManager.h"
@@ -166,19 +167,18 @@ bool GameEngine::init(const char* title, int width, int height) {
     backgroundView = mat4(1.0f);
     orthoProjection = ortho(0.0f, float(windowWidth), 0.0f, float(windowHeight), 0.0f, 1.0f);
 
-    backgroundShader = new ShaderProgram(BACKGROUND_VERTEX_SHADER_PATH, BACKGROUND_FRAGMENT_SHADER_PATH);
-    backgroundShader->setFloat("wrapFactor", 4.0f);
-    backgroundShader->setFloat("time", float(glfwGetTime()));
-    backgroundShader->setInt("backgroundTexture", 0);
+    // TODO: Give backgroundShader same treatment as objectShader, but with different functions
+    backgroundShader = new BackgroundShader(BACKGROUND_VERTEX_SHADER_PATH, BACKGROUND_FRAGMENT_SHADER_PATH);
+    backgroundShader->setBackgroundGlobalParams(projection, 4.0, float(glfwGetTime()));
 
-    objectShader = new ShaderProgram(OBJECT_VERTEX_SHADER_PATH, OBJECT_FRAGMENT_SHADER_PATH);
-    objectShader->setRenderMatrices(model, view, projection, initialCameraPos);
+    objectShader = new ObjectShader(OBJECT_VERTEX_SHADER_PATH, OBJECT_FRAGMENT_SHADER_PATH);
+    objectShader->setGlobalRenderParams(view, projection, initialCameraPos);
+    // TODO: Remove this? 
+    objectShader->setObjectRenderParams(model, glm::vec3(1.0f));
+
     objectShader->setLight(LightType::Directional, vec3(1.0f, 1.0f, 1.0f), vec3(0.0f, -1.0f, 0.0f));
 
     camera = new Camera(initialCameraPos, lookAtPoint, physicsWorld, windowWidth / 2.0f, windowHeight / 2.0f);
-
-    //    auto panoramaShader = new ShaderProgram(PANORAMA_VERTEX_SHADER_PATH, PANORAMA_FRAGMENT_SHADER_PATH);
-    //    panoramaShader->setUniforms(panoramaModel, panoramaView, panoramaProjection);
 
     textRenderer = new TextRenderer("./assets/fonts/OpenSans-Regular.ttf", 800, 600);
     tm.loadTexture("defaultBackground", "./assets/textures/Brickbeyz.jpg");
@@ -201,9 +201,7 @@ bool GameEngine::init(const char* title, int width, int height) {
     prevTime = 0.0f;
     deltaTime = 0.0f;
 
-    mat4 backgroundProjection = ortho(0.0f, (float)windowWidth, 0.0f, (float)windowHeight, -1.0f, 1.0f);
-    mat4 backgroundModel = mat4(1.0f);
-    quadRenderer = new QuadRenderer(backgroundProjection, backgroundModel);
+    quadRenderer = new QuadRenderer(scale(mat4(1.0f), vec3(width, height, 1.0f)));
 
     isRunning = true;
     return true;
@@ -447,13 +445,11 @@ void GameEngine::framebufferSizeCallback(GLFWwindow* window, int width, int heig
     engine->windowHeight = height;
 
     engine->textRenderer->resize(width, height); 
-    engine->quadRenderer->setModelMatrix(scale(mat4(1.0f), vec3(width, height, 1.0f)));
-    engine->quadRenderer->setProjectionMatrix(ortho(0.0f, (float)width, 0.0f, (float)height, -1.0f, 1.0f));
 
     glViewport(0, 0, width, height);
     engine->projection = perspective(radians(45.0f), (float)width / height, 0.1f, 100.0f);
-    engine->objectShader->use();
-    engine->objectShader->setMat4("projection", engine->projection);
+    //engine->objectShader->use();
+    //engine->objectShader->setMat4("projection", engine->projection);
 }
 
 void GameEngine::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {

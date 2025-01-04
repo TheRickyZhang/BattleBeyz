@@ -2,7 +2,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 Floor::Floor(float w, float d, float y, float centerX, float centerZ)
-    : GameObject(), center(centerX, y, centerZ) {
+    : MeshObject(), center(centerX, y, centerZ) {
     initializeMesh();
 
     // Precompute the model matrix for the floor based on center

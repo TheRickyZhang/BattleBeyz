@@ -14,7 +14,7 @@
 
 #include "BoundingBox.h"
 
-class ShaderProgram;
+class ObjectShader;
 
 // Need to call loadModel and initializeMesh for using the mesh
 class BeybladeMesh {
@@ -35,7 +35,7 @@ public:
     //int getIndicesSize() { return static_cast<int>(indices.size()); }
     //std::unordered_map<std::string, glm::vec3>& getMaterialColors() { return materialColors; }
 
-    void render(ShaderProgram& shader);
+    void render(ObjectShader& shader);
 
     BoundingBox boundingBox{};                          // Mesh bounding box.
     float heightDisc{}, heightLayer{}, heightDriver{};  // Heights of subparts

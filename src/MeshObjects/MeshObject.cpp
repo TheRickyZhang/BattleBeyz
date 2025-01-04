@@ -1,18 +1,20 @@
-#include "GameObject.h"
+#include "MeshObject.h"
 #include "Buffers.h"
+
+#include "Utils.h" // DEBUGGING
 
 using namespace std;
 
-GameObject::GameObject() : VAO(0), VBO(0), EBO(0) {}
+MeshObject::MeshObject() : VAO(0), VBO(0), EBO(0) {}
 
-GameObject::~GameObject() {
+MeshObject::~MeshObject() {
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
     glDeleteBuffers(1, &EBO);
 }
 
 
-void GameObject::setupBuffersFromMembers() {
+void MeshObject::setupBuffersFromMembers() {
     std::vector<float> vertexData;
     for (size_t i = 0; i < vertices.size(); ++i) {
         // Position (x, y, z)
@@ -59,10 +61,9 @@ void GameObject::setupBuffersFromMembers() {
 }
 
 
-void GameObject::render(ShaderProgram& shader, std::shared_ptr<Texture> texture) {
+void MeshObject::render(ObjectShader& shader, std::shared_ptr<Texture> texture) {
     shader.use();
-    shader.setMat4("model", modelMatrix);           // Unique to this object
-    shader.setVec3("tint", tint);                   // Per-object tint
+    shader.setObjectRenderParams(modelMatrix, tint);
     //shader.setVec2("textureScale", textureScale);   // If you need to scale the texture
 
     if (texture) {
@@ -72,26 +73,28 @@ void GameObject::render(ShaderProgram& shader, std::shared_ptr<Texture> texture)
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, GLsizei(indices.size()), GL_UNSIGNED_INT, nullptr);
     glBindVertexArray(0);
+
+    GL_CHECK("MeshObject");
 }
 
 
 // Getters and Setters
-void GameObject::setModelMatrix(const glm::mat4& newModel) {
+void MeshObject::setModelMatrix(const glm::mat4& newModel) {
     modelMatrix = newModel;
 }
 
-const glm::mat4& GameObject::getModelMatrix() const {
+const glm::mat4& MeshObject::getModelMatrix() const {
     return modelMatrix;
 }
 
-void GameObject::setTint(const glm::vec3& newTint) {
+void MeshObject::setTint(const glm::vec3& newTint) {
     tint = newTint;
 }
 
-//void GameObject::setTextureScale(const glm::vec2& scale) {
+//void MeshObject::setTextureScale(const glm::vec2& scale) {
 //    textureScale = scale;
 //}
 //
-//const glm::vec2& GameObject::getTextureScale() const {
+//const glm::vec2& MeshObject::getTextureScale() const {
 //    return textureScale;
 //}

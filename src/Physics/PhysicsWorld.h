@@ -16,7 +16,7 @@
 
 
 class GameEngine;
-class ShaderProgram;
+class ObjectShader;
 
 class PhysicsWorld {
 public:
@@ -36,7 +36,7 @@ public:
     };
 
     void update(float deltaTime);
-    void renderDebug(ShaderProgram &shader) const;
+    void renderDebug(ObjectShader &shader) const;
 
     std::vector<Beyblade*>& getBeyblades() { return beyblades; }
     std::vector<Stadium*>& getStadiums() { return stadiums; }

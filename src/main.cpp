@@ -7,11 +7,10 @@
 #include "GameEngine.h"
 #include "ProfileManager.h"
 
+#include "Utils.h"
+
 int main() {
-    GLenum err;
-    while ((err = glGetError()) != GL_NO_ERROR) {
-        std::cerr << "OpenGL error at main: " << err << std::endl; break;
-    }
+    GL_CHECK("begin");
 
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();

@@ -9,7 +9,7 @@
 
 #include "GameState.h"
 
-#include "ShaderProgram.h"
+#include "ObjectShader.h"
 #include "TextureManager.h"
 #include "QuadRenderer.h"
 
@@ -17,24 +17,26 @@ using namespace std;
 using namespace glm;
 
 void GameState::renderBackground(GameEngine* game, const string& textureName) {
-    ShaderProgram* backgroundShader = game->backgroundShader;
+    BackgroundShader* backgroundShader = game->backgroundShader;
     QuadRenderer* quadRenderer = game->quadRenderer;
-    shared_ptr<Texture> backgroundTexture = game->tm.getTexture(textureName);
     int width = game->windowWidth;
     int height = game->windowHeight;
+    shared_ptr<Texture> backgroundTexture = game->tm.getTexture(textureName);
 
-    if (backgroundTexture && backgroundTexture->ID != 0) {
-        glm::mat4 model = glm::scale(glm::mat4(1.0f), glm::vec3(game->windowWidth, game->windowHeight, 1.0f));
+    glm::mat4 orthoProjection = glm::ortho(
+        0.0f, static_cast<float>(game->windowWidth),
+        0.0f, static_cast<float>(game->windowHeight),
+        -1.0f, 1.0f
+    );
 
-        // TOLOOK: Removing these causes background to not render until window is resized, even though it should be initialized with correct matrices.
-        game->quadRenderer->setModelMatrix(scale(mat4(1.0f), vec3(width, height, 1.0f)));
-        game->quadRenderer->setProjectionMatrix(ortho(0.0f, (float)width, 0.0f, (float)height, -1.0f, 1.0f));
-        
-        backgroundShader->setFloat("time", (float)glfwGetTime());
+    backgroundShader->setBackgroundGlobalParams(orthoProjection, 4.0f, (float)glfwGetTime());
 
-        backgroundTexture->use();
-        quadRenderer->render(*backgroundShader);
-    }
+    backgroundShader->setBackgroundObjectParams(scale(mat4(1.0f), vec3(width, height, 1.0f)), 0);
+
+    // TOLOOK: Removing these causes background to not render until window is resized, even though it should be initialized with correct matrices.
+    //glm::mat4 model = glm::scale(glm::mat4(1.0f), glm::vec3(game->windowWidth, game->windowHeight, 1.0f));
+    //game->quadRenderer->setModelMatrix(scale(mat4(1.0f), vec3(width, height, 1.0f)));
+    quadRenderer->render(*backgroundShader, backgroundTexture);
 }
 
 void GameState::renderWindowWithButtons(GameEngine* game, const string& windowTitle,

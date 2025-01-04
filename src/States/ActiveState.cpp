@@ -4,7 +4,7 @@
 #include "PhysicsWorld.h"
 #include "Buffers.h"
 #include "StateIdentifiers.h"
-#include "ShaderProgram.h"
+#include "ObjectShader.h"
 #include "UI.h"
 #include "Camera.h"
 #include "InputManager.h"
@@ -128,7 +128,7 @@ void ActiveState::update(float deltaTime) {
 
 
 void ActiveState::draw() {
-    ShaderProgram* objectShader = game->objectShader;
+    ObjectShader* objectShader = game->objectShader;
     TextureManager& tm = game->tm;
 
     SetWindowPositionAndSize(3, 4, 1, 1);
@@ -154,8 +154,8 @@ void ActiveState::draw() {
     // IMPORTANT: Once per frame!!!!! ONLY model should be passed into the gameobject
     // Use the shader program (objectShader) for rendering 3D objects, sets viewPos and view
     objectShader->use();
-    objectShader->setCameraView(cameraPos, view);
-    objectShader->setMat4("model", mat4(1.0));
+    // objectShader->setCameraView(cameraPos, view);
+    objectShader->setGlobalRenderParams(view, game->projection, cameraPos);
 
 
     floor->render(*game->objectShader, tm.getTexture("floor"));

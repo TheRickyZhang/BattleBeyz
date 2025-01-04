@@ -5,18 +5,18 @@ BeybladeBody. Contains all of the physical properties of a beyblade. accelaratio
 For angular velocity, clockwise = negative y, counterclockwise = positive y
 
 layerRadius:            0.02 - 0.03          m     0.025
-discRadius:             0.015 - 0.03         m 
-driverRadius:           0.0005 - 0.0025      m         // Not largest radius, but contact radius
+discRadius:             0.015 - 0.03         m     0.018
+driverRadius:           0.0005 - 0.0025      m     0.002 (0.012 top)    // Not largest radius, but contact radius
 
-layerHeight:            0.008 - 0.012        m
-discHeight:             0.005 - 0.012        m 
-driverHeight:           0.01 - 0.02          m 
+layerHeight:            0.008 - 0.012        m     0.01
+discHeight:             0.005 - 0.012        m     0.01
+driverHeight:           0.008 - 0.02         m     0.01
 
-COR (restitution):      0.1 - 0.6            _
-COF (friction):         0 - 0.5              _     0.22
-dragCoefficient:        0.3 - 1.1            _
-    layer:  0.5 - 1.5
-    disc:   0.3 - 0.8
+COR (restitution):      0.5 - 1.0            _     0.8         // Larger = less energy lost
+COF (friction):         0 - 0.5              _     0.22        // Lower = less energy lost
+dragCoefficient:        0.4 - 1.5            _     
+    layer:  0.5 - 1.5   |  1.0
+    disc:   0.3 - 0.8   |  
     driver: 0.1 - 0.4
 mass:                   0.03 - 0.09          kg
     layer:  0.015 - 0.035 | 0.022

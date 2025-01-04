@@ -16,7 +16,7 @@
 #include "BeybladeBody.h"
 #include "BeybladeTemplate.h"
 
-class ShaderProgram;
+class ObjectShader;
 
 class Beyblade {
     friend class BeybladeMesh;
@@ -29,7 +29,7 @@ public:
 
     static Beyblade fromJson(const nlohmann::json& j);
 
-    void render(ShaderProgram& shader);
+    void render(ObjectShader& shader);
 
     int getId() const;
     std::string getName() const;

@@ -7,7 +7,7 @@
 
 #include "PhysicsWorld.h"
 
-#include "ShaderProgram.h"
+#include "ObjectShader.h"
 #include "MessageLog.h"
 
 /**
@@ -139,7 +139,7 @@ void PhysicsWorld::update(float deltaTime) {
 */
 
 // Limited to 100 per object otherwise FPS tanks
-void PhysicsWorld::renderDebug(ShaderProgram& shader) const {
+void PhysicsWorld::renderDebug(ObjectShader& shader) const {
     // Render all bounding boxes
     for (Beyblade* beyblade : beyblades) {
         BeybladeBody* beybladeBody = beyblade->getRigidBody();

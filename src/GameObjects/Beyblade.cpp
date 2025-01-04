@@ -8,11 +8,11 @@
 #include "Beyblade.h"
 #include "BeybladeParts.h"
 #include "Buffers.h"
-#include "GameObject.h"
+#include "MeshObject.h"
 #include "MeshObjects/BeybladeMesh.h"
 #include "RigidBody.h"
 #include "RigidBodies/BeybladeBody.h"
-#include "ShaderProgram.h"
+#include "ObjectShader.h"
 #include "MessageLog.h"
 
 #include "Texture.h"
@@ -67,13 +67,13 @@ void Beyblade::setName(const std::string& newName) {
 }
 
 
-void Beyblade::render(ShaderProgram& shader)
+void Beyblade::render(ObjectShader& shader)
 {
     shader.use();
 
     glm::mat4 model = glm::translate(glm::mat4(1.0f), rigidBody->getCenter().value());
 
-    shader.setMat4("model", model);
+    shader.setObjectRenderParams(model, glm::vec3(1.0f));
 
     mesh->render(shader);
 }

@@ -21,7 +21,7 @@ public:
 
     void initializeMesh();
 
-    void render(ShaderProgram& shader);
+    void render(ObjectShader& shader);
     StadiumBody* getRigidBody() const { return rigidBody; }
     StadiumMesh* getMesh() const { return mesh; }
 

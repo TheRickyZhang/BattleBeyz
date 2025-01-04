@@ -8,12 +8,11 @@
 
 #include "Buffers.h"
 #include "MessageLog.h"
-#include "ShaderProgram.h"
-
-// TODO: Inspect if really need this
-//#include "RigidBodies/StadiumBody.h"
+#include "ObjectShader.h"
 
 using namespace std;
+using namespace glm;
+
 /**
 * NEWMESH Load the model files.
 *
@@ -287,13 +286,13 @@ void BeybladeMesh::printDebugInfo() {
 }
 
 
-void BeybladeMesh::render(ShaderProgram& shader) {
+void BeybladeMesh::render(ObjectShader& shader) {
     // TODO: First of all, not correct logic, should be done per vertex, not per the entire mesh
     // Secondly, cannot set vertexColor? I am still a bit shaky on what exactly everything represents in the vertex and fragment shaders.
     //for (const auto& material : materialColors) {
     //    shader.setVec3("color", material.second);
     //}
-    shader.setTint(tint);
+    //shader.setObjectRenderParams(mat4(1.0f), tint);
 
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Switch to wireframe mode
 

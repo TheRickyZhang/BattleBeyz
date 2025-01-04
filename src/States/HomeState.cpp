@@ -15,7 +15,6 @@ void HomeState::init() {
     int width = game->windowWidth;
     int height = game->windowHeight;
     game->quadRenderer->setModelMatrix(scale(mat4(1.0f), vec3(width, height, 1.0f)));
-    game->quadRenderer->setProjectionMatrix(ortho(0.0f, (float)width, 0.0f, (float)height, -1.0f, 1.0f));
 }
 
 void HomeState::cleanup() {}

@@ -8,20 +8,24 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include "BoundingBox.h"
-#include "ShaderProgram.h"
+#include "ObjectShader.h"
 #include "Buffers.h"
 
 using namespace std;
+using namespace glm;
+
+// TODO: Change boundary names to mn, mx and remove glm::
+
 /**
 * Constructor.
 */
 BoundingBox::BoundingBox() :
-    min(glm::vec3(1e6)), max(glm::vec3(-1e6)), VAO(0), VBO(0), EBO(0)
+    min(vec3(1e6)), max(vec3(-1e6)), VAO(0), VBO(0), EBO(0)
 {
     setupBoundingBoxBuffers();
 }
 
-BoundingBox::BoundingBox(const glm::vec3& min, const glm::vec3& max)
+BoundingBox::BoundingBox(const vec3& min, const vec3& max)
         : min(min), max(max), VAO(0), VBO(0), EBO(0) {
     setupBoundingBoxBuffers();
 }
@@ -50,8 +54,8 @@ bool BoundingBox::intersect(const BoundingBox& a, const BoundingBox& b){
            (a.min.z <= b.max.z && a.max.z >= b.min.z);
 }
 
-glm::vec3 BoundingBox::closestPointOutside(const glm::vec3& point) const {
-    glm::vec3 adjustedPoint = point;
+vec3 BoundingBox::closestPointOutside(const vec3& point) const {
+    vec3 adjustedPoint = point;
     float epsilon = 0.01f; // Small offset to ensure the point is outside
     if (point.x >= max.x) {
         adjustedPoint.x = max.x + epsilon;
@@ -74,8 +78,8 @@ glm::vec3 BoundingBox::closestPointOutside(const glm::vec3& point) const {
     return adjustedPoint;
 }
 
-glm::vec3 BoundingBox::closestPointInside(const glm::vec3& point) const {
-    glm::vec3 adjustedPoint = point;
+vec3 BoundingBox::closestPointInside(const vec3& point) const {
+    vec3 adjustedPoint = point;
     if (point.x < min.x) {
         adjustedPoint.x = min.x;
     }
@@ -95,8 +99,8 @@ glm::vec3 BoundingBox::closestPointInside(const glm::vec3& point) const {
         adjustedPoint.z = max.z;
     }
     if (adjustedPoint != point) {
-        std::cout << "Old: " << point.x << " " << point.y << " " << point.z << " " << point.x << " " << point.y << " " << point.z << std::endl;
-        std::cout << "New: " << min.x << " " << min.y << " " << min.z << " " << max.x << " " << max.y << " " << max.z << std::endl;
+        cout << "Old: " << point.x << " " << point.y << " " << point.z << " " << point.x << " " << point.y << " " << point.z << endl;
+        cout << "New: " << min.x << " " << min.y << " " << min.z << " " << max.x << " " << max.y << " " << max.z << endl;
     }
     return adjustedPoint;
 }
@@ -158,12 +162,12 @@ bool BoundingBox::intersectsSphere(const glm::vec3& center, float radius) const 
 *                               bounding box translaton.
 */
 
-void BoundingBox::renderDebug(ShaderProgram &shader, const glm::vec3& bodyPosition) {
+void BoundingBox::renderDebug(ObjectShader &shader, const glm::vec3& bodyPosition) {
     shader.use();
     setupBoundingBoxBuffers();
 
     glm::mat4 model = glm::translate(glm::mat4(1.0f), bodyPosition);
-    shader.setMat4("model", model);
+    shader.setObjectRenderParams(model, glm::vec3(1.0f));
 
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Switch to wireframe mode
 

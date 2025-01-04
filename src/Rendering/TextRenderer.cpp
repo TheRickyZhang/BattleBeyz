@@ -9,7 +9,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "TextRenderer.h"
-#include "ShaderProgram.h"
+#include "ObjectShader.h"
 
 //#include "Utils.h"
 #include "ShaderPath.h"

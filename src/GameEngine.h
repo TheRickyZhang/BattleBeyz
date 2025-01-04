@@ -15,7 +15,9 @@
 #include <mini/ini.h>
 
 class GameState;
-class ShaderProgram;
+//class ShaderProgram;
+class ObjectShader;
+class BackgroundShader;
 class PhysicsWorld;
 class Camera;
 class MessageLog;
@@ -84,8 +86,8 @@ public:
 
     Camera* camera = nullptr;
 
-    ShaderProgram* objectShader{};
-    ShaderProgram* backgroundShader{};
+    ObjectShader* objectShader{};
+    BackgroundShader* backgroundShader{};
 
     TextRenderer* textRenderer{};
     QuadRenderer* quadRenderer{};

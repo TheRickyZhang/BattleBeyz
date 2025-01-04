@@ -8,7 +8,7 @@
 #include <iostream>
 
 #include "Buffers.h"
-#include "ShaderProgram.h"
+#include "ObjectShader.h"
 #include "Utils.h"
 
 
@@ -91,20 +91,20 @@ void RigidBody::setupRigidBodyBuffers() {
 }
 
 
-void RigidBody::renderDebug(ShaderProgram &shader, const glm::vec3 &viewPos) {
+void RigidBody::renderDebug(ObjectShader &shader, const glm::vec3 &viewPos) {
     glm::vec3 &min = aggregateBoundingBox.min;
     glm::vec3 &max = aggregateBoundingBox.max;
     shader.use();
-    shader.setMat4("model", glm::mat4(1.0f));
-    shader.setVec3("view", viewPos);
+    shader.setObjectRenderParams(glm::mat4(1.0f), glm::vec3(1.0f));
 
-    //GLenum error;
-    //while ((error = glGetError()) != GL_NO_ERROR) {
-    //    std::cerr << "OpenGL error before glBindVertexArray: " << error << std::endl;
-    //}
+    GLenum error;
+    while ((error = glGetError()) != GL_NO_ERROR) {
+        std::cerr << "OpenGL error before RigidBody: " << error << std::endl;
+    }
 
-    GL_CHECK(glBindVertexArray(VAO));
-    GL_CHECK(glDrawElements(GL_LINES, 24, GL_UNSIGNED_INT, nullptr)); // 24 is the number of indices for 12 lines
-    GL_CHECK(glBindVertexArray(0));
+    glBindVertexArray(VAO);
+    glDrawElements(GL_LINES, 24, GL_UNSIGNED_INT, nullptr); // 24 is the number of indices for 12 lines
+    glBindVertexArray(0);
 
+    GL_CHECK("RigidBody");
 }

@@ -15,10 +15,9 @@
 #include <glm/glm.hpp>
 #include <stb_image.h>
 
-// Macro to wrap OpenGL calls for error checking
-#define GL_CHECK(stmt) do { \
-        stmt; \
-        checkGLError(#stmt, __FILE__, __LINE__); \
+#define GL_CHECK(message, ...) do { \
+        __VA_ARGS__; \
+        checkGLError(#message, __FILE__, __LINE__); \
     } while (0)
 
 void checkGLError(const char* stmt, const char* fname, int line);
@@ -54,6 +53,3 @@ struct CollisionAccelerations {
         linearAcceleration += increment.second;
     }
 };
-
-// TEMP
-

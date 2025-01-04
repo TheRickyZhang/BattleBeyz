@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////////
-// GameObject,h -- Common game object properties -- rz -- 2024-08-08
+// MeshObject,h -- Common game object properties -- rz -- 2024-08-08
 // Copyright (c) 2024, Ricky Zhang.
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -10,16 +10,16 @@
 
 #include <glm/glm.hpp>
 
-#include "ShaderProgram.h"
+#include "ObjectShader.h"
 #include "Texture.h"
 
-class GameObject {
+class MeshObject {
 public:
-    GameObject();
-    virtual ~GameObject();
+    MeshObject();
+    virtual ~MeshObject();
 
     virtual void initializeMesh() = 0;
-    virtual void render(ShaderProgram& shader, std::shared_ptr<Texture> texture = nullptr);
+    virtual void render(ObjectShader& shader, std::shared_ptr<Texture> texture = nullptr);
 
     // Getters and setters
     void setModelMatrix(const glm::mat4& newModel);
@@ -38,11 +38,12 @@ protected:
     std::vector<glm::vec3> colors;     // **Changed from tangents to colors**
     std::vector<unsigned int> indices; // Indices for indexed drawing
 
+    // Local Variables
+    
     // Only set on initialization; assumed static if the object does not move
     glm::mat4 modelMatrix = glm::mat4(1.0f);
-
-    // Must be set explicitly for rare scenarios
     glm::vec3 tint = glm::vec3(1.0f);
+
     //glm::vec2 textureScale = glm::vec2(1.0f, 1.0f);
 
     void setupBuffersFromMembers();

@@ -8,7 +8,7 @@
 #include <GL/glew.h>
 #include <glm/glm.hpp>
 
-class ShaderProgram;
+class ObjectShader;
 
 // Currently unused.
 class BoundingBox {
@@ -24,7 +24,7 @@ public:
 
     // These ones are actually used
     static bool intersect(const BoundingBox& a, const BoundingBox& b);
-    void renderDebug(ShaderProgram &shader, const glm::vec3& bodyPosition);
+    void renderDebug(ObjectShader& shader, const glm::vec3& bodyPosition);
 
     // Naive implementaiton that clamps limits
     glm::vec3 closestPointOutside(const glm::vec3& point) const;

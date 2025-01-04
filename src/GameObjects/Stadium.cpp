@@ -6,15 +6,13 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include "Buffers.h"
 #include "Stadium.h"
-#include "ShaderProgram.h"
+#include "ObjectShader.h"
 
 /**
 * Stadium renderer
-*
-* Does not need to take in lightColor and lightPos, as these should be same for all objects.
 */
 
-void Stadium::render(ShaderProgram& shader) {
+void Stadium::render(ObjectShader& shader) {
     shader.use();
 #if 0
     // TODO:  2024-11-03: Note that texture does not work here -- the colors defined in the stadium

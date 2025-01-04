@@ -11,24 +11,13 @@
 #include <GL/glew.h>
 #include <glm/glm.hpp>
 
-enum LightType {
-    Directional = 0,
-    Point = 1,
-    // Future: Spotlight = 2
-};
 
 class ShaderProgram {
 public:
     GLuint ID;
 
     ShaderProgram(const char* vertexPath, const char* fragmentPath);
-    ~ShaderProgram();
-
-    // Specific setters
-    void setRenderMatrices(const glm::mat4& model, const glm::mat4& view, const glm::mat4& projection, const glm::vec3& cameraPosition) const;
-    void setLight(LightType lightType, const glm::vec3& lightColor, const glm::vec3& lightPos) const;
-    void setCameraView(const glm::vec3& cameraPosition, const glm::mat4& viewMatrix) const;
-    void setTint(const glm::vec3& tint) const;
+    virtual ~ShaderProgram();
 
     void use() const;
 
@@ -41,7 +30,7 @@ public:
 
     //void debugUniforms(const std::vector<std::string>& uniformNames) const;
 
-private:
+protected:
     mutable std::unordered_map<std::string, GLint> uniformCache;
 
     GLint getCachedUniformLocation(const std::string& name) const;
