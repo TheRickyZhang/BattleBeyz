@@ -8,6 +8,11 @@
 #include "ProfileManager.h"
 
 int main() {
+    GLenum err;
+    while ((err = glGetError()) != GL_NO_ERROR) {
+        std::cerr << "OpenGL error at main: " << err << std::endl; break;
+    }
+
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     GameEngine engine;

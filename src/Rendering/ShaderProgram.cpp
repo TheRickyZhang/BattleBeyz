@@ -169,6 +169,13 @@ void ShaderProgram::setMat4(const std::string& name, const glm::mat4& mat) const
     }
 }
 
+void ShaderProgram::setVec2(const std::string& name, const glm::vec2& vec) const {
+    GLint location = getCachedUniformLocation(name);
+    if (location != -1) {
+        glUniform3fv(location, 1, glm::value_ptr(vec));
+    }
+}
+
 void ShaderProgram::setVec3(const std::string& name, const glm::vec3& vec) const {
     GLint location = getCachedUniformLocation(name);
     if (location != -1) {

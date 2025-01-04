@@ -177,18 +177,7 @@ void BoundingBox::renderDebug(ShaderProgram &shader, const glm::vec3& bodyPositi
 /**
 * Set up glfw vertex data.
 */
-#include <GLFW/glfw3.h>
-
 void BoundingBox::setupBoundingBoxBuffers() {
-    if (!glfwGetCurrentContext()) {
-        std::cerr << "No current OpenGL context!" << std::endl;
-    }
-
-
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-    glGenBuffers(1, &EBO);
-
     // TODO: You need to set this to 1 to align the stadium data, but then it is statdium-specific.
     // Instead, the renderer needs to know the position of it's parent.
     float offset = 0.0f;
@@ -215,20 +204,6 @@ void BoundingBox::setupBoundingBoxBuffers() {
         3, 0, 4, 4, 7, 3  // Left face
     };
 
-#if 0
-    // Debugging active attributes
-    GLint currentProgram;
-    glGetIntegerv(GL_CURRENT_PROGRAM, &currentProgram);
-    std::cout << "Active Shader Program ID in BoundingBox: " << currentProgram << std::endl;
-
-    debugActiveAttributes(currentProgram);
-    if (!glfwGetCurrentContext()) {
-        std::cerr << "No current OpenGL context!" << std::endl;
-    }
-#endif
-    if (VAO == 0 || VBO == 0 || EBO == 0) {
-        std::cerr << "Failed to initialize VAO, VBO, or EBO in BoundingBox!" << std::endl;
-    }
     // TOLOOK: Commenting out this code (224-227) causes a crash (probably occured before, openGL errors)
     //showGLErrors("BoundingBox::setupBoundingBoxBuffers");
     setupBuffers(VAO, VBO, EBO, vertices, sizeof(vertices), indices, sizeof(indices), {3, 3, 2, 3});

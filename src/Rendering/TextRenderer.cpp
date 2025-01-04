@@ -112,6 +112,8 @@ void TextRenderer::initRenderData() {
 void TextRenderer::renderText(const std::string& text, float x, float y, float scale, const glm::vec3& color) {
     shaderProgram->use();
     shaderProgram->setVec3("textColor", color);
+
+    // TODO: Remove glActiveTexture and glBindVertexArray, since have moved to texture->use()
     glActiveTexture(GL_TEXTURE0);
     glBindVertexArray(VAO);
 

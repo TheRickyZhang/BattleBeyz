@@ -283,10 +283,6 @@ void BeybladeMesh::printDebugInfo() {
     for (size_t i = 0; i < indices.size(); i += 3) {
         buffer << "Triangle: (" << indices[i] << ", " << indices[i + 1] << ", " << indices[i + 2] << ") ";
     }
-    buffer << "\nTangents: " << tangents.size() << endl;
-    for (const auto& tangent : tangents) {
-        buffer << fixed << setprecision(2) << "(" << tangent.x << ", " << tangent.y << ", " << tangent.z << ") ";
-    }
     cout << buffer.str();
 }
 
@@ -309,6 +305,6 @@ void BeybladeMesh::render(ShaderProgram& shader) {
 
     GLenum err;
     while ((err = glGetError()) != GL_NO_ERROR) {
-        cerr << "OpenGL error: " << err << endl;
+        cerr << "OpenGL error in BeybladeMesh: " << err << endl;
     }
 }

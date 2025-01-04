@@ -29,6 +29,8 @@ glm::vec3 screenToWorldCoordinates(GLFWwindow * window, float xpos, float ypos, 
 int floatToDiscreteInt(float val, float mn, float mx);
 float discreteIntToFloat(int val, float mn, float mx);
 
+std::ostream& operator<<(std::ostream & os, const glm::mat4 & mat);
+
 enum ProgramState {
     LOADING,
     RENDERING,

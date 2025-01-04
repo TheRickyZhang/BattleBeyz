@@ -25,5 +25,5 @@ public:
     void cleanup();
 
     // Method to bind the texture before drawing
-    void use() const;
+    void use(int textureUnit = 0) const;
 };

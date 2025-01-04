@@ -6,28 +6,44 @@
 #pragma once
 
 #include <vector>
+#include <memory>
 
-class ShaderProgram;
+#include <glm/glm.hpp>
+
+#include "ShaderProgram.h"
+#include "Texture.h"
 
 class GameObject {
 public:
-    GameObject(unsigned int vao, unsigned int vbo, unsigned int ebo, const glm::vec3& col)
-            : VAO(vao), VBO(vbo), EBO(ebo), color(col) {}
+    GameObject();
+    virtual ~GameObject();
 
-    // Pure virtual functions
     virtual void initializeMesh() = 0;
-    virtual void render(ShaderProgram &shader, const glm::vec3 &lightColor, const glm::vec3 &lightPos) = 0;
-protected:
-    // Mesh data
-    std::vector<glm::vec3> vertices;
-    std::vector<glm::vec3> normals;
-    std::vector<glm::vec2> texCoords;
-    std::vector<unsigned int> indices;
-    std::vector<glm::vec3> tangents;
-    
-    std::vector<glm::vec3> colors;
-    std::vector<float> vertexData;
+    virtual void render(ShaderProgram& shader, std::shared_ptr<Texture> texture = nullptr);
 
-    unsigned int VAO, VBO, EBO;
-    glm::vec3 color;
+    // Getters and setters
+    void setModelMatrix(const glm::mat4& newModel);
+    const glm::mat4& getModelMatrix() const;
+
+    void setTint(const glm::vec3& newTint);
+    //void setTextureScale(const glm::vec2& scale);
+    //const glm::vec2& getTextureScale() const;
+
+protected:
+    unsigned int VAO=0, VBO=0, EBO=0;
+
+    std::vector<glm::vec3> vertices;   // Position (x, y, z)
+    std::vector<glm::vec3> normals;    // Normal (x, y, z)
+    std::vector<glm::vec2> texCoords;  // Texture coordinates (u, v)
+    std::vector<glm::vec3> colors;     // **Changed from tangents to colors**
+    std::vector<unsigned int> indices; // Indices for indexed drawing
+
+    // Only set on initialization; assumed static if the object does not move
+    glm::mat4 modelMatrix = glm::mat4(1.0f);
+
+    // Must be set explicitly for rare scenarios
+    glm::vec3 tint = glm::vec3(1.0f);
+    //glm::vec2 textureScale = glm::vec2(1.0f, 1.0f);
+
+    void setupBuffersFromMembers();
 };
