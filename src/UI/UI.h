@@ -21,7 +21,6 @@
 const ImGuiWindowFlags MinimalWindow = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize; // No decorations, navigation, moving, or resizing
 const ImGuiWindowFlags OverlayWindow = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_AlwaysAutoResize; // No decorations, background, inputs; auto-resizes
 const ImGuiWindowFlags StaticWindow = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse; // Fixed position/size, no decorations, cannot move/resize/collapse
-const ImGuiWindowFlags ScrollingWindow = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_HorizontalScrollbar; // No decorations, no collapse, horizontal scrollbar
 const ImGuiWindowFlags NormalWindow = ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse; // Auto-resizes, cannot collapse
 
 // Currently unused

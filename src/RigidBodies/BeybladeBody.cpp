@@ -1,31 +1,34 @@
 #include "BeybladeBody.h"
 #include "BoundingBox.h"
 
-BeybladeBody::BeybladeBody(Layer layer, Disc disc, Driver driver) :
+using namespace std;
+using namespace glm;
+
+BeybladeBody::BeybladeBody(shared_ptr<Layer> layer, shared_ptr<Disc> disc, shared_ptr<Driver> driver) :
     layer(layer), disc(disc), driver(driver),
-    mass(layer.mass + disc.mass + driver.mass),
-    momentOfInertia(layer.momentOfInertia + disc.momentOfInertia + driver.momentOfInertia)
+    mass(layer->mass + disc->mass + driver->mass),
+    momentOfInertia(layer->momentOfInertia + disc->momentOfInertia + driver->momentOfInertia)
 {   
     // Used to be older physics code here for the very annoying drag terms to get correct. See GitHub history if still needed.
     
     // Sum 0.5 * Cd * A = 0.5 * Cd * 2 * r =
     // Cd * r * h
-    M2 linearLayerCA = 0.9f * layer.radius * layer.height;
-    M2 linearDiscCA = 0.9f * disc.radius * disc.height;
-    M2 linearDriverCA = 0.9f * driver.radius * driver.height;
+    M2 linearLayerCA = 0.9f * layer->radius * layer->height;
+    M2 linearDiscCA = 0.9f * disc->radius * disc->height;
+    M2 linearDriverCA = 0.9f * driver->contactRadius * driver->height;
     linearDragTerm = linearLayerCA + linearDiscCA + linearDriverCA;
 
     // Sum 1/2 Ca * A * r^2 = 1/2 Ca * (2pi * r * h) * r^2 =
     // Cd * pi * r^3 * h
-    M5 angularLayerCAr2 = layer.rotationalDragCoefficient * PI * pow<4>(layer.radius) * layer.height;
-    M5 angularDiscCAr2 = disc.rotationalDragCoefficient * PI * pow<4>(disc.radius) * disc.height;
-    M5 angularDriverCAr2 = driver.rotationalDragCoefficient * PI * pow<4>(driver.radius) * driver.height;
+    M5 angularLayerCAr2 = layer->rotationalDragCoefficient * PI * pow<4>(layer->radius) * layer->height;
+    M5 angularDiscCAr2 = disc->rotationalDragCoefficient * PI * pow<4>(disc->radius) * disc->height;
+    M5 angularDriverCAr2 = driver->rotationalDragCoefficient * PI * pow<4>(driver->contactRadius) * driver->height;
     angularDragTerm = angularLayerCAr2 + angularDiscCAr2 + angularDriverCAr2;
 
     modified = false;  // 2024-12-03
 }
 
-BeybladeBody::BeybladeBody() : BeybladeBody(Layer(), Disc(), Driver()) {}
+BeybladeBody::BeybladeBody() : BeybladeBody(make_shared<Layer>(), make_shared<Disc>(), make_shared<Driver>()) {}
 
 
 /*--------------------------------------------Specialized Getters--------------------------------------------*/
@@ -40,8 +43,8 @@ Vec3_Scalar BeybladeBody::getNormal() const {
 
 Vec3_M BeybladeBody::getBottomPosition() const {
     Vec3_Scalar unitDown = Vec3_Scalar(angularVelocity.y() < 0 ? normalize(angularVelocity) : -normalize(angularVelocity));
-    Vec3_M tiltedDisplacement = (disc.height + driver.height) * unitDown;
-    Vec3_M bottomPosition = baseCenter + tiltedDisplacement;
+    Vec3_M tiltedDisplacement = (disc->height + driver->height) * unitDown;
+    Vec3_M bottomPosition = center + tiltedDisplacement;
     return bottomPosition;
 }
 
@@ -52,7 +55,7 @@ Vec3_M BeybladeBody::getBottomPosition() const {
 void BeybladeBody::resetPhysics()
 {
     // Added 2024-11-18
-    baseCenter = _initialBaseCenter;
+    center = _initialCenter;
     velocity = _initialVelocity;
     angularVelocity = _initialAngularVelocity;
 
@@ -65,59 +68,59 @@ void BeybladeBody::resetPhysics()
 
 void BeybladeBody::setInitialLaunch(Vec3_M initialCenter, Vec3_M_S initialVelocity, Vec3_R_S initialAngularVelocity)
 {
-    baseCenter = initialCenter;
+    center = initialCenter;
     velocity = initialVelocity;
     angularVelocity = initialAngularVelocity;
 
     // Save some values for restart.  2024-11-18
 
-    _initialBaseCenter = baseCenter;
+    _initialCenter = center;
     _initialVelocity = velocity;
     _initialAngularVelocity = angularVelocity;
 }
 
 // IMPROVE: Gets rough bounding box based on current dimensions
 BoundingBox BeybladeBody::getBoundingBox() const {
-    glm::vec3 mx = baseCenter.value() + glm::vec3(layer.radius.value(), layer.height.value(), layer.radius.value());
-    glm::vec3 mn = baseCenter.value() - glm::vec3(layer.radius.value(), disc.height.value() + driver.height.value(), layer.radius.value());
+    vec3 mx = center.value() + vec3(layer->radius.value(), layer->height.value(), layer->radius.value());
+    vec3 mn = center.value() - vec3(layer->radius.value(), disc->height.value() + driver->height.value(), layer->radius.value());
     return BoundingBox(mx, mn);
 }
 
 /*--------------------------------------------Collision Calculations--------------------------------------------*/
 
-Scalar BeybladeBody::sampleRecoil()
+Scalar BeybladeBody::sampleRecoil() const
 {
-    return layer.recoilDistribution.sample();
+    return layer->recoilDistribution.sample();
 }
 
-std::optional<M> BeybladeBody::distanceOverlap(BeybladeBody* a, BeybladeBody* b) {
+optional<M> BeybladeBody::distanceOverlap(BeybladeBody* a, BeybladeBody* b) {
     if (!a || !b) {
-        throw std::invalid_argument("Null pointer created in Beyblade::inContact");
+        throw invalid_argument("Null pointer created in Beyblade::inContact");
     }
 
-    Vec3_M aCenter = a->getCenter();
-    Vec3_M bCenter = b->getCenter();
+    Vec3_M aCenter = a->center;
+    Vec3_M bCenter = b->center;
 
     BeybladeBody* lowerBey = aCenter.y() < bCenter.y() ? a : b;
     BeybladeBody* higherBey = lowerBey == a ? b : a;
 
     // Return nothing (no contact) early if layers do not vertically overlap
-    if (lowerBey->getCenter().yTyped() + lowerBey->getLayerHeight() < higherBey->getCenter().yTyped()) {
-        return std::nullopt;
+    if (lowerBey->center.yTyped() + lowerBey->layer->height < higherBey->center.yTyped()) {
+        return nullopt;
     }
 
     M diffX = aCenter.xTyped() - bCenter.xTyped();
     M diffZ = aCenter.zTyped() - bCenter.zTyped();
     M2 squaredDistance = diffX * diffX + diffZ * diffZ;
-    M radiiSum = a->getLayerRadius() + b->getLayerRadius();
+    M radiiSum = a->layer->radius + b->layer->radius;
 
     M2 overlapDistance = radiiSum * radiiSum - squaredDistance;
 
     // Checks for horizontal overlap based on xz coordinates with radii
     if (overlapDistance > 0.0_m2) {
-        return std::optional<M>(root<2>(overlapDistance));
+        return optional<M>(root<2>(overlapDistance));
     }
-    return std::nullopt;
+    return nullopt;
 }
 
 /*--------------------------------------------Accumulators--------------------------------------------*/
@@ -185,8 +188,8 @@ void BeybladeBody::applyAccumulatedChanges(float deltaTime)
 
 void BeybladeBody::update(float deltaTime)
 {
-    baseCenter += velocity * S(deltaTime);
+    center += velocity * S(deltaTime);
 #if 0
-    std::cout << "Base center: " << baseCenter.x << ", " << baseCenter.y << ", " << baseCenter.z << std::endl;
+    cout << "Base center: " << center.x << ", " << center.y << ", " << center.z << endl;
 #endif
 }

@@ -42,7 +42,6 @@ int main() {
 
     /* ----------------------MAIN RENDERING LOOP-------------------------- */
 
-    // TODO: Move these declarations dynmically upon loading of ActiveState
     engine.pushState(GameStateType::LOADING);
 
     while (engine.running()) {

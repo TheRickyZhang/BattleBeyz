@@ -14,17 +14,7 @@
 
 void Stadium::render(ObjectShader& shader) {
     shader.use();
-#if 0
-    // TODO:  2024-11-03: Note that texture does not work here -- the colors defined in the stadium
-    // definition are used.
 
-    if (mesh->texture) {
-        
-        (GL_TEXTURE0);
-        mesh->texture->use();
-        shader.setInt("texture1", 0);
-    }
-#endif
     // Bind appropriate uniforms (model, view, projection matrices)
     glm::mat4 model = glm::translate(glm::mat4(1.0f), rigidBody->getCenter().value());
     shader.setMat4("model", model);

@@ -14,20 +14,21 @@
                         },
                         "driver": {
                             "coefficientOfFriction": 0.2199999988079071,
+                            "contactRadius": 0.0020000000949949026,
                             "height": 0.014999999664723873,
                             "mass": 0.004999999888241291,
                             "momentOfInertia": 7.500000620552782e-09,
-                            "radius": 0.0020000000949949026,
-                            "rotationalDragCoefficient": 0.0005000000237487257
+                            "rotationalDragCoefficient": 0.0005000000237487257,
+                            "upperRadius": 0.012000000104308128
                         },
                         "layer": {
                             "coefficientOfRestitution": 0.800000011920929,
                             "height": 0.009999999776482582,
                             "mass": 0.02199999988079071,
-                            "momentOfInertia": 6.875000053696567e-06,
+                            "momentOfInertia": 1.1666666978271678e-05,
                             "radius": 0.02500000037252903,
                             "recoilDistribution": {
-                                "mean": 1.0,
+                                "mean": 0.30000001192092896,
                                 "stddev": 0.10000000149011612
                             },
                             "rotationalDragCoefficient": 0.003499999875202775
@@ -51,11 +52,12 @@
                         },
                         "driver": {
                             "coefficientOfFriction": 0.2199999988079071,
+                            "contactRadius": 0.0020000000949949026,
                             "height": 0.014999999664723873,
                             "mass": 0.004999999888241291,
                             "momentOfInertia": 7.500000620552782e-09,
-                            "radius": 0.0020000000949949026,
-                            "rotationalDragCoefficient": 0.0005000000237487257
+                            "rotationalDragCoefficient": 0.0005000000237487257,
+                            "upperRadius": 0.012000000104308128
                         },
                         "layer": {
                             "coefficientOfRestitution": 0.800000011920929,

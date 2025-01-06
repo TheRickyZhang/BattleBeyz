@@ -12,7 +12,7 @@
 
 
 /**
-* Convert screen to world coordinates.  TODO: Params.
+* Convert screen to world coordinates.
 * 
 * @param xpos                   [in] X position in screen coordinates.
 * 
@@ -46,8 +46,6 @@ glm::vec3 screenToWorldCoordinates(GLFWwindow* window, float xpos, float ypos, c
 
 /**
 * Perform intersection test with objects in your scene and return the object name.
-* 
-* TODO: Replace this with your actual intersection logic
 */
 
 std::string checkIntersection(const glm::vec3& ray_world) {

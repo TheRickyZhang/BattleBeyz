@@ -122,13 +122,21 @@ bool GameEngine::init(const char* title, int width, int height) {
     // Catch any errors from file importing, returning a blue screen of informational death if failing
     //pm.addDefaultProfiles();
     try {
-        pm.loadProfilesFromFile(PROFILE_SAVE_PATH);
         setupImGui(window);
+
+        glfwSetFramebufferSizeCallback(window, framebufferSizeCallback);
+        glfwSetKeyCallback(window, keyCallback);
+        glfwSetMouseButtonCallback(window, mouseButtonCallback);
+        glfwSetCursorPosCallback(window, cursorPosCallback);
+        glfwSetScrollCallback(window, scrollCallback);
+
+        pm.loadProfilesFromFile(PROFILE_SAVE_PATH);
     }
     catch (const nlohmann::json::exception& e) {
         // Add critical error messages to the message log
         ml.addMessage("Critical error during initialization: " + string(e.what()), MessageType::ERROR);
         ml.addMessage("Please investigate the issue, and reach out to the contact email for further support");
+        ml.open();
 
         // Enter error handling loop
         while (!glfwWindowShouldClose(window)) {
@@ -186,11 +194,6 @@ bool GameEngine::init(const char* title, int width, int height) {
     tm.loadTexture("stadium", "./assets/textures/Hexagon.jpg");
     tm.loadTexture("floor", "./assets/textures/Wood1.jpg");
 
-    glfwSetFramebufferSizeCallback(window, framebufferSizeCallback);
-    glfwSetKeyCallback(window, keyCallback);
-    glfwSetMouseButtonCallback(window, mouseButtonCallback);
-    glfwSetCursorPosCallback(window, cursorPosCallback);
-    glfwSetScrollCallback(window, scrollCallback);
 
     // Initialize INI handling if needed
     iniFile = nullptr;

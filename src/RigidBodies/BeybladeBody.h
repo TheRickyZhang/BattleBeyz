@@ -8,6 +8,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/glm.hpp>
 #include <optional>
+#include <memory>
 
 #include "BeybladeParts.h"
 
@@ -25,48 +26,10 @@ public:
 	// Two options for constructing: Do entirely by parts OR by mesh + stats
 
 	BeybladeBody();
-	BeybladeBody(Layer layer, Disc disc, Driver driver);
+	BeybladeBody(std::shared_ptr<Layer> layer, std::shared_ptr<Disc> disc, std::shared_ptr<Driver> driver);
 
-	// Simple getters.
-	// TODO: Make Layer (5000 bytes), Disc, Driver public unique_ptrs, thus reducing too many getters/setters
-	// 
-	// RZ:  Theoretically good style, but there are too many!  Just make the variables public!
-
-	// Getters per part
-	M getLayerHeight() const { return driver.height; }
-	Kg getLayerMass() const { return layer.mass; }
-	KgM2 getLayerMomentOfInertia() const { return layer.momentOfInertia; }
-	M getLayerRadius() const { return layer.radius; }
-	RandomDistribution getLayerRecoilDistribution() const { return layer.recoilDistribution; }
-	Scalar getLayerCOR() const { return layer.coefficientOfRestitution; }
-
-	void setLayerCoefficientOfRestitution(Scalar _cor) { layer.coefficientOfRestitution = _cor; }
-	void setLayerMass(Kg _mass) { layer.mass = _mass; }
-	void setLayerMomentOfInertia(KgM2 _moi) { layer.momentOfInertia = _moi; }
-	void setLayerRecoilDistribution(Scalar mean, Scalar stddev) {
-		layer.recoilDistribution.setMean(mean);
-		layer.recoilDistribution.setStdDev(stddev);
-	}
-
-	M getDiscHeight() const { return disc.height; }
-	Kg getDiscMass() const { return disc.mass; }
-	KgM2 getDiscMomentOfInertia() const { return disc.momentOfInertia; }
-	M getDiscRadius() const { return disc.radius; }
-
-	Scalar getDriverCOF() const { return driver.coefficientOfFriction; }
-	M getDriverHeight() const { return driver.height; }
-	Kg getDriverMass() const { return driver.mass; }
-	KgM2 getDriverMomentOfInertia() const { return driver.momentOfInertia; }
-	M getDriverRadius() const { return driver.radius; }
-
-	void setDiscMass(Kg _mass) { disc.mass = _mass; }
-	void setDiscMomentOfInertia(KgM2 _moi) { disc.momentOfInertia = _moi; }
-	void setDriverCOF(Scalar _cof) { driver.coefficientOfFriction = _cof; }
-	void setDriverMass(Kg _mass) { driver.mass = _mass; }
-	void setDriverMomentOfInertia(KgM2 _moi) { driver.momentOfInertia = _moi; }
-
-	// Getters entire object
-	Vec3_M getCenter() const { return baseCenter; }
+	// Simple getters. Only applies to beyblade-specific parts
+	Vec3_M getCenter() const { return center; }
 	Vec3_M_S getVelocity() const { return velocity; }
 	Vec3_R_S getAngularVelocity() const { return angularVelocity; }
 
@@ -76,12 +39,10 @@ public:
 	M5 getAngularDragTerm() const { return angularDragTerm; }
 
 
-	// TODO: Need to distinguish between the top and bottom of the driver, or driverRadiusTop and driverRadiusBottom
-	float getDriverTopRadius() const { return 0.012f; }
+	// TODO: Need to distinguish between the top and bottom of the driver, or driverRadiusTop and driverRadiusBottom 0.012f
 	// TODO: Add linearDragCoefficient (low priority, currently assumed to be constant 0.9)
 
 	// Specialized getters
-	//float getAngularVelocityMagnitude() const { return glm::length(angularVelocity); }
 	bool isSpinningClockwise() const { return angularVelocity.y() < 0; }
 	Vec3_Scalar getNormal() const;
 	Vec3_M getBottomPosition() const;
@@ -94,22 +55,22 @@ public:
 	void setMass(Kg _mass) { mass = _mass; }  // Total mass
 	void setMomentOfInertia(KgM2 _totalMOI) { momentOfInertia = _totalMOI; }
 	void updateFromParts() {
-		setMass(layer.mass + disc.mass + driver.mass);
-		setMomentOfInertia(layer.momentOfInertia + disc.momentOfInertia + driver.momentOfInertia);
+		setMass(layer->mass + disc->mass + driver->mass);
+		setMomentOfInertia(layer->momentOfInertia + disc->momentOfInertia + driver->momentOfInertia);
 	}
 
 	// Adjustors
-	void addCenterY(M y) { baseCenter.addY(y); }
+	void addCenterY(M y) { center.addY(y); }
 	void addCenterXZ(M x, M z) {
-		baseCenter.addX(x);
-		baseCenter.addZ(z);
+		center.addX(x);
+		center.addZ(z);
 	}
-	void setCenterY(M y) { baseCenter.setY(y); }
+	void setCenterY(M y) { center.setY(y); }
 	void setVelocity(Vec3_M_S newVelocity) { velocity = newVelocity; }
 	void setVelocityY(M_S newY) { velocity.setY(newY); }
 
 	// Used in collision calculations
-	Scalar sampleRecoil();
+	Scalar sampleRecoil() const;
 	static std::optional<M> distanceOverlap(BeybladeBody* a, BeybladeBody* b);
 
 	// Accumulators
@@ -134,16 +95,16 @@ public:
 	}
 
 	// Parts - Access individual variables through these!
-	Disc disc;
-	Driver driver;
-	Layer layer;
+	std::shared_ptr<Driver> driver;
+	std::shared_ptr<Disc> disc;
+	std::shared_ptr<Layer> layer;
 
 	float prevCollision = 0.0f;
 private:
 
 	// Global Position
-	Vec3_M baseCenter {};
-	Vec3_M _initialBaseCenter{};  // 2024-11-18 Saved for use by restart
+	Vec3_M center {};
+	Vec3_M _initialCenter{};  // 2024-11-18 Saved for use by restart
 
 	// Linear Physics
 	Kg mass;

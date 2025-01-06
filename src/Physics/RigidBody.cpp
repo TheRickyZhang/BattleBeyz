@@ -97,11 +97,6 @@ void RigidBody::renderDebug(ObjectShader &shader, const glm::vec3 &viewPos) {
     shader.use();
     shader.setObjectRenderParams(glm::mat4(1.0f), glm::vec3(1.0f));
 
-    GLenum error;
-    while ((error = glGetError()) != GL_NO_ERROR) {
-        std::cerr << "OpenGL error before RigidBody: " << error << std::endl;
-    }
-
     glBindVertexArray(VAO);
     glDrawElements(GL_LINES, 24, GL_UNSIGNED_INT, nullptr); // 24 is the number of indices for 12 lines
     glBindVertexArray(0);

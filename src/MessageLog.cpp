@@ -37,7 +37,7 @@ void MessageLog::addMessage(const string& text, MessageType type, bool overwrite
 void MessageLog::render() {
     if (!visible) return;   
     SetWindowPositionAndSize(2, 4, 1, 4);
-    ImGui::Begin("Message Log", nullptr, ScrollingWindow);
+    ImGui::Begin("Message Log", nullptr, NormalWindow);
 
     // TODO: Make sure these buttons stay while below messaegs scroll
     if (ImGui::Button("Clear")) messageLog.clear();
@@ -46,11 +46,14 @@ void MessageLog::render() {
     ImGui::Separator();
 
     // Display each message, auto scroll to bottom
+    ImGui::BeginChild("ScrollRegion", ImVec2(0, -ImGui::GetFrameHeightWithSpacing()), true);
     for (const auto& message : messageLog) {
         ImGui::TextColored(message.color, "%s", message.text.c_str());
     }
     if (ImGui::GetScrollY() >= ImGui::GetScrollMaxY())
         ImGui::SetScrollHereY(1.0f);
+    ImGui::EndChild();
+
     ImGui::End();
 }
 

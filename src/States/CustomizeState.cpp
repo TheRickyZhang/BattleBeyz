@@ -240,12 +240,6 @@ void CustomizeState::drawManualCustomizeSection(shared_ptr<Beyblade> beyblade) {
     if (ImGuiFileDialog::Instance()->Display("Dlg##SelectMesh", ImGuiWindowFlags_None, ImVec2(800, 600))) {
         if (ImGuiFileDialog::Instance()->IsOk()) {
             std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
-            //std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
-
-            // Load the new mesh.
-            //
-            // TODO: Need to copy some dimension info??
-
             auto newMesh = std::make_unique<BeybladeMesh>(filePathName.c_str());  // This loads the mesh.
             if (newMesh != nullptr && newMesh->modelLoaded) {
                 beyblade->setMesh(newMesh);
@@ -254,7 +248,6 @@ void CustomizeState::drawManualCustomizeSection(shared_ptr<Beyblade> beyblade) {
                 game->ml.addMessage("Failed to load mesh. Ensure it is a valid .obj file", MessageType::ERROR, true);
             }
         }
-
         ImGuiFileDialog::Instance()->Close();  // Close the dialog
         return;
     }
@@ -347,21 +340,21 @@ void CustomizeState::drawTemplateCustomizeSection(shared_ptr<Beyblade> beyblade)
         Separator();
         Text("Name: %s", templateLayers[tempSelectedLayer].name.c_str());
         Text("Model Path: %s", templateLayers[tempSelectedLayer].modelPath.c_str());
-        Text("Mass: %.3f kg", layer.mass);
+        Text("Mass: %.3f kg", layer->mass);
     }
     if (isDiscSelected) {
         const auto& disc = templateDiscs[tempSelectedDisc].part;
         Separator();
         Text("Name: %s", templateDiscs[tempSelectedDisc].name.c_str());
         Text("Model Path: %s", templateDiscs[tempSelectedDisc].modelPath.c_str());
-        Text("Mass: %.3f kg", disc.mass);
+        Text("Mass: %.3f kg", disc->mass);
     }
     if (isDriverSelected) {
         const auto& driver = templateDrivers[tempSelectedDriver].part;
         Separator();
         Text("Name: %s", templateDrivers[tempSelectedDriver].name.c_str());
         Text("Model Path: %s", templateDrivers[tempSelectedDriver].modelPath.c_str());
-        Text("Mass: %.3f kg", driver.mass);
+        Text("Mass: %.3f kg", driver->mass);
     }
 
     EndChild();

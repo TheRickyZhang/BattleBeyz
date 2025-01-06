@@ -18,9 +18,7 @@ using namespace Units;
 class RandomDistribution {
 public:
     RandomDistribution(Scalar mean = Scalar(1.0f), Scalar stddev = Scalar(0.1f))
-        : mean(mean),
-        stddev(stddev),
-        rng(std::random_device{}())
+        : mean(mean), stddev(stddev)
     {
         setDistribution(mean, stddev);
     }
@@ -46,6 +44,10 @@ public:
     }
 
 private:
+    // Declare static inline to save memory
+    static inline std::random_device rd;
+    static inline std::mt19937 rng{ rd() };
+
     void setDistribution(Scalar mean, Scalar stddev) {
         if (mean.value() <= 0) {
             throw std::invalid_argument("Mean must be positive.");
@@ -60,6 +62,5 @@ private:
 
     Scalar mean;
     Scalar stddev;
-    std::mt19937 rng;
     std::lognormal_distribution<float> distribution;
 };

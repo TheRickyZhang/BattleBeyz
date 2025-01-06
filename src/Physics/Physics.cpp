@@ -57,7 +57,7 @@ void Physics::accumulateFriction(BeybladeBody* beyblade, StadiumBody* stadium) {
     // Gets the normal of the stadium at the beyblade's position
     Vec3_Scalar stadiumNormal = stadium->getNormal(beyblade->getCenter().xTyped(), beyblade->getCenter().zTyped());
 
-    Scalar combinedCOF = (stadium->getCOF() + beyblade->getDriverCOF()) / 2.0__;
+    Scalar combinedCOF = (stadium->getCOF() + beyblade->driver->coefficientOfFriction) / 2.0__;
     Vec3_M beyBottomPosition = beyblade->getBottomPosition();
     M stadiumY = stadium->getY(beyBottomPosition.xTyped(), beyBottomPosition.zTyped());
     Vec3_Scalar normalizedAngularVelocity = normalize(beyblade->getAngularVelocity());
@@ -68,7 +68,7 @@ void Physics::accumulateFriction(BeybladeBody* beyblade, StadiumBody* stadium) {
 
     // TODO: Represent radius as 1/rad units
     M_S2 linearComponent = Physics::GRAVITY * combinedCOF * alignment;
-    M_S2 angularComponent = 1.0__/(1.0_s2) * (beyblade->getAngularVelocity().length() * beyblade->getDriverRadius()) * combinedCOF * (alignment > 0.0__ ? 1.0f : -1.0f);
+    M_S2 angularComponent = 1.0__/(1.0_s2) * (beyblade->getAngularVelocity().length() * beyblade->driver->contactRadius) * combinedCOF * (alignment > 0.0__ ? 1.0f : -1.0f);
 
     // cl * (g * mu * cos(theta)
     M_S2 traditionalAccelerationComponent = Physics::FRICTIONAL_ACCELERATION_CONSTANT * linearComponent;
@@ -86,7 +86,7 @@ void Physics::accumulateFriction(BeybladeBody* beyblade, StadiumBody* stadium) {
 
     // angular = -direction * |linear| * mass * r / moi
     Vec3_R_S2 angularAcceleration = -1.0_rad * normalizedAngularVelocity *
-        (linearAcceleration.lengthTyped() * beyblade->getMass() * beyblade->getDriverRadius() / beyblade->getMomentOfInertia());
+        (linearAcceleration.lengthTyped() * beyblade->getMass() * beyblade->driver->contactRadius / beyblade->getMomentOfInertia());
 
     beyblade->accumulateAcceleration(FRICTIONAL_EFFICIENCY * linearAcceleration);
     beyblade->accumulateAngularAcceleration(angularAcceleration);
@@ -105,7 +105,7 @@ void Physics::accumulateSlope(BeybladeBody* beyblade, StadiumBody* stadium)
     Vec3_M beyBottomPosition = beyblade->getBottomPosition();
     Vec3_Scalar beybladeNormal = beyblade->getNormal();
     Vec3_Scalar stadiumNormal = stadium->getNormal(beyblade->getBottomPosition().xTyped(), beyblade->getBottomPosition().zTyped());
-    Scalar combinedCOF = (stadium->getCOF() + beyblade->getDriverCOF()) / 2.0__;
+    Scalar combinedCOF = (stadium->getCOF() + beyblade->driver->coefficientOfFriction) / 2.0__;
 
     Vec3_Scalar crossProduct = cross(stadiumNormal, beybladeNormal);
     Scalar sinOfAngle = crossProduct.length() / (stadiumNormal.length() * beybladeNormal.length());
@@ -150,7 +150,7 @@ void Physics::accumulateImpact(BeybladeBody* beyblade1, BeybladeBody* beyblade2,
     Vec3_M_S velocity1 = beyblade1->getVelocity();
     Vec3_M_S velocity2 = beyblade2->getVelocity();
     Vec3_M_S vDiff = velocity2 - velocity1;
-    Scalar averageCOR = (beyblade1->getLayerCOR() + beyblade2->getLayerCOR()) / 2.0__;
+    Scalar averageCOR = (beyblade1->layer->coefficientOfRestitution + beyblade2->layer->coefficientOfRestitution) / 2.0__;
 
     Kg mass1 = beyblade1->getMass();
     Kg mass2 = beyblade2->getMass();

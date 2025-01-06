@@ -182,8 +182,6 @@ void BoundingBox::renderDebug(ObjectShader &shader, const glm::vec3& bodyPositio
 * Set up glfw vertex data.
 */
 void BoundingBox::setupBoundingBoxBuffers() {
-    // TODO: You need to set this to 1 to align the stadium data, but then it is statdium-specific.
-    // Instead, the renderer needs to know the position of it's parent.
     float offset = 0.0f;
 
     // Vertex data

@@ -35,7 +35,7 @@ enum ProgramState {
     RENDERING,
     ACTIVE,
     PAUSED, 
-    // TODO: More states based on game logic needs
+
 };
 
 /**
