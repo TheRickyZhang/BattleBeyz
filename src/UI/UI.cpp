@@ -211,8 +211,8 @@ pair<float, float> SetWindowPositionAndSize(int numRows, int numCols, int row, i
     float xPos = segmentWidth * col;
     float yPos = segmentHeight * row;
 
-    SetNextWindowPos(ImVec2(xPos, yPos), ImGuiCond_Always);
-    SetNextWindowSize(ImVec2(colSize * segmentWidth, rowSize * segmentHeight), ImGuiCond_Always);
+    SetNextWindowPos(ImVec2(xPos, yPos), ImGuiCond_FirstUseEver);
+    SetNextWindowSize(ImVec2(colSize * segmentWidth, rowSize * segmentHeight), ImGuiCond_FirstUseEver);
 
     // Return [centerX, wrapWidth] of the current window
     return make_pair(colSize * segmentWidth / 2, (colSize * segmentWidth) - (2 * GetStyle().WindowPadding.x));

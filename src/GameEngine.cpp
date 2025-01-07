@@ -242,15 +242,23 @@ void GameEngine::changeState(GameStateType stateType) {
     }
 }
 
+// Hm... this loose handling of states may potentially be an issue (see: expected behavior of pushing a loadingState from init() calls)
 void GameEngine::pushState(GameStateType stateType) {
     if (!stateStack.empty()) {
         stateStack.back()->pause();
     }
     auto newState = createState(stateType);
     if (newState) {
-        newState->init();
         stateStack.push_back(move(newState));
+        if (!stateStack.empty()) stateStack.back()->init();
     }
+}
+void GameEngine::pushState(std::unique_ptr<GameState> state) {
+    if (!stateStack.empty()) {
+        stateStack.back()->pause();
+    }
+    stateStack.push_back(std::move(state));
+    if (!stateStack.empty()) stateStack.back()->init();
 }
 
 void GameEngine::popState() {

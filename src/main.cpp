@@ -6,6 +6,7 @@
 #include "PhysicsWorld.h"
 #include "GameEngine.h"
 #include "ProfileManager.h"
+#include "StateFactory.h"
 
 #include "Utils.h"
 
@@ -14,9 +15,9 @@ int main() {
 
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
-    GameEngine engine;
+    GameEngine* game = new GameEngine();
 
-    if (!engine.init("Battlebeyz", 1600, 900)) {
+    if (!game->init("Battlebeyz", 1600, 900)) {
         return -1;
     }
 
@@ -27,8 +28,8 @@ int main() {
 
     // These might be null for now, quell errors
 
-    Beyblade* beyblade1 = engine.pm.getActiveProfile()->getBeyblade(1).get();
-    Beyblade* beyblade2 = engine.pm.getActiveProfile()->getBeyblade(2).get();
+    Beyblade* beyblade1 = game->pm.getActiveProfile()->getBeyblade(1).get();
+    Beyblade* beyblade2 = game->pm.getActiveProfile()->getBeyblade(2).get();
     // Add beys
     physicsWorld->addBeyblade(beyblade1);
     physicsWorld->addBeyblade(beyblade2);
@@ -42,20 +43,27 @@ int main() {
 
     /* ----------------------MAIN RENDERING LOOP-------------------------- */
 
-    engine.pushState(GameStateType::LOADING);
+    std::function<bool()> wait = { [&]() -> bool { MockLoading::getInstance().mock(); return true; } };
+    game->pushState(StateFactory::createLoadingState(
+        game,
+        {wait, wait, wait},
+        [&]() {
+            game->changeState(GameStateType::HOME);
+        }
+    ));
 
-    while (engine.running()) {
+    while (game->running()) {
 #if 1
         auto currentTime = static_cast<float>(glfwGetTime());
-        engine.deltaTime = currentTime - engine.prevTime;
-        engine.prevTime = currentTime;
+        game->deltaTime = currentTime - game->prevTime;
+        game->prevTime = currentTime;
 # else
-        engine.deltaTime = 0.0052f; // fixed frame rate, lower = slower
+        game->deltaTime = 0.0052f; // fixed frame rate, lower = slower
 #endif
 
-        if (!engine.paused) engine.handleEvents();  // External inputs: user/system
-        engine.update();        // Time-based state updates
-        engine.draw();          // Render the current state
+        if (!game->paused) game->handleEvents();  // External inputs: user/system
+        game->update();        // Time-based state updates
+        game->draw();          // Render the current state
     }
     return 0;
 }

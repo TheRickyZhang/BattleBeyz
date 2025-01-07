@@ -56,7 +56,7 @@ void PhysicsWorld::update(float deltaTime) {
     */
     for (Beyblade* beyblade : beyblades) {
         BeybladeBody* beybladeBody = beyblade->getRigidBody();
-        if (beybladeBody->getAngularVelocity().length() < SPIN_THRESHOLD) {
+        if (beybladeBody->getAngularVelocity().length() < MIN_SPIN_THRESHOLD) {
             MessageLog::getInstance().addMessage("Beyblade " + beyblade->getName() + " ran out of spin", MessageType::NORMAL);
             return;
         }
@@ -73,18 +73,18 @@ void PhysicsWorld::update(float deltaTime) {
             }
 
             // Add air resistance
-            Physics::accumulateAirResistance(beybladeBody, airDensity);
+            physics.accumulateAirResistance(beybladeBody);
 
             M stadiumY = stadiumBody->getY(beyBottom.xTyped(), beyBottom.zTyped());
 
             // If the Beyblade is airborne by some significant amount, only apply gravity
             if (beyBottom.yTyped() - stadiumY > 0.005_m) {
-                beybladeBody->accumulateAcceleration(Physics::GRAVITY_VECTOR);
+                beybladeBody->accumulateAcceleration(physics.GRAVITY_VECTOR);
             }
             else {
                 // Add friction and slope forces from contact
-                Physics::accumulateFriction(beybladeBody, stadiumBody);
-                Physics::accumulateSlope(beybladeBody, stadiumBody);
+                physics.accumulateFriction(beybladeBody, stadiumBody);
+                physics.accumulateSlope(beybladeBody, stadiumBody);
             }
         }
     }
@@ -107,7 +107,7 @@ void PhysicsWorld::update(float deltaTime) {
             * Linear repulsive force combines the collision due to initial velocity with the recoil from spins
             * Angular draining force is the loss of spin of both beys due to colliding
             */
-            Physics::accumulateImpact(bey1, bey2, contactDistance.value());
+            physics.accumulateImpact(bey1, bey2, contactDistance.value());
             bey1->prevCollision = bey2->prevCollision = currTime;
         }
     }
@@ -124,7 +124,7 @@ void PhysicsWorld::update(float deltaTime) {
         for (Stadium* stadium : stadiums) {
             StadiumBody* stadiumBody = stadium->getRigidBody();
             // Prevent beyblade from ever clipping into the stadium during rendering
-            Physics::preventStadiumClipping(beybladeBody, stadiumBody);
+            physics.preventStadiumClipping(beybladeBody, stadiumBody);
         }
     }
 }

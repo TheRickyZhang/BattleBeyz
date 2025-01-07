@@ -98,7 +98,7 @@ void CustomizeState::precomputeLayout(float& windowWidth, float& frameSpacing, f
 }
 
 // Initialize data for rendering
-// TODO: This data only needs to be recomputed on initialization or change in dropdown selection. However the performance is not very important now
+// PERF: This data only needs to be recomputed on initialization or change in dropdown selection. Low priority.
 void CustomizeState::initializeData(vector<shared_ptr<Profile>>& profiles, shared_ptr<Profile>& profile,
     vector<shared_ptr<Beyblade>>& beyblades, shared_ptr<Beyblade>& beyblade) {
     profiles = game->pm.getAllProfiles();

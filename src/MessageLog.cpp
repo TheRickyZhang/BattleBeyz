@@ -37,7 +37,7 @@ void MessageLog::addMessage(const string& text, MessageType type, bool overwrite
 void MessageLog::render() {
     if (!visible) return;   
     SetWindowPositionAndSize(2, 4, 1, 4);
-    ImGui::Begin("Message Log", nullptr, NormalWindow);
+    ImGui::Begin("Message Log", nullptr, ImGuiWindowFlags_None);
 
     // TODO: Make sure these buttons stay while below messaegs scroll
     if (ImGui::Button("Clear")) messageLog.clear();

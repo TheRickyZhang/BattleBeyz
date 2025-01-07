@@ -121,7 +121,7 @@ void Camera::processKeyboard(Action action, float deltaTime) {
 
     // This works
     newPosition = movementRange.closestPointInside(newPosition);
-    // TODO: Camera gets stuck on a beyblade or stadium when you get too close. Probably becuase no buffer / incorrect logic
+    // TOLOOK: Camera gets stuck on a beyblade or stadium when you get too close. Consider removing feature if not needed
     //if (hasCollision && physicsWorld != nullptr) {
     //    newPosition = applyCollisions(position, newPosition);
     //}

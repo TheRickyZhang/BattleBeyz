@@ -17,9 +17,9 @@ using namespace std;
 * @param airDensity                 [in] Air density.
 */
 
-void Physics::accumulateAirResistance(BeybladeBody* beyblade, Kg_M3 airDensity) {
+void Physics::accumulateAirResistance(BeybladeBody* beyblade) const {
     // c = 1/2 * Cd * A * p
-    Kg_M linearDragConstant = beyblade->getLinearDragTerm() * airDensity;
+    Kg_M linearDragConstant = beyblade->getLinearDragTerm() * FLUID_DRAG;
     //Scalar velocityMagnitude = length(beyblade->getVelocity());
 
     auto res = dot(beyblade->getVelocity(), beyblade->getVelocity());
@@ -28,7 +28,7 @@ void Physics::accumulateAirResistance(BeybladeBody* beyblade, Kg_M3 airDensity) 
                                                             / beyblade->getMass() * normalize(beyblade->getVelocity());
 
     // b = 1/2 * Cd * A * r^3 * p
-    KgM2 angularDragConstant = beyblade->getAngularDragTerm() * airDensity;
+    KgM2 angularDragConstant = beyblade->getAngularDragTerm() * FLUID_DRAG;
     //float angularVelocityMagnitude = glm::length(beyblade->getAngularVelocity());
 
     // Adrag = (-b * w^2 / moi) * unit w            (Note: must manually correct radian overcount here)
@@ -53,7 +53,7 @@ void Physics::accumulateAirResistance(BeybladeBody* beyblade, Kg_M3 airDensity) 
 * @param stadium                    [in] Pointer to the stadium body.
 */
 
-void Physics::accumulateFriction(BeybladeBody* beyblade, StadiumBody* stadium) {
+void Physics::accumulateFriction(BeybladeBody* beyblade, StadiumBody* stadium) const {
     // Gets the normal of the stadium at the beyblade's position
     Vec3_Scalar stadiumNormal = stadium->getNormal(beyblade->getCenter().xTyped(), beyblade->getCenter().zTyped());
 
@@ -67,14 +67,14 @@ void Physics::accumulateFriction(BeybladeBody* beyblade, StadiumBody* stadium) {
     Scalar alignment = dot(normalizedAngularVelocity, stadiumNormal);
 
     // TODO: Represent radius as 1/rad units
-    M_S2 linearComponent = Physics::GRAVITY * combinedCOF * alignment;
+    M_S2 linearComponent = GRAVITY * combinedCOF * alignment;
     M_S2 angularComponent = 1.0__/(1.0_s2) * (beyblade->getAngularVelocity().length() * beyblade->driver->contactRadius) * combinedCOF * (alignment > 0.0__ ? 1.0f : -1.0f);
 
     // cl * (g * mu * cos(theta)
-    M_S2 traditionalAccelerationComponent = Physics::FRICTIONAL_ACCELERATION_CONSTANT * linearComponent;
+    M_S2 traditionalAccelerationComponent = FRICTIONAL_ACCELERATION_CONSTANT * linearComponent;
 
     // cv * (w * mu)
-    M_S2 velocityAccelarationComponent = Physics::FRICTIONAL_VELOCITY_CONSTANT * angularComponent;
+    M_S2 velocityAccelarationComponent = FRICTIONAL_VELOCITY_CONSTANT * angularComponent;
 
     // linear = (direction * sin(theta)) * (cl * (g * mu * cos(theta) + cv * (w * mu))
     Vec3_M_S2 linearAcceleration = frictionDirectionAcceleration * (traditionalAccelerationComponent + velocityAccelarationComponent);
@@ -100,7 +100,7 @@ void Physics::accumulateFriction(BeybladeBody* beyblade, StadiumBody* stadium) {
 * @param stadium                    [in] Pointer to the stadium body.
 */
 
-void Physics::accumulateSlope(BeybladeBody* beyblade, StadiumBody* stadium)
+void Physics::accumulateSlope(BeybladeBody* beyblade, StadiumBody* stadium) const
 {
     Vec3_M beyBottomPosition = beyblade->getBottomPosition();
     Vec3_Scalar beybladeNormal = beyblade->getNormal();
@@ -112,12 +112,8 @@ void Physics::accumulateSlope(BeybladeBody* beyblade, StadiumBody* stadium)
 
     // Check magnitudes here
     Vec3_Scalar unitDisplacement = normalize(stadium->getCenter() - beyBottomPosition);
-    Vec3_M_S2 slopeForce = (Physics::GRAVITY * sinOfAngle * combinedCOF) * unitDisplacement;
-#if 0
-    //cout << Physics::GRAVITY << " " << sinOfAngle << " " << combinedCOF << endl;
-    //cout << unitDisplacement.x << " " << unitDisplacement.y << " " << unitDisplacement.z << endl;
-    printVec3("Slope force", slopeForce);
-#endif
+    Vec3_M_S2 slopeForce = (GRAVITY * sinOfAngle * combinedCOF) * unitDisplacement;
+
     beyblade->accumulateAcceleration(slopeForce);
 }
 
@@ -131,7 +127,6 @@ void Physics::accumulateSlope(BeybladeBody* beyblade, StadiumBody* stadium)
 * @param contactDistance            [in] Contact distance from collision detection logic.
 */
 
-// Checkpoint 12/16
 void Physics::accumulateImpact(BeybladeBody* beyblade1, BeybladeBody* beyblade2, M contactDistance)
 {
     // Goes from bey1 to bey2
@@ -166,7 +161,6 @@ void Physics::accumulateImpact(BeybladeBody* beyblade1, BeybladeBody* beyblade2,
     Vec3_M_S deltaVelocity1 = -impulseMagnitude / mass1 * unitSeparation;
     Vec3_M_S deltaVelocity2 = impulseMagnitude / mass2 * unitSeparation;
 
-    // TODO URGENT PHYSICS: Ensure there is a cooldown after a collision to not have clipping multiple collisions
     // Need to set velocities directly, NOT accumulate them, since collision changes it instantaneously
     beyblade1->setVelocity(deltaVelocity1);
     beyblade2->setVelocity(deltaVelocity2);

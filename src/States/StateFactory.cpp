@@ -21,9 +21,16 @@ std::unique_ptr<GameState> StateFactory::createState(GameEngine* game, GameState
         return std::make_unique<AboutState>(game); // Create and return an AboutState
     case GameStateType::PAUSE:
         return std::make_unique<PauseState>(game); // Create and return a PauseState
-    case GameStateType::LOADING:
-        return std::make_unique<LoadingState>(game); // Loading state is not implemented in this example
     default:
         return nullptr; // Return nullptr if the state type is unknown
     }
+}
+
+// Overload that specifically creates a LoadingState
+std::unique_ptr<GameState> StateFactory::createLoadingState(
+    GameEngine* game,
+    const std::vector<std::function<bool()>>& tasks,
+    std::function<void()> onComplete
+) {
+    return std::make_unique<LoadingState>(game, tasks, onComplete);
 }

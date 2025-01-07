@@ -37,9 +37,7 @@ void ActiveState::init()
     physicsWorld->resetPhysics();
 
     // NEWMESH: Load meshes before bodies so we can get the actual object sizes. Then pass the
-    // mesh to the BeybladdeBody constructor.
-    // NEWMESH: remove radius and heigth from these objects, leaving just some physics coefficients.
-    // TODO: Ensure that the VAOs / VBOs are handled withing the mesh objects properly (ex we can probably remove passing in 0 paraMs)
+    // mesh to the BeybladdeBody constructor. remove radius and heigth from these objects, leaving just some physics coefficients.
 
     // These might be null for now, quell errors
     Beyblade* beyblade1 = game->pm.getActiveProfile()->getBeyblade(1).get();

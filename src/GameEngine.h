@@ -42,6 +42,8 @@ public:
     void changeState(GameStateType stateType);
     GameState* getGameState();  // Return current state.
     void pushState(GameStateType stateType);
+    void pushState(std::unique_ptr<GameState> state);
+
     void popState();
 
     void handleEvents();
@@ -73,6 +75,12 @@ public:
     int monitorX{};
     int monitorY{};
 
+    // Singleton Managers   
+    FontManager& fm;        // ImGui fonts
+    InputManager& im;       // Key/Mouse Input
+    MessageLog& ml;         // Message Logging
+    ProfileManager& pm;     // Profiles (and corresponding data)
+    TextureManager& tm;     // Textures
     ImGuiIO& io;
 
     glm::mat4 model{};
@@ -95,12 +103,6 @@ public:
     float prevTime{};
     float deltaTime{};
 
-    // Singleton Managers   
-    FontManager& fm;        // ImGui fonts
-    InputManager& im;       // Key/Mouse Input
-    MessageLog& ml;         // Message Logging
-    ProfileManager& pm;     // Profiles (and corresponding data)
-    TextureManager& tm;     // Textures
 
     // INI handling
     mINI::INIFile* iniFile{};
@@ -111,7 +113,7 @@ public:
     bool debugMode{};
     bool paused{};
 
-    std::vector<Timer> timers;  // TODO: In very future, if have dynamic timers separate from the fixed timers (frame rate, etc)
+    std::vector<Timer> timers; // In very future, if have dynamic timers separate from the fixed timers (frame rate, etc)
     std::vector<std::function<void()>> timerCallbacks;
 
     std::string fpsText{};

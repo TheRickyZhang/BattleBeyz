@@ -1,10 +1,14 @@
 #pragma once
 
+#include <thread>
+#include <mutex>
+
 #include "GameState.h"
 
 class LoadingState : public GameState {
 public:
-    LoadingState(GameEngine* _game) : GameState(_game) {};
+    LoadingState(GameEngine* _game, const std::vector<std::function<bool()>>& tasks, std::function<void()> onComplete) :
+        GameState(_game), tasks(tasks), onComplete(onComplete) {};
 
     void init() override;
     void cleanup() override;
@@ -20,8 +24,9 @@ public:
 
 private:
     // TODO: add vector<string> assetsToLoad to determine what actually needs to be loaded
+    float timeElapsed = 0.0f;
+
     float progress = 0.0f;
-    const float duration = 0.2f;
     const std::vector<std::string> tips = {
         "Tip: Customize your Beyblade for maximum power!",
         "Did you know: you can upload your own beyblade as an .obj file! See the customization screen for more details",
@@ -38,4 +43,13 @@ private:
         "loading..................................."
     };
     std::string loadingMessage;
+
+    bool failed = false;
+    bool completed = false;
+    int taskIndex = 0;
+
+    std::mutex dataMutex;   // New mutex for protecting shared data
+    std::thread taskThread;
+    std::vector<std::function<bool()>> tasks;
+    std::function<void()> onComplete;
 };

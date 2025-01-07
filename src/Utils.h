@@ -30,26 +30,25 @@ float discreteIntToFloat(int val, float mn, float mx);
 
 std::ostream& operator<<(std::ostream & os, const glm::mat4 & mat);
 
-enum ProgramState {
-    LOADING,
-    RENDERING,
-    ACTIVE,
-    PAUSED, 
-
-};
-
-/**
-* Clear way to manage angular and linear changes in Acceleration calculated in PhysicsWorld.update()
-* 
-* Note: inherent Acceleration of beyblade should be taken into account into future (suppose we have power-up that accelarates (?))
-* BUT it should always be 0 in most cases because instantaneous Accelerations are all calculated and applied each deltaTime.
-*/
-struct CollisionAccelerations {
-    glm::vec3 angularAcceleration = glm::vec3(0.0f);
-    glm::vec3 linearAcceleration = glm::vec3(0.0f);
-
-    void add(const std::pair<glm::vec3, glm::vec3>& increment) {
-        angularAcceleration += increment.first;
-        linearAcceleration += increment.second;
+class MockLoading {
+public:
+    static MockLoading& getInstance() {
+        static MockLoading instance;
+        return instance;
     }
+
+    void mock(){
+        for (long long  i = 0; i < 5e8; ++i) {
+            cnt++;
+        }
+    }
+
+    long long cnt = 0;
+
+    MockLoading() = default;
+    ~MockLoading() = default;
+    MockLoading(const MockLoading&) = delete;
+    MockLoading& operator=(const MockLoading&) = delete;
 };
+
+

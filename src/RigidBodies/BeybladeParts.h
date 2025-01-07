@@ -80,9 +80,7 @@ struct Disc {
 
 /**
  *Contains physical properties of the bottom section of a Beyblade, important for friction and movement.
- * 
- * TODO: Separate into upper and lower radii to minimize confusion, as it is a frustrum and not a cylinder
- */
+  */
 struct Driver {
     Driver(M contactRadius, M upperRadius, M height, Kg mass, KgM2 momentOfInertia, Scalar rotationalDragCoefficient, Scalar coefficientOfFriction) :
         contactRadius(contactRadius),

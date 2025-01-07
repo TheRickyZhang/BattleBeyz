@@ -37,7 +37,8 @@ protected:
         const std::vector<std::string>& buttonText,
         const std::string& beforeText = "", const std::string& afterText = "");
 
-    // Map button text to the state they will transition onto (TODO: Does not distinguish between swtiching and pushing states)
+    // TOLOOK: Does not distinguish between swtiching and pushing states
+    // Map button text to the state they will transition onto
     std::unordered_map<std::string, GameStateType> buttonStateMap = {
         // Main Screens
         { "Back", GameStateType::HOME }, { "Home", GameStateType::HOME },
