@@ -36,9 +36,8 @@ private:
     };
 
     // Helper Methods
-    void precomputeLayout(float& windowWidth, float& frameSpacing, float& spacing,
-        float& leftTextWidth, float& rightButton1X, float& rightButton2X,
-        float& dropdownLeftX, float& dropdownWidth);
+    void precomputeLayout(float& windowWidth, float& leftTextWidth, float& rightButton1X,
+        float& rightButton2X, float& dropdownLeftX, float& dropdownWidth);
 
     void initializeData(std::vector<std::shared_ptr<Profile>>& profiles, std::shared_ptr<Profile>& profile,
         std::vector<std::shared_ptr<Beyblade>>& beyblades, std::shared_ptr<Beyblade>& beyblade);

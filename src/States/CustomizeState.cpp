@@ -26,9 +26,9 @@ void CustomizeState::update(float deltaTime) {}
 // Draw Method
 void CustomizeState::draw() {
     // Precompute layout parameters
-    float windowWidth, frameSpacing, spacing, leftTextWidth;
+    float windowWidth, leftTextWidth;
     float rightButton1X, rightButton2X, dropdownLeftX, dropdownWidth;
-    precomputeLayout(windowWidth, frameSpacing, spacing, leftTextWidth, rightButton1X, rightButton2X, dropdownLeftX, dropdownWidth);
+    CustomizeState::precomputeLayout(windowWidth, leftTextWidth, rightButton1X, rightButton2X, dropdownLeftX, dropdownWidth);
 
     // Initialize data for rendering
     vector<shared_ptr<Profile>> profiles;
@@ -81,15 +81,12 @@ void CustomizeState::draw() {
 }
 
 // Precompute layout parameters
-void CustomizeState::precomputeLayout(float& windowWidth, float& frameSpacing, float& spacing,
-    float& leftTextWidth, float& rightButton1X, float& rightButton2X,
-    float& dropdownLeftX, float& dropdownWidth) {
+void CustomizeState::precomputeLayout(float& windowWidth, float& leftTextWidth, float& rightButton1X,
+    float& rightButton2X, float& dropdownLeftX, float& dropdownWidth) {
     windowWidth = static_cast<float>(game->windowWidth);
-    frameSpacing = GetStyle().FramePadding.x;
-    spacing = GetStyle().ItemSpacing.x;
-    leftTextWidth = max(CalcTextSize("Profile").x, CalcTextSize("Beyblade").x) + frameSpacing * 2;
-    float rightButton2Width = CalcTextSize("Delete##profile").x + frameSpacing * 2;
-    float rightButton1Width = CalcTextSize("Create New").x + frameSpacing * 2;
+    leftTextWidth = max(CalcTextSize("Profile").x, CalcTextSize("Beyblade").x) + frameSpacingX * 2;
+    float rightButton2Width = CalcTextSize("Delete##profile").x + frameSpacingX * 2;
+    float rightButton1Width = CalcTextSize("Create New").x + frameSpacingX * 2;
     rightButton1X = windowWidth - rightButton1Width - rightButton2Width - 2 * spacing;
     rightButton2X = windowWidth - rightButton2Width - spacing;
     dropdownLeftX = leftTextWidth + spacing;

@@ -13,21 +13,21 @@ class StadiumBody;
 
 class Physics {
 public:
-    const Scalar PI = 3.14159265358979__;
+    static constexpr Scalar PI = 3.14159265358979__;
 
     // Constructor with default parameters
-    Physics(M_S2 gravity = 9.81_m_s2,
-        Vec3_M_S2 gravityVector = Vec3_M_S2(0.0f, -9.81f, 0.0f),
-        Scalar frictionEfficiency = 0.5__,
-        Scalar frictionAccelConstant = 0.2__,
-        Scalar frictionVelocityConstant = 1.5__,
-        Kg_M3 fluidDrag = 0.8_kg / (1.0_m * 1.0_m * 1.0_m))
-        : GRAVITY(gravity),
-        GRAVITY_VECTOR(gravityVector),
-        FRICTIONAL_EFFICIENCY(frictionEfficiency),
-        FRICTIONAL_ACCELERATION_CONSTANT(frictionAccelConstant),
-        FRICTIONAL_VELOCITY_CONSTANT(frictionVelocityConstant),
-        FLUID_DRAG(fluidDrag) {
+    Physics(float gravity = 9.81f,
+        const glm::vec3& gravityVector = glm::vec3(0.0f, -9.81f, 0.0f),
+        float frictionEfficiency = 0.5f,
+        float frictionAccelConstant = 0.2f,
+        float frictionVelocityConstant = 1.5f,
+        float fluidDrag = 0.8f)
+        : GRAVITY(M_S2(gravity)),
+        GRAVITY_VECTOR(Vec3_M_S2(gravityVector)),
+        FRICTIONAL_EFFICIENCY(Scalar(frictionEfficiency)),
+        FRICTIONAL_ACCELERATION_CONSTANT(Scalar(frictionAccelConstant)),
+        FRICTIONAL_VELOCITY_CONSTANT(Scalar(frictionVelocityConstant)),
+        FLUID_DRAG(Kg_M3(fluidDrag)) {
     }
 
     void accumulateAirResistance(BeybladeBody* beyblade) const;

@@ -21,6 +21,24 @@ float GameState::frameSpacingX = 0.0f;
 float GameState::frameSpacingY = 0.0f;
 float GameState::spacing = 0.0f;
 
+const unordered_map<std::string, GameStateType> GameState::buttonStateMap = {
+    // Main Screens
+    { "Back", GameStateType::HOME }, { "Home", GameStateType::HOME },
+    { "Start Game", GameStateType::SELECTION },
+    { "Resume Game", GameStateType::ACTIVE},
+    { "Profiles & Beyblades", GameStateType::CUSTOMIZE },
+    { "Settings", GameStateType::SETTINGS},
+    { "About", GameStateType::ABOUT },
+
+    // Secondary Screens
+    { "Loading", GameStateType::LOADING },
+    { "Pause", GameStateType::PAUSE },
+
+    // Dev temp screens,
+    { "Active", GameStateType::ACTIVE}
+};
+
+
 void GameState::renderBackground(GameEngine* game, const string& textureName) {
     BackgroundShader* backgroundShader = game->backgroundShader;
     QuadRenderer* quadRenderer = game->quadRenderer;

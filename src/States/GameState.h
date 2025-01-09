@@ -51,17 +51,5 @@ protected:
 
     // TOLOOK: Does not distinguish between swtiching and pushing states
     // Map button text to the state they will transition onto
-    std::unordered_map<std::string, GameStateType> buttonStateMap = {
-        // Main Screens
-        { "Back", GameStateType::HOME }, { "Home", GameStateType::HOME },
-        { "Start Game", GameStateType::ACTIVE }, { "Resume Game", GameStateType::ACTIVE},
-        { "Profiles & Beyblades", GameStateType::CUSTOMIZE },
-        { "Settings", GameStateType::SETTINGS},
-        { "About", GameStateType::ABOUT },
-
-        // Secondary Screens
-        { "Loading", GameStateType::LOADING },
-        { "Pause", GameStateType::PAUSE },
-    };
-
+    static const std::unordered_map<std::string, GameStateType> buttonStateMap;
 };

@@ -50,13 +50,15 @@ void SettingsState::draw() {
 
     // Save button
     if (ImGui::Button("Save Settings")) {
-        // Placeholder: implement saving logic
+        // Placeholder: implement saving logics
     }
 
     ImGui::SameLine();
     // Close/Back button
     if (ImGui::Button("Close")) {
-        // Placeholder: return to previous state or main menu
+        game->changeState(GameStateType::HOME);
+        ImGui::End();
+        return;
     }
 
     ImGui::End();

@@ -28,6 +28,10 @@ public:
     void removeBeyblade(Beyblade* body);
     void removeStadium(Stadium* body);
 
+    void setPhysics(Physics& p) {
+        physics = std::move(p);
+    }
+
     void resetPhysics() {
         beyblades.clear();
         stadiums.clear();
