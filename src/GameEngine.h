@@ -103,11 +103,6 @@ public:
     float prevTime{};
     float deltaTime{};
 
-
-    // INI handling
-    mINI::INIFile* iniFile{};
-    mINI::INIStructure* iniData{};
-
     // Other various global states
     bool boundCamera{};
     bool debugMode{};

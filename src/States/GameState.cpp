@@ -5,7 +5,6 @@
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <imgui.h>
 
 #include "GameState.h"
 
@@ -15,6 +14,12 @@
 
 using namespace std;
 using namespace glm;
+using namespace ImGui;
+
+// Ensure that initStyleParams() is called in GameEngine::init();
+float GameState::frameSpacingX = 0.0f;
+float GameState::frameSpacingY = 0.0f;
+float GameState::spacing = 0.0f;
 
 void GameState::renderBackground(GameEngine* game, const string& textureName) {
     BackgroundShader* backgroundShader = game->backgroundShader;

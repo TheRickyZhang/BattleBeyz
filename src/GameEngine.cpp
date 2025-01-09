@@ -55,28 +55,32 @@ GameEngine::~GameEngine() {
 
 
 bool GameEngine::init(const char* title, int width, int height) {
+    // Handle window sizes
     windowWidth = width;
     windowHeight = height;
     aspectRatio = static_cast<float>(width) / height;
     minWidth = width / 4;
     minHeight = height / 4;
 
-    // Initialize everything
+    /*
+    * Initialize All OpenGL (GLFW, GLEW)
+    */
+    
+    // GLFW must come first
     if (!glfwInit()) {
         cerr << "Failed to initialize GLFW" << endl;
         isRunning = false;
         return false;
     }
 
-    // Configure GLFW BEFORE window
+    // Set window
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
     glfwWindowHint(GLFW_DECORATED, GLFW_TRUE);
-    glfwWindowHint(GLFW_DEPTH_BITS, 24); // Request depth buffer
+    glfwWindowHint(GLFW_DEPTH_BITS, 24);
 
-    // Create the window
     window = glfwCreateWindow(static_cast<int>(width), static_cast<int>(height), title, nullptr, nullptr);
     if (!window) {
         cerr << "Failed to create window" << endl;
@@ -85,6 +89,7 @@ bool GameEngine::init(const char* title, int width, int height) {
         cleanup();
         return false;
     }
+
     // Set the OpenGL context for this window
     glfwMakeContextCurrent(window);
     glfwSetWindowAspectRatio(window, static_cast<int>(aspectRatio * 100), 100);
@@ -96,11 +101,11 @@ bool GameEngine::init(const char* title, int width, int height) {
     glfwSetWindowPos(window,
         monitorX + static_cast<int>(videoMode->width - windowWidth) / 2,
         monitorY + static_cast<int>(videoMode->height - windowHeight) / 2);
-
     glfwSetWindowUserPointer(window, this);
     glfwSetWindowSizeLimits(window, static_cast<int>(minWidth), static_cast<int>(minHeight), GLFW_DONT_CARE, GLFW_DONT_CARE);
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 
+    // Initialize GLEW
     glewExperimental = GL_TRUE;
     if (glewInit() != GLEW_OK) {
         cerr << "Failed to initialize GLEW" << endl;
@@ -115,13 +120,13 @@ bool GameEngine::init(const char* title, int width, int height) {
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    // Set window user pointer and input modes
-    glfwSetWindowUserPointer(window, this);
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+    /*
+    * Initialize ImGui and attempt to import existing game data through JSONs
+    */
 
     // Catch any errors from file importing, returning a blue screen of informational death if failing
-    //pm.addDefaultProfiles();
     try {
+        // TODO: Add default profiles instead of crashing if json not parsed correctly
         setupImGui(window);
 
         glfwSetFramebufferSizeCallback(window, framebufferSizeCallback);
@@ -133,6 +138,9 @@ bool GameEngine::init(const char* title, int width, int height) {
         pm.loadProfilesFromFile(PROFILE_SAVE_PATH);
     }
     catch (const nlohmann::json::exception& e) {
+        
+        //pm.addDefaultProfiles();
+        
         // Add critical error messages to the message log
         ml.addMessage("Critical error during initialization: " + string(e.what()), MessageType::ERROR);
         ml.addMessage("Please investigate the issue, and reach out to the contact email for further support");
@@ -158,10 +166,12 @@ bool GameEngine::init(const char* title, int width, int height) {
     catch (...) {
         cerr << "An unknown error occurred during initialization." << endl;
     }
+    GameState::initStyleParams();
 
 
-    fm.loadDefaultFonts();
-
+    /*
+    * Initialize everything physics and space related
+    */
     physicsWorld = new PhysicsWorld();
 
     // Camera and initial view initialization
@@ -175,6 +185,12 @@ bool GameEngine::init(const char* title, int width, int height) {
     backgroundView = mat4(1.0f);
     orthoProjection = ortho(0.0f, float(windowWidth), 0.0f, float(windowHeight), 0.0f, 1.0f);
 
+    camera = new Camera(initialCameraPos, lookAtPoint, physicsWorld, windowWidth / 2.0f, windowHeight / 2.0f);
+
+
+    /*
+    * Set all shaders and renderers
+    */
     // TODO: Give backgroundShader same treatment as objectShader, but with different functions
     backgroundShader = new BackgroundShader(BACKGROUND_VERTEX_SHADER_PATH, BACKGROUND_FRAGMENT_SHADER_PATH);
     backgroundShader->setBackgroundGlobalParams(projection, 4.0, float(glfwGetTime()));
@@ -183,28 +199,32 @@ bool GameEngine::init(const char* title, int width, int height) {
     objectShader->setGlobalRenderParams(view, projection, initialCameraPos);
     // TODO: Remove this? 
     objectShader->setObjectRenderParams(model, glm::vec3(1.0f));
-
     objectShader->setLight(LightType::Directional, vec3(1.0f, 1.0f, 1.0f), vec3(0.0f, -1.0f, 0.0f));
 
-    camera = new Camera(initialCameraPos, lookAtPoint, physicsWorld, windowWidth / 2.0f, windowHeight / 2.0f);
+    quadRenderer = new QuadRenderer(scale(mat4(1.0f), vec3(width, height, 1.0f)));
+
+
+    /*
+    * Initialize all managers / class - specific inits
+    */
 
     textRenderer = new TextRenderer("./assets/fonts/OpenSans-Regular.ttf", 800, 600);
     tm.loadTexture("defaultBackground", "./assets/textures/Brickbeyz.jpg");
     tm.loadTexture("sceneBackground", "./assets/textures/HexagonSmall.jpg");
     tm.loadTexture("stadium", "./assets/textures/Hexagon.jpg");
     tm.loadTexture("floor", "./assets/textures/Wood1.jpg");
+    fm.loadDefaultFonts();
 
+    GameState::initStyleParams();
 
-    // Initialize INI handling if needed
-    iniFile = nullptr;
-    iniData = nullptr;
+    /*
+    * Other unassigned variables
+    */
     boundCamera = false;
     debugMode = false;
 
     prevTime = 0.0f;
     deltaTime = 0.0f;
-
-    quadRenderer = new QuadRenderer(scale(mat4(1.0f), vec3(width, height, 1.0f)));
 
     isRunning = true;
     return true;
@@ -388,9 +408,6 @@ void GameEngine::cleanup() {
     delete textRenderer;
     delete physicsWorld;
     delete camera;
-
-    delete iniData;
-    delete iniFile;
 
     // Shutdown ImGui properly
     ImGui_ImplOpenGL3_Shutdown();

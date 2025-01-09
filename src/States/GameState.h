@@ -3,6 +3,8 @@
 #include <string>
 #include <unordered_map>
 
+#include <imgui.h>
+
 // Used by every state
 #include "GameEngine.h"
 #include "MessageLog.h"   
@@ -26,10 +28,20 @@ public:
 
     virtual GameStateType getStateType() const = 0;
 
+    static void initStyleParams() {
+        frameSpacingX = ImGui::GetStyle().FramePadding.x;
+        frameSpacingY = ImGui::GetStyle().FramePadding.y;
+        spacing = ImGui::GetStyle().ItemSpacing.x;
+    }
 public:
     GameEngine* game;
 
 protected:
+    // Common shorthands for ImGui display values. Only change from settings modification
+    static float frameSpacingX;
+    static float frameSpacingY;
+    static float spacing;
+
     void renderBackground(GameEngine* game, const std::string& textureString);
 
     // Function to render a window with text, buttons, and optional text before/after
