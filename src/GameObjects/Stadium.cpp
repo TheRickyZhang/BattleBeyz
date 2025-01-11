@@ -19,9 +19,26 @@ void Stadium::render(ObjectShader& shader) {
     glm::mat4 model = glm::translate(glm::mat4(1.0f), rigidBody->getCenter().value());
     shader.setMat4("model", model);
 
-    // shader.setVec3("viewPos", viewPos);
-    // shader.setVec3("lightColor", glm::vec3(1.0f));
-    // shader.setVec3("lightPos", glm::vec3(1.0f, 1e6, 1.0f));
+    // Validate VAO and buffers
+    if (!glIsVertexArray(mesh->VAO)) {
+        std::cerr << "Error: VAO is not valid" << std::endl;
+        return;
+    }
+    if (!glIsBuffer(mesh->VBO)) {
+        std::cerr << "Error: VBO is not valid" << std::endl;
+        return;
+    }
+    if (!glIsBuffer(mesh->EBO)) {
+        std::cerr << "Error: EBO is not valid" << std::endl;
+        return;
+    }
+
+    // Check mesh data
+    if (mesh->indices.empty()) {
+        std::cerr << "Error: Mesh indices are empty" << std::endl;
+        return;
+    }
+
 
     glBindVertexArray(mesh->VAO);
     glDrawElements(GL_TRIANGLES, (GLsizei)mesh->indices.size(), GL_UNSIGNED_INT, nullptr);

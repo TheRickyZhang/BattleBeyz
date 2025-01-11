@@ -27,8 +27,8 @@ class BoundingBox;
  */
 class StadiumBody {
 public:
-	StadiumBody::StadiumBody(Vec3_M center, M radius, Scalar curvature, Scalar coefficientOfFriction) :
-		center(center), radius(radius), curvature(curvature), scaledCurvature(curvature / radius),
+	StadiumBody::StadiumBody(glm::vec3 center, float radius, float curvature, float coefficientOfFriction) :
+		center(Vec3_M(center)), radius(M(radius)), curvature(Scalar(curvature)), scaledCurvature(__M(curvature / radius)),
 		coefficientOfFriction(coefficientOfFriction) {}
 
     // Default parameters: 1.2 meters radius is quite large
