@@ -6,9 +6,12 @@ layout (location = 1) in vec3 aNormal;
 layout (location = 2) in vec2 aTexCoords;
 layout (location = 3) in vec3 aColor;
 
-uniform mat4 model;
+// Global
 uniform mat4 projection;
 uniform mat4 view;
+
+// Per Object
+uniform mat4 model;
 
 out vec3 FragPos;
 out vec3 Normal;

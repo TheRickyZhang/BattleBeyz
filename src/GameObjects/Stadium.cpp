@@ -3,38 +3,18 @@
 // Copyright (c) 2024, Ricky Zhang.
 ////////////////////////////////////////////////////////////////////////////////
 
+#include <glm/gtc/matrix_transform.hpp>
+#include "Buffers.h"
 #include "Stadium.h"
-
-/**
-* Internal routine to create mesh.
-*/
-
-/**
-* Intrenal routine to initialize mesh.
-*/
+#include "ObjectShader.h"
 
 /**
 * Stadium renderer
-*
-* Does not need to take in lightColor and lightPos, as these should be same for all objects.
 */
 
-void Stadium::render(ShaderProgram& shader) {
+void Stadium::render(ObjectShader& shader) {
     shader.use();
 
-    // Activate texture unit and bind texture
-
-
-#if 0
-    // TODO:  2024-11-03: Note that texture does not work here -- the colors defined in the stadium
-    // definition are used.
-
-    if (mesh->texture) {
-        glActiveTexture(GL_TEXTURE0);
-        mesh->texture->use();
-        shader.setInt("texture1", 0);
-    }
-#endif
     // Bind appropriate uniforms (model, view, projection matrices)
     glm::mat4 model = glm::translate(glm::mat4(1.0f), rigidBody->getCenter().value());
     shader.setMat4("model", model);
@@ -49,7 +29,7 @@ void Stadium::render(ShaderProgram& shader) {
 
     GLenum err;
     while ((err = glGetError()) != GL_NO_ERROR) {
-        std::cerr << "OpenGL error: " << err << std::endl;
+        std::cerr << "OpenGL error in stadium: " << err << std::endl;
     }
 }
 

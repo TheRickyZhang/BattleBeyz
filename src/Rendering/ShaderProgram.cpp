@@ -4,7 +4,9 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "ShaderProgram.h"
-#include "Utils.h"
+
+#include <glm/gtc/type_ptr.hpp>
+
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -45,54 +47,6 @@ ShaderProgram::ShaderProgram(const char* vertexPath, const char* fragmentPath) {
 // Destructor
 ShaderProgram::~ShaderProgram() {
     glDeleteProgram(ID);
-}
-
-
-/**
- * This function updates the transformation and camera-related uniforms in the shader.
- *
- * @param model            Model transformation matrix.
- * @param view             View matrix (camera transformation).
- * @param projection       Projection matrix (perspective or orthographic).
- * @param cameraPosition   World-space position of the camera.
- */
-void ShaderProgram::setRenderMatrices(const glm::mat4& model, const glm::mat4& view, const glm::mat4& projection, const glm::vec3& cameraPosition) const {
-    setMat4("model", model);
-    setMat4("view", view);
-    setMat4("projection", projection);
-    setVec3("viewPos", cameraPosition);
-}
-
-
-/**
- * Set the light properties for the shader, including type, color, and position. See object.vs for the type ENUM.
- *
- * @param lightType     0 for directional, 1 for point light
- * @param lightColor    RGB color of the light source.
- * @param lightPos      Position or direction of the light in world space.
- */
-void ShaderProgram::setLight(LightType lightType, const glm::vec3& lightColor, const glm::vec3& lightPos) const {
-    setInt("lightType", static_cast<int>(lightType));
-    setVec3("lightColor", lightColor);
-    setVec3("lightPos", lightPos);
-}
-
-// Update based on camera movement
-void ShaderProgram::setCameraView(const glm::vec3& cameraPosition, const glm::mat4& viewMatrix) const
-{
-    setVec3("viewPos", cameraPosition);
-    setMat4("view", viewMatrix);
-}
-
-
-/**
- * Applies tint to all vertices.
- Should only be used when a distinct tint is necessary, NOT for applying vertex colors
- *
- * @param tint      RGB tint color (default is vec3(1.0, 1.0, 1.0) for no tint).
- */
-void ShaderProgram::setTint(const glm::vec3& tint) const {
-    setVec3("tint", tint);
 }
 
 /**
@@ -164,6 +118,13 @@ void ShaderProgram::setMat4(const std::string& name, const glm::mat4& mat) const
     GLint location = getCachedUniformLocation(name);
     if (location != -1) {
         glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(mat));
+    }
+}
+
+void ShaderProgram::setVec2(const std::string& name, const glm::vec2& vec) const {
+    GLint location = getCachedUniformLocation(name);
+    if (location != -1) {
+        glUniform3fv(location, 1, glm::value_ptr(vec));
     }
 }
 

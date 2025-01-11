@@ -1,13 +1,11 @@
 #include "InputManager.h"
+#include <GLFW/glfw3.h>
 
 InputManager& InputManager::getInstance() {
     static InputManager instance;
     return instance;
 }
 
-//void InputManager::setWindow(GLFWwindow* window) {
-//    this->window = window;
-//}
 void InputManager::updateState() {
     prevKeyStates = keyStates;
     prevMouseButtonStates = mouseButtonStates;

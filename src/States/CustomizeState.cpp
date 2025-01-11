@@ -1,8 +1,10 @@
 #include "CustomizeState.h"
+
 #include "StateIdentifiers.h"
+#include "Beyblade.h"
+#include "BeybladeConstants.h"
 #include "ProfileManager.h"
 #include "UI.h"
-#include "BeybladeConstants.h"
 #include "../lib/ImGuiFileDialog/ImGuiFileDialog.h"
 #include "../lib/ImGuiFileDialog/ImGuiFileDialogConfig.h"
 
@@ -24,9 +26,9 @@ void CustomizeState::update(float deltaTime) {}
 // Draw Method
 void CustomizeState::draw() {
     // Precompute layout parameters
-    float windowWidth, frameSpacing, spacing, leftTextWidth;
+    float windowWidth, leftTextWidth;
     float rightButton1X, rightButton2X, dropdownLeftX, dropdownWidth;
-    precomputeLayout(windowWidth, frameSpacing, spacing, leftTextWidth, rightButton1X, rightButton2X, dropdownLeftX, dropdownWidth);
+    CustomizeState::precomputeLayout(windowWidth, leftTextWidth, rightButton1X, rightButton2X, dropdownLeftX, dropdownWidth);
 
     // Initialize data for rendering
     vector<shared_ptr<Profile>> profiles;
@@ -79,15 +81,12 @@ void CustomizeState::draw() {
 }
 
 // Precompute layout parameters
-void CustomizeState::precomputeLayout(float& windowWidth, float& frameSpacing, float& spacing,
-    float& leftTextWidth, float& rightButton1X, float& rightButton2X,
-    float& dropdownLeftX, float& dropdownWidth) {
+void CustomizeState::precomputeLayout(float& windowWidth, float& leftTextWidth, float& rightButton1X,
+    float& rightButton2X, float& dropdownLeftX, float& dropdownWidth) {
     windowWidth = static_cast<float>(game->windowWidth);
-    frameSpacing = GetStyle().FramePadding.x;
-    spacing = GetStyle().ItemSpacing.x;
-    leftTextWidth = max(CalcTextSize("Profile").x, CalcTextSize("Beyblade").x) + frameSpacing * 2;
-    float rightButton2Width = CalcTextSize("Delete##profile").x + frameSpacing * 2;
-    float rightButton1Width = CalcTextSize("Create New").x + frameSpacing * 2;
+    leftTextWidth = max(CalcTextSize("Profile").x, CalcTextSize("Beyblade").x) + frameSpacingX * 2;
+    float rightButton2Width = CalcTextSize("Delete##profile").x + frameSpacingX * 2;
+    float rightButton1Width = CalcTextSize("Create New").x + frameSpacingX * 2;
     rightButton1X = windowWidth - rightButton1Width - rightButton2Width - 2 * spacing;
     rightButton2X = windowWidth - rightButton2Width - spacing;
     dropdownLeftX = leftTextWidth + spacing;
@@ -96,7 +95,7 @@ void CustomizeState::precomputeLayout(float& windowWidth, float& frameSpacing, f
 }
 
 // Initialize data for rendering
-// TODO: This data only needs to be recomputed on initialization or change in dropdown selection. However the performance is not very important now
+// PERF: This data only needs to be recomputed on initialization or change in dropdown selection. Low priority.
 void CustomizeState::initializeData(vector<shared_ptr<Profile>>& profiles, shared_ptr<Profile>& profile,
     vector<shared_ptr<Beyblade>>& beyblades, shared_ptr<Beyblade>& beyblade) {
     profiles = game->pm.getAllProfiles();
@@ -238,12 +237,6 @@ void CustomizeState::drawManualCustomizeSection(shared_ptr<Beyblade> beyblade) {
     if (ImGuiFileDialog::Instance()->Display("Dlg##SelectMesh", ImGuiWindowFlags_None, ImVec2(800, 600))) {
         if (ImGuiFileDialog::Instance()->IsOk()) {
             std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
-            //std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
-
-            // Load the new mesh.
-            //
-            // TODO: Need to copy some dimension info??
-
             auto newMesh = std::make_unique<BeybladeMesh>(filePathName.c_str());  // This loads the mesh.
             if (newMesh != nullptr && newMesh->modelLoaded) {
                 beyblade->setMesh(newMesh);
@@ -252,7 +245,6 @@ void CustomizeState::drawManualCustomizeSection(shared_ptr<Beyblade> beyblade) {
                 game->ml.addMessage("Failed to load mesh. Ensure it is a valid .obj file", MessageType::ERROR, true);
             }
         }
-
         ImGuiFileDialog::Instance()->Close();  // Close the dialog
         return;
     }
@@ -345,21 +337,21 @@ void CustomizeState::drawTemplateCustomizeSection(shared_ptr<Beyblade> beyblade)
         Separator();
         Text("Name: %s", templateLayers[tempSelectedLayer].name.c_str());
         Text("Model Path: %s", templateLayers[tempSelectedLayer].modelPath.c_str());
-        Text("Mass: %.3f kg", layer.mass);
+        Text("Mass: %.3f kg", layer->mass);
     }
     if (isDiscSelected) {
         const auto& disc = templateDiscs[tempSelectedDisc].part;
         Separator();
         Text("Name: %s", templateDiscs[tempSelectedDisc].name.c_str());
         Text("Model Path: %s", templateDiscs[tempSelectedDisc].modelPath.c_str());
-        Text("Mass: %.3f kg", disc.mass);
+        Text("Mass: %.3f kg", disc->mass);
     }
     if (isDriverSelected) {
         const auto& driver = templateDrivers[tempSelectedDriver].part;
         Separator();
         Text("Name: %s", templateDrivers[tempSelectedDriver].name.c_str());
         Text("Model Path: %s", templateDrivers[tempSelectedDriver].modelPath.c_str());
-        Text("Mass: %.3f kg", driver.mass);
+        Text("Mass: %.3f kg", driver->mass);
     }
 
     EndChild();

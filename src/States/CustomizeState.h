@@ -1,13 +1,14 @@
 #pragma once
 
-#include "GameState.h"
-#include "GameEngine.h"
-#include "Profile.h"
-#include "Beyblade.h"
-#include "BeybladeBody.h"
 #include <vector>
 #include <memory>
 #include <string>
+
+#include "GameState.h"
+#include "BeybladeBody.h"
+
+class Profile;
+class Beyblade;
 
 class CustomizeState : public GameState {
 public:
@@ -35,9 +36,8 @@ private:
     };
 
     // Helper Methods
-    void precomputeLayout(float& windowWidth, float& frameSpacing, float& spacing,
-        float& leftTextWidth, float& rightButton1X, float& rightButton2X,
-        float& dropdownLeftX, float& dropdownWidth);
+    void precomputeLayout(float& windowWidth, float& leftTextWidth, float& rightButton1X,
+        float& rightButton2X, float& dropdownLeftX, float& dropdownWidth);
 
     void initializeData(std::vector<std::shared_ptr<Profile>>& profiles, std::shared_ptr<Profile>& profile,
         std::vector<std::shared_ptr<Beyblade>>& beyblades, std::shared_ptr<Beyblade>& beyblade);

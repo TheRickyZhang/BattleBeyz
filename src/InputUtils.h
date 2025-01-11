@@ -1,13 +1,13 @@
 #pragma once
 #include <unordered_map>
 #include <vector>
-#include <initializer_list>
+
 #include <GLFW/glfw3.h>
 
 enum Action {
     MoveForward, MoveBackward, MoveLeft, MoveRight, MoveUp, MoveDown
 };
-extern std::unordered_map<int, Action> movementKeys;
+extern std::unordered_map<int, Action> movementKeys; // TOLOOK: use of extern
 
 struct KeyCombination {
     int primaryKey;

@@ -1,7 +1,21 @@
-#include "UI.h"
-#include "GameEngine.h"
 #include "ActiveState.h"
+
+#include "GameEngine.h"
+#include "PhysicsWorld.h"
+#include "Buffers.h"
 #include "StateIdentifiers.h"
+#include "ObjectShader.h"
+#include "UI.h"
+#include "Camera.h"
+#include "InputManager.h"
+#include "GameMessage.h"
+#include "ProfileManager.h"
+#include "TextureManager.h"
+#include "MessageLog.h"
+
+#include "Utils.h"
+
+using namespace std;
 using namespace glm;
 
 void ActiveState::init()
@@ -10,21 +24,8 @@ void ActiveState::init()
     GLFWwindow* window = game->getWindow();
     PhysicsWorld* physicsWorld = game->physicsWorld;
 
-    // TODO: Use quadrender instead
-    //floor = new QuadRenderer(100.0f);
-    float floorVertices[] = {
-        // Positions        // Normals       // TexCoords // Colors
-        -30.0f, 0.0f, -30.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.5f, 0.5f, 0.5f,
-        30.0f, 0.0f, -30.0f, 0.0f, 1.0f, 0.0f, 4.0f, 0.0f, 0.5f, 0.5f, 0.5f,
-        30.0f, 0.0f,  30.0f, 0.0f, 1.0f, 0.0f, 4.0f, 4.0f, 0.5f, 0.5f, 0.5f,
-        -30.0f, 0.0f,  30.0f, 0.0f, 1.0f, 0.0f, 0.0f, 4.0f, 0.5f, 0.5f, 0.5f,
-    };
-    unsigned int floorIndices[] = {
-            0, 1, 2,
-            2, 3, 0
-    };
-    setupBuffers(floorVAO, floorVBO, floorEBO, floorVertices, sizeof(floorVertices), floorIndices, sizeof(floorIndices), { 3, 3, 2, 3 });
-
+    this->floor = new Floor(1000.0f, 1000.0f, 0.0f, 0.0f, 0.0f);
+    //floor->setTextureScale(vec2(100.0f, 100.0f));
 
     // TODO: this should add stadiums dynamically in future, but use default single one for now
     StadiumBody* rigidBody = new StadiumBody();
@@ -36,9 +37,7 @@ void ActiveState::init()
     physicsWorld->resetPhysics();
 
     // NEWMESH: Load meshes before bodies so we can get the actual object sizes. Then pass the
-    // mesh to the BeybladdeBody constructor.
-    // NEWMESH: remove radius and heigth from these objects, leaving just some physics coefficients.
-    // TODO: Ensure that the VAOs / VBOs are handled withing the mesh objects properly (ex we can probably remove passing in 0 paraMs)
+    // mesh to the BeybladdeBody constructor. remove radius and heigth from these objects, leaving just some physics coefficients.
 
     // These might be null for now, quell errors
     Beyblade* beyblade1 = game->pm.getActiveProfile()->getBeyblade(1).get();
@@ -126,10 +125,8 @@ void ActiveState::update(float deltaTime) {
 }
 
 
-
-
 void ActiveState::draw() {
-    ShaderProgram* objectShader = game->objectShader;
+    ObjectShader* objectShader = game->objectShader;
     TextureManager& tm = game->tm;
 
     SetWindowPositionAndSize(3, 4, 1, 1);
@@ -152,23 +149,19 @@ void ActiveState::draw() {
     vec3 cameraPos = camera->position;
     mat4 view = lookAt(camera->position, camera->position + camera->front, camera->up);
 
+    // IMPORTANT: Once per frame!!!!! ONLY model should be passed into the gameobject
     // Use the shader program (objectShader) for rendering 3D objects, sets viewPos and view
     objectShader->use();
-    objectShader->setCameraView(cameraPos, view);
-    objectShader->setMat4("model", mat4(1.0));
+    // objectShader->setCameraView(cameraPos, view);
+    objectShader->setGlobalRenderParams(view, game->projection, cameraPos);
 
-    // Render the floor
-    // TODO: inspect texture loaidng. This should be abstracted into the texture manager
-    glActiveTexture(GL_TEXTURE0);
-    tm.getTexture("floor")->use(); // SHould use texture, used to be small hexagon pattern
-    glBindVertexArray(floorVAO);
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
-    //floor->render(*game->objectShader);
 
-    // update and render the stadium (uses this texture)
+    floor->render(*game->objectShader, tm.getTexture("floor"));
+
     for(auto stadium : stadiums) stadium->render(*objectShader);
 
     for (auto beyblade : beyblades) beyblade->render(*objectShader);
+
 
     // Render the position
     vec3 cameraPosition = game->camera->position;

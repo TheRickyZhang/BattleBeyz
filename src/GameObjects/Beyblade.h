@@ -5,28 +5,18 @@
 
 #pragma once
 
-#include "ShaderProgram.h"
-#include "Buffers.h"
-#include "Texture.h"
-#include "GameObject.h"
-#include "RigidBody.h"
-#include "RigidBodies/BeybladeBody.h"
-#include "MeshObjects/BeybladeMesh.h"
+#include <string>
+#include <memory>
+#include <unordered_map>
+#include <stdexcept>
+
 #include "json.hpp"
 
-// TODO: Reorder these definitions to match standard? Unless this is something where reordering it break everything
-#include <glm/gtc/matrix_transform.hpp>
-#include <iostream>
-#include <glm/glm.hpp>
-#include <vector>
-#include <string>
-#include <unordered_map>
-#include <utility>
-#include <memory>
-#include <iomanip>
+#include "BeybladeMesh.h"
+#include "BeybladeBody.h"
 #include "BeybladeTemplate.h"
-#include "Utils.h"
-#include <stdexcept>
+
+class ObjectShader;
 
 class Beyblade {
     friend class BeybladeMesh;
@@ -39,14 +29,15 @@ public:
 
     static Beyblade fromJson(const nlohmann::json& j);
 
-    void render(ShaderProgram& shader);
+    void render(ObjectShader& shader);
 
-    int getId() const { return id; }
-    std::string getName() const { return name; }
-    BeybladeBody* getRigidBody() { return rigidBody.get(); }
-    BeybladeMesh* getMesh() { return mesh.get(); }
-    void setMesh(std::unique_ptr<BeybladeMesh>& newMesh) { mesh = std::move(newMesh); }
-    void setName(const std::string& name) { Beyblade::name = name; }
+    int getId() const;
+    std::string getName() const;
+    void setName(const std::string &newName);
+
+    BeybladeBody *getRigidBody();
+    BeybladeMesh *getMesh();
+    void setMesh(std::unique_ptr<BeybladeMesh> &newMesh);
 
     void update(int layerIndex, int discIndex, int driverIndex);
 

@@ -8,8 +8,11 @@
 #include <cmath>
 #include <functional>
 
+#include <glm/gtc/matrix_access.hpp>
+
+
 /**
-* Convert screen to world coordinates.  TODO: Params.
+* Convert screen to world coordinates.
 * 
 * @param xpos                   [in] X position in screen coordinates.
 * 
@@ -43,8 +46,6 @@ glm::vec3 screenToWorldCoordinates(GLFWwindow* window, float xpos, float ypos, c
 
 /**
 * Perform intersection test with objects in your scene and return the object name.
-* 
-* TODO: Replace this with your actual intersection logic
 */
 
 std::string checkIntersection(const glm::vec3& ray_world) {
@@ -75,6 +76,14 @@ void checkGLError(const char* stmt, const char* fname, int line) {
 
 void printVec3(const std::string& label, const glm::vec3& v) {
     std::cout << label << ": " << v.x << ", " << v.y << ", " << v.z << std::endl;
+}
+
+std::ostream& operator<<(std::ostream& os, const glm::mat4& mat) {
+    for (int row = 0; row < 4; ++row) {
+        glm::vec4 r = glm::row(mat, row); // Access the row
+        os << "| " << r.x << ", " << r.y << ", " << r.z << ", " << r.w << " |" << std::endl;
+    }
+    return os;
 }
 
 int floatToDiscreteInt(float val, float mn, float mx) {

@@ -62,6 +62,7 @@ include_directories(${PROJECT_SOURCE_DIR}/src/Rendering)
 include_directories(${PROJECT_SOURCE_DIR}/src/RigidBodies)
 include_directories(${PROJECT_SOURCE_DIR}/src/States)
 include_directories(${PROJECT_SOURCE_DIR}/src/Config)
+include_directories(${PROJECT_SOURCE_DIR}/src/UI)
 
 # Add Source and Header Files
 file(GLOB_RECURSE HEADER_FILES "src/*.h" "assets/*.h")
@@ -97,5 +98,5 @@ endforeach()
 # Status Messages
 message(STATUS "Using CMAKE_TOOLCHAIN_FILE: ${CMAKE_TOOLCHAIN_FILE}")
 message(STATUS "CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
-message(STATUS "CMAKE_PREFIX_PATH: ${CMAKE_PREFIX_PATH}")
-message(STATUS "Linked Libraries: ${LIBS}")
+# message(STATUS "CMAKE_PREFIX_PATH: ${CMAKE_PREFIX_PATH}")
+# message(STATUS "Linked Libraries: ${LIBS}")

@@ -1,47 +1,68 @@
-////////////////////////////////////////////////////////////////////////////////
-// QuadRenderer.cpp -- Quad Renderer -- rz -- 2024-08-08
-// Copyright (c) 2024, Ricky Zhang.
-////////////////////////////////////////////////////////////////////////////////
+#include <iostream>
 
 #include "QuadRenderer.h"
+
 #include "Utils.h"
-#include <vector>
-#include "Buffers.h"
 
-/**
- * Constructor.
- */
-QuadRenderer::QuadRenderer(float vecScale) : quadVAO(0), quadVBO(0), quadEBO(0) {
+QuadRenderer::QuadRenderer(const glm::mat4& model)
+    : modelMatrix(model) {
+    setupBuffers();
+}
+
+QuadRenderer::~QuadRenderer() {
+    glDeleteVertexArrays(1, &VAO);
+    glDeleteBuffers(1, &VBO);
+}
+
+void QuadRenderer::setupBuffers() {
     float quadVertices[] = {
-        // positions        // texture coords
-        -vecScale,  vecScale, 0.0f,  0.0f, 1.0f,
-        -vecScale, -vecScale, 0.0f,  0.0f, 0.0f,
-        vecScale, -vecScale, 0.0f,  1.0f, 0.0f,
+        // positions       // tex coords
+        -1.0f,  1.0f, 0.0f,   0.0f, 1.0f,
+        -1.0f, -1.0f, 0.0f,   0.0f, 0.0f,
+         1.0f, -1.0f, 0.0f,   1.0f, 0.0f,
 
-        -vecScale,  vecScale, 0.0f,  0.0f, 1.0f,
-        vecScale, -vecScale, 0.0f,  1.0f, 0.0f,
-        vecScale,  vecScale, 0.0f,  1.0f, 1.0f
+        -1.0f,  1.0f, 0.0f,   0.0f, 1.0f,
+         1.0f, -1.0f, 0.0f,   1.0f, 0.0f,
+         1.0f,  1.0f, 0.0f,   1.0f, 1.0f
     };
 
-    std::vector<int> attributeSizes = { 3, 2 }; // 3 floats for position, 2 for texture coordinates
-    setupBuffers(quadVAO, quadVBO, quadEBO, quadVertices, sizeof(quadVertices), nullptr, 0, attributeSizes);
-}
+    glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &VBO);
 
-/**
- * Destructor.
- */
-QuadRenderer::~QuadRenderer() {
-    glDeleteVertexArrays(1, &quadVAO);
-    glDeleteBuffers(1, &quadVBO);
-    glDeleteBuffers(1, &quadEBO); // Optional, but safe
-}
+    glBindVertexArray(VAO);
+    {
+        glBindBuffer(GL_ARRAY_BUFFER, VBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), quadVertices, GL_STATIC_DRAW);
 
-/**
- * Render the object with the given shader.
- */
-void QuadRenderer::render(ShaderProgram& shader) const {
-    shader.use(); // Use the shader program
-    glBindVertexArray(quadVAO);
-    glDrawArrays(GL_TRIANGLES, 0, 6); // Draw 6 vertices (2 triangles)
+        // Position (location=0)
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+
+        // Texture coords (location=1)
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+    }
     glBindVertexArray(0);
+}
+
+void QuadRenderer::setModelMatrix(const glm::mat4& model) {
+    modelMatrix = model;
+}
+
+void QuadRenderer::render(BackgroundShader& shader, std::shared_ptr<Texture> texture) const {
+    if (!texture) {
+        std::cerr << "Warning: QuadRenderer received a null texture.\n";
+        return;
+    }
+
+    shader.use();
+    shader.setBackgroundObjectParams(modelMatrix, 0);
+
+    texture->use();
+
+    glBindVertexArray(VAO);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+    glBindVertexArray(0);
+
+    GL_CHECK("Quadrenderer");
 }

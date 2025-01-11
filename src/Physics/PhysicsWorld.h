@@ -5,34 +5,34 @@
 
 #pragma once
 
+#include <vector>
+#include <unordered_map>
+
+#include <glm/glm.hpp>
+
 #include "Physics.h"
 #include "Beyblade.h"
 #include "Stadium.h"
 
-#include <vector>
-#include <glm/glm.hpp>
-#include <unordered_map>
-#include "Utils.h"
-#include "RigidBody.h"
-#include "ShaderProgram.h"
-#include "MessageLog.h"
-
-#include "Units.h"
-using namespace Units;
-
 class GameEngine;
+class ObjectShader;
 
 class PhysicsWorld {
 public:
-    // TODO: Move airDensityValue and other physicsal constants to Physics.h
-    PhysicsWorld(Kg_M3 airDensityValue = 0.8_kg / (1.0_m*1.0_m*1.0_m), float spinThreshold = 30.0f) : airDensity(airDensityValue), SPIN_THRESHOLD(spinThreshold) {}
+    PhysicsWorld(Scalar minSpin = 30.0__, Scalar maxSpin = 1500.0__, const Physics& physics = Physics())
+        : MIN_SPIN_THRESHOLD(minSpin), MAX_SPIN_THRESHOLD(maxSpin), physics(physics) {
+    }
 
     void addBeyblade(Beyblade* body);
     void addStadium(Stadium* body);
     void removeBeyblade(Beyblade* body);
     void removeStadium(Stadium* body);
 
-    void resetPhysics() { // 2024-11-18.  Clear before game restart.
+    void setPhysics(Physics& p) {
+        physics = std::move(p);
+    }
+
+    void resetPhysics() {
         beyblades.clear();
         stadiums.clear();
         currTime = 0.0f;
@@ -40,20 +40,19 @@ public:
     };
 
     void update(float deltaTime);
-    void renderDebug(ShaderProgram &shader) const;
+    void renderDebug(ObjectShader &shader) const;
 
     std::vector<Beyblade*>& getBeyblades() { return beyblades; }
     std::vector<Stadium*>& getStadiums() { return stadiums; }
 
 private:
-    //float airDensity;
-    float currTime = 0.0f;
-    
-    Kg_M3 airDensity;
+    Physics physics;
+
     std::vector<Beyblade*> beyblades;
     std::vector<Stadium*> stadiums;
-    const Scalar SPIN_THRESHOLD = 30.0__;
-    const Scalar MAX_SPIN_THRESHOLD = 1500.0__;
-    const Scalar PI = 3.14159265358979__;
-    const float epsilonTime = 0.2f; // Cannot have collisions within 0.3 seconds of a previous one
+
+    float currTime = 0.0f;
+    const float epsilonTime = 0.2f;                 // Cannot have collisions within 0.3 seconds of a previous one
+    const Scalar MIN_SPIN_THRESHOLD = 30.0__;       // If a beyblade's |w| is less, the game ends due to spin finish
+    const Scalar MAX_SPIN_THRESHOLD = 1500.0__;     // Cannot launch higher than this speed
 };

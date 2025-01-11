@@ -1,6 +1,5 @@
 #include "TextureManager.h"
 #include "Texture.h"
-#include <stdexcept>
 
 // Singleton access - ensures only one instance of TextureManager
 TextureManager& TextureManager::getInstance() {

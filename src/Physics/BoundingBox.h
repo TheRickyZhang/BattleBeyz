@@ -5,9 +5,10 @@
 
 #pragma once
 
-#include <glm/gtx/quaternion.hpp>
-#include "ShaderProgram.h"
-#include "Buffers.h"
+#include <GL/glew.h>
+#include <glm/glm.hpp>
+
+class ObjectShader;
 
 // Currently unused.
 class BoundingBox {
@@ -15,7 +16,7 @@ public:
     glm::vec3 min;
     glm::vec3 max;
 
-    GLuint VAO{}, VBO{}, EBO{};
+    unsigned int VAO{}, VBO{}, EBO{};
 
     BoundingBox();
     BoundingBox(const glm::vec3& min, const glm::vec3& max);
@@ -23,7 +24,7 @@ public:
 
     // These ones are actually used
     static bool intersect(const BoundingBox& a, const BoundingBox& b);
-    void renderDebug(ShaderProgram &shader, const glm::vec3& bodyPosition);
+    void renderDebug(ObjectShader& shader, const glm::vec3& bodyPosition);
 
     // Naive implementaiton that clamps limits
     glm::vec3 closestPointOutside(const glm::vec3& point) const;

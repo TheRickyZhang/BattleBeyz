@@ -2,24 +2,33 @@
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
-#include "GameState.h"
-#include <unordered_map>
 #include <memory>
 #include <iostream>
 #include <functional>
-#include "States/StateFactory.h"
-#include "PhysicsWorld.h"
-#include "Camera.h"
-#include "QuadRenderer.h"
-#include "TextRenderer.h"
-#include "TextureManager.h"
-#include "ProfileManager.h"
-#include "MessageLog.h"
-#include "InputManager.h"
-#include "Timer.h"
+#include <glm/glm.hpp>
+
+#include <imgui.h>
+
+#include "StateIdentifiers.h"
 
 #define MINI_CASE_SENSITIVE
-#include "mini/ini.h"
+#include <mini/ini.h>
+
+class GameState;
+//class ShaderProgram;
+class ObjectShader;
+class BackgroundShader;
+class PhysicsWorld;
+class Camera;
+class MessageLog;
+class Timer;
+
+class FontManager;
+class InputManager;
+class ProfileManager;
+class TextureManager;
+class QuadRenderer;
+class TextRenderer;
 
 class GameEngine {
 public:
@@ -33,13 +42,13 @@ public:
     void changeState(GameStateType stateType);
     GameState* getGameState();  // Return current state.
     void pushState(GameStateType stateType);
+    void pushState(std::unique_ptr<GameState> state);
+
     void popState();
 
     void handleEvents();
     void update();
     void draw();
-
-    static void framebufferSizeCallback(GLFWwindow* window, int width, int height);
 
     bool running() const {
         return isRunning && !glfwWindowShouldClose(window);
@@ -66,12 +75,13 @@ public:
     int monitorX{};
     int monitorY{};
 
+    // Singleton Managers   
+    FontManager& fm;        // ImGui fonts
+    InputManager& im;       // Key/Mouse Input
+    MessageLog& ml;         // Message Logging
+    ProfileManager& pm;     // Profiles (and corresponding data)
+    TextureManager& tm;     // Textures
     ImGuiIO& io;
-
-    // TODO: Modify to a <string, ImFont*> map
-    ImFont* defaultFont{};
-    ImFont* titleFont{};
-    ImFont* attackFont{};
 
     glm::mat4 model{};
     glm::mat4 view{};
@@ -84,8 +94,8 @@ public:
 
     Camera* camera = nullptr;
 
-    ShaderProgram* objectShader{};
-    ShaderProgram* backgroundShader{};
+    ObjectShader* objectShader{};
+    BackgroundShader* backgroundShader{};
 
     TextRenderer* textRenderer{};
     QuadRenderer* quadRenderer{};
@@ -93,22 +103,12 @@ public:
     float prevTime{};
     float deltaTime{};
 
-    // Singleton Managers
-    TextureManager& tm;     // Textures
-    ProfileManager& pm;     // Profiles (and corresponding data)
-    InputManager& im;       // Key/Mouse Input
-    MessageLog& ml;         // Message Logging
-
-    // INI handling
-    mINI::INIFile* iniFile{};
-    mINI::INIStructure* iniData{};
-
     // Other various global states
     bool boundCamera{};
     bool debugMode{};
     bool paused{};
 
-    std::vector<Timer> timers;  // TODO: In very future, if have dynamic timers separate from the fixed timers (frame rate, etc)
+    std::vector<Timer> timers; // In very future, if have dynamic timers separate from the fixed timers (frame rate, etc)
     std::vector<std::function<void()>> timerCallbacks;
 
     std::string fpsText{};
@@ -122,4 +122,10 @@ private:
     bool debugScreenActive = false;
 
     void handleGlobalEvents();
+
+    static void framebufferSizeCallback(GLFWwindow* window, int width, int height);
+    static void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
+    static void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
+    static void cursorPosCallback(GLFWwindow* window, double xpos, double ypos);
+    static void scrollCallback(GLFWwindow* window, double xoffset, double yoffset);
 };

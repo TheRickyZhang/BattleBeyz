@@ -1,5 +1,12 @@
+#include <iostream>
+#include <fstream>
+#include <json.hpp>
+#include <filesystem>
+
 #include "ProfileManager.h"
-#include "json.hpp"
+
+#include "Beyblade.h"
+#include "MessageLog.h"
 
 using namespace std;
 using namespace nlohmann;
@@ -26,7 +33,6 @@ bool ProfileManager::createProfile(const string& name) {
         cerr << "Error: Cannot add profile. Maximum number of profiles (" << MAX_PROFILES << ") reached." << endl;
         return false;
     }
-    
     
     nextProfileID++;
     if (profiles.size() > 0 && getProfileIterator(nextProfileID) != profiles.end()) {
@@ -111,7 +117,8 @@ const vector<shared_ptr<Profile>>& ProfileManager::getAllProfiles() const {
     return profiles;
 }
 
-void ProfileManager::saveProfilesToFile(const std::string& filePath) {
+void ProfileManager::saveProfilesToFile(const string& filePath) {
+    MessageLog& ml = MessageLog::getInstance();
     json js;
     for (const auto& profile : profiles) {
         js["profiles"].push_back(profile->toJson()); // Save all relevant profile details
@@ -119,36 +126,68 @@ void ProfileManager::saveProfilesToFile(const std::string& filePath) {
     if (activeProfileId.has_value()) {
         js["activeProfileId"] = activeProfileId.value();
     }
-    std::ofstream file(filePath);
+    ofstream file(filePath);
     if (file.is_open()) {
         file << js.dump(4); // Pretty print with 4 spaces
+        ml.addMessage("Profiles saved successfully to " + filePath);
+    }
+    else {
+        ml.addMessage("Error: unable save profiles to " + filePath, MessageType::ERROR);
     }
 }
 
-void ProfileManager::loadProfilesFromFile(const std::string& filePath) {
-    std::ifstream file(filePath);
-    if (file.is_open()) {
-        json js;
-        file >> js;
+void ProfileManager::loadProfilesFromFile(const string& filePath) {
+    MessageLog& ml = MessageLog::getInstance();
+    if (!filesystem::exists(filePath)) {
+        ml.addMessage("Error: cannot load profiles from " + filePath, MessageType::ERROR);
+        return;
+    }
 
-        for (const auto& profileJson : js["profiles"]) {
-            // Extract profile details
-            std::string name = profileJson["name"];
-            int id = profileJson["id"];
+    ifstream file(filePath);
+    if (!file.is_open()) {
+        ml.addMessage("Error: Unable to open file for reading: " + filePath, MessageType::ERROR);
+        return;
+    }
+    json js;
+    file >> js;
 
-            // Use `addProfile` to add a pre-created profile to ensure proper initialization
-            auto profile = std::make_shared<Profile>(id, name);
-            profile->fromJson(profileJson); // Populate the profile's details
+    for (const auto& profileJson : js["profiles"]) {
+        string name = profileJson["name"];
+        int id = profileJson["id"];
 
-            // Add the profile via your addProfile function
-            if (!addProfile(profile)) {
-                std::cerr << "Error: Failed to add profile during load. Name: " << name << std::endl;
-            }
+        // Retrieve, populate, and add profile with ProfileManager
+        auto profile = make_shared<Profile>(id, name);
+        profile->fromJson(profileJson);
+
+        cout << profile->getName() << endl;
+
+        if (!addProfile(profile)) {
+            cout << "FAILED TO ADD" << endl;
+            ml.addMessage("Error: Failed to add profile during load. Name: ", MessageType::ERROR);
         }
-
-        // Set the active profile (optional: based on saved state)
-        if (js.contains("activeProfileId")) {
-            setActiveProfile(js["activeProfileId"]);
+        else {
+            cout << " ADDED SUCCESSFULLY" << endl;
         }
     }
+
+    // Set the active profile (optional: based on saved state)
+    if (js.contains("activeProfileId")) {
+        int activeId = js["activeProfileId"];
+        if (!setActiveProfile(activeId)) {
+            std::string loadedIds;
+            for (const auto& profile : profiles) {
+                loadedIds += std::to_string(profile->getId()) + " ";
+            }
+            ml.addMessage("Active profile ID " + std::to_string(activeId) + " does not match any loaded ID. Available IDs: [" + loadedIds + "]",
+                MessageType::WARNING
+            );
+        }
+    }
+}
+
+
+vector<shared_ptr<Profile>>::const_iterator ProfileManager::getProfileIterator(int profileId) const {
+    return find_if(profiles.begin(), profiles.end(), [&](const shared_ptr<Profile> &p) {
+        return p->getId() == profileId;
+    });
 }

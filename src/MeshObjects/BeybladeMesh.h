@@ -6,23 +6,18 @@
 #pragma once
 
 #include <vector>
+#include <string>
+#include <unordered_map>
+
 #include <GL/glew.h>
 #include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include <iostream>
-#include <unordered_map>
-#include <iomanip>
-#include <glm/gtx/quaternion.hpp>
 
-#include "ShaderProgram.h"
-#include "Buffers.h"
-#include "Texture.h"
-#include "RigidBodies/StadiumBody.h"
+#include "BoundingBox.h"
+
+class ObjectShader;
 
 // Need to call loadModel and initializeMesh for using the mesh
 class BeybladeMesh {
-    //friend class Beyblade;
 public:
     BeybladeMesh(std::string& modelPath, unsigned int vao, unsigned int vbo, unsigned int ebo, glm::vec3& tint = glm::vec3(1.0f))
         : modelPath(std::move(modelPath)), VAO(vao), VBO(vbo), EBO(ebo), tint(tint) {
@@ -40,7 +35,7 @@ public:
     //int getIndicesSize() { return static_cast<int>(indices.size()); }
     //std::unordered_map<std::string, glm::vec3>& getMaterialColors() { return materialColors; }
 
-    void render(ShaderProgram& shader);
+    void render(ObjectShader& shader);
 
     BoundingBox boundingBox{};                          // Mesh bounding box.
     float heightDisc{}, heightLayer{}, heightDriver{};  // Heights of subparts

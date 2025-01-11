@@ -1,22 +1,13 @@
 #pragma once
 
-#include <GL/glew.h>
-#include <GLFW/glfw3.h>
 #include <string>
-#include <glm/glm.hpp>
 #include <unordered_map>
-#include <functional>
-#include <glm/gtc/matrix_transform.hpp>
 
-#include "imgui.h"
-#include "imgui_impl_glfw.h"
-#include "imgui_impl_opengl3.h"
+#include <imgui.h>
 
-#include "BeybladeBody.h"
-#include "StateIdentifiers.h"
-
-
-class GameEngine;
+// Used by every state
+#include "GameEngine.h"
+#include "MessageLog.h"   
 
 class GameState {
 public:
@@ -37,10 +28,20 @@ public:
 
     virtual GameStateType getStateType() const = 0;
 
+    static void initStyleParams() {
+        frameSpacingX = ImGui::GetStyle().FramePadding.x;
+        frameSpacingY = ImGui::GetStyle().FramePadding.y;
+        spacing = ImGui::GetStyle().ItemSpacing.x;
+    }
 public:
     GameEngine* game;
 
 protected:
+    // Common shorthands for ImGui display values. Only change from settings modification
+    static float frameSpacingX;
+    static float frameSpacingY;
+    static float spacing;
+
     void renderBackground(GameEngine* game, const std::string& textureString);
 
     // Function to render a window with text, buttons, and optional text before/after
@@ -48,18 +49,7 @@ protected:
         const std::vector<std::string>& buttonText,
         const std::string& beforeText = "", const std::string& afterText = "");
 
-    // Map button text to the state they will transition onto (TODO: Does not distinguish between swtiching and pushing states)
-    std::unordered_map<std::string, GameStateType> buttonStateMap = {
-        // Main Screens
-        { "Back", GameStateType::HOME }, { "Home", GameStateType::HOME },
-        { "Start Game", GameStateType::ACTIVE }, { "Resume Game", GameStateType::ACTIVE},
-        { "Profiles & Beyblades", GameStateType::CUSTOMIZE },
-        { "Settings", GameStateType::SETTINGS},
-        { "About", GameStateType::ABOUT },
-
-        // Secondary Screens
-        { "Loading", GameStateType::LOADING },
-        { "Pause", GameStateType::PAUSE },
-    };
-
+    // TOLOOK: Does not distinguish between swtiching and pushing states
+    // Map button text to the state they will transition onto
+    static const std::unordered_map<std::string, GameStateType> buttonStateMap;
 };

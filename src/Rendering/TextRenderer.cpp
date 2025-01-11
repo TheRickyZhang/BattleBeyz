@@ -3,12 +3,16 @@
 // Copyright (c) 2024, Ricky Zhang.
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "TextRenderer.h"
-#include "ShaderProgram.h"
-
 #include <iostream>
+
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+
+#include "TextRenderer.h"
+#include "ObjectShader.h"
+
+//#include "Utils.h"
+#include "ShaderPath.h"
 
 /**
 * Constructor.
@@ -108,6 +112,8 @@ void TextRenderer::initRenderData() {
 void TextRenderer::renderText(const std::string& text, float x, float y, float scale, const glm::vec3& color) {
     shaderProgram->use();
     shaderProgram->setVec3("textColor", color);
+
+    // TODO: Remove glActiveTexture and glBindVertexArray, since have moved to texture->use()
     glActiveTexture(GL_TEXTURE0);
     glBindVertexArray(VAO);
 

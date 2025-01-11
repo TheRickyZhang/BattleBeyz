@@ -5,14 +5,6 @@
 
 #pragma once
 
-// NOTE: This ordering is necessary to not have a glew inclusion error
-#include <GL/glew.h>
-#include <GLFW/glfw3.h>
-#include "imgui.h"
-#include "imgui_impl_glfw.h"
-#include "imgui_impl_opengl3.h"
-
-#include "Texture.h"
 #include <algorithm>
 #include <cmath>
 #include <vector>
@@ -21,11 +13,16 @@
 #include <functional>
 #include <utility>
 
-const ImGuiWindowFlags MinimalWindow = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize; // No decorations, navigation, moving, or resizing
-const ImGuiWindowFlags OverlayWindow = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_AlwaysAutoResize; // No decorations, background, inputs; auto-resizes
-const ImGuiWindowFlags StaticWindow = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse; // Fixed position/size, no decorations, cannot move/resize/collapse
-const ImGuiWindowFlags ScrollingWindow = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_HorizontalScrollbar; // No decorations, no collapse, horizontal scrollbar
-const ImGuiWindowFlags NormalWindow = ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse; // Auto-resizes, cannot collapse
+#include <GL/glew.h>
+#include <GLFW/glfw3.h>
+#include <imgui.h>
+
+ // Nothing, no interaction
+const ImGuiWindowFlags MinimalWindow = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize;
+
+// Expands to text size
+const ImGuiWindowFlags AutoResizeWindow = ImGuiWindowFlags_AlwaysAutoResize;
+
 
 // Currently unused
 bool colorPickerWithReset(const char* label, ImVec4* color, const ImVec4& defaultColor);

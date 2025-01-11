@@ -2,8 +2,8 @@
 
 #include <vector>
 #include <string>
+
 #include "GameMessage.h"
-#include "imgui.h"
 
 /*
 * Singleton
@@ -26,6 +26,7 @@ public:
 
     void addMessage(const std::string& text, MessageType type = MessageType::NORMAL, bool showLog = false);
     void render();
+    void save(const std::string& path);
 private:
     MessageLog() : visible(false) {}
     ~MessageLog() = default;

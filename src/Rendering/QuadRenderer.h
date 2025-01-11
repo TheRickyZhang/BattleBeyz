@@ -1,20 +1,31 @@
 ////////////////////////////////////////////////////////////////////////////////
-// QuadRender.h -- QuadRender include -- rz -- 2024-08-08
+// QuadRenderer.h -- QuadRenderer header -- rz -- 2024-08-08
 // Copyright (c) 2024, Ricky Zhang.
-////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
 
 #pragma once
-#include <GL/glew.h>
-#include "ShaderProgram.h"
 
-// ONLY use for drawing screens with backgroundShader
+#include <memory>
+#include <GL/glew.h>
+#include <glm/glm.hpp>
+
+#include "BackgroundShader.h"
+#include "Texture.h"
 
 class QuadRenderer {
 public:
-    explicit QuadRenderer(float vecScale = 1.0f);
+    // Only needs a model matrix now. Projection is handled globally.
+    explicit QuadRenderer(const glm::mat4& model);
     ~QuadRenderer();
-    void render(ShaderProgram& shader) const;
+
+    void render(BackgroundShader& shader, std::shared_ptr<Texture> texture) const;
+
+    void setModelMatrix(const glm::mat4& model);
 
 private:
-    unsigned int quadVAO, quadVBO, quadEBO;
+    GLuint VAO = 0;
+    GLuint VBO = 0;
+    glm::mat4 modelMatrix;
+
+    void setupBuffers();
 };

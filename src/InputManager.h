@@ -1,10 +1,11 @@
 #pragma once
-#include <GLFW/glfw3.h>
+
 #include <unordered_map>
+
 #include "InputUtils.h"
 
 /*
-* Singleton. Handles all conversion of inputs to actions.
+* Singleton. Handles all conversion of inputs to actions. Should it take a window pointer?
 * 
 * Currently does not support key combinations.
 */
@@ -14,7 +15,6 @@ public:
     static InputManager& getInstance();
 
     /* General */
-    //void setWindow(GLFWwindow* window);
     void updateState();
 
     /* Keys */
@@ -44,7 +44,6 @@ private:
     InputManager(const InputManager&) = delete;
     InputManager& operator=(const InputManager&) = delete;
 
-    //GLFWwindow* window = nullptr;
     std::unordered_map<int, bool> keyStates;
     std::unordered_map<int, bool> prevKeyStates;
 

@@ -4,6 +4,10 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "Camera.h"
+
+#include "InputUtils.h"
+#include "PhysicsWorld.h"
+
 using namespace glm;
 
 const vec3 Camera::worldUp = vec3(0.0f, 1.0f, 0.0f);
@@ -117,7 +121,7 @@ void Camera::processKeyboard(Action action, float deltaTime) {
 
     // This works
     newPosition = movementRange.closestPointInside(newPosition);
-    // TODO: Camera gets stuck on a beyblade or stadium when you get too close. Probably becuase no buffer / incorrect logic
+    // TOLOOK: Camera gets stuck on a beyblade or stadium when you get too close. Consider removing feature if not needed
     //if (hasCollision && physicsWorld != nullptr) {
     //    newPosition = applyCollisions(position, newPosition);
     //}

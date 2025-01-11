@@ -1,9 +1,9 @@
 #pragma once
 
-#include "Profile.h"
-#include "Beyblade.h"
 #include <memory>
 #include <string>
+
+#include "Profile.h"
 
 class ProfileManager {
 public:
@@ -40,8 +40,5 @@ private:
 
     int nextProfileID = 0;                  // Next profile id is #1.
 
-    std::vector<std::shared_ptr<Profile>>::const_iterator getProfileIterator(int profileId) const {
-        return std::find_if(profiles.begin(), profiles.end(),
-            [&](const std::shared_ptr<Profile>& p) { return p->getId() == profileId; });
-    }
+    std::vector<std::shared_ptr<Profile>>::const_iterator getProfileIterator(int profileId) const;
 };

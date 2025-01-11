@@ -5,11 +5,9 @@
 
 #pragma once
 
-#include "RandomDistribution.h"
-
-#include <glm/gtc/matrix_transform.hpp>
 #include <glm/glm.hpp>
-#include <memory>
+
+#include "RandomDistribution.h"
 
 #include "Units.h"
 using namespace Units;
@@ -82,12 +80,11 @@ struct Disc {
 
 /**
  *Contains physical properties of the bottom section of a Beyblade, important for friction and movement.
- * 
- * TODO: Separate into upper and lower radii to minimize confusion, as it is a frustrum and not a cylinder
- */
+  */
 struct Driver {
-    Driver(M radius, M height, Kg mass, KgM2 momentOfInertia, Scalar rotationalDragCoefficient, Scalar coefficientOfFriction) :
-        radius(radius),
+    Driver(M contactRadius, M upperRadius, M height, Kg mass, KgM2 momentOfInertia, Scalar rotationalDragCoefficient, Scalar coefficientOfFriction) :
+        contactRadius(contactRadius),
+        upperRadius(upperRadius),
         height(height),
         mass(mass),
         momentOfInertia(momentOfInertia),
@@ -96,7 +93,8 @@ struct Driver {
     {}
 
     Driver() :
-        radius(0.002_m),
+        contactRadius(0.002_m),
+        upperRadius(0.012_m),
         height(0.015_m),
         mass(0.005_kg),
         momentOfInertia(0.5f * 0.005_kg * 0.002_m * 0.0015_m),
@@ -104,7 +102,9 @@ struct Driver {
         coefficientOfFriction(0.22f)
     {}
 
-    M radius;
+    // TODO: Since radius changed to contactRadius, add a
+    M contactRadius;
+    M upperRadius;
     M height;
     Kg mass;
     KgM2 momentOfInertia;

@@ -5,22 +5,11 @@
 
 #pragma once
 
-#include <glm/glm.hpp>
-#include <glm/gtx/quaternion.hpp>
-#include <vector>
-#include <iostream>
-#include <cmath>
-#include <algorithm>
-#include <iomanip>
 #include <memory>
+#include <vector>
 
-#include "GameObject.h"
-#include "Texture.h"
-#include "Utils.h"
-#include "Buffers.h"
-#include "BoundingBox.h"
-#include "RigidBodies/StadiumBody.h"
-#include "MeshObjects/StadiumMesh.h"
+#include "StadiumBody.h"
+#include "StadiumMesh.h"
 
 // Stadium with parabolic shape
 class Stadium {
@@ -32,7 +21,7 @@ public:
 
     void initializeMesh();
 
-    void render(ShaderProgram& shader);
+    void render(ObjectShader& shader);
     StadiumBody* getRigidBody() const { return rigidBody; }
     StadiumMesh* getMesh() const { return mesh; }
 

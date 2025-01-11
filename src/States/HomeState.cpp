@@ -1,12 +1,21 @@
+#include <algorithm>
+#include <glm/gtc/matrix_transform.hpp>
+
 #include "UI.h"
 #include "GameEngine.h"
 #include "HomeState.h"
 #include "StateIdentifiers.h"
-#include <algorithm>
+#include "QuadRenderer.h"
 
 using namespace ImGui;
+using namespace glm;
 
-void HomeState::init() {}
+void HomeState::init() {
+    // Set the quadrenderer to prevent glitch where does
+    int width = game->windowWidth;
+    int height = game->windowHeight;
+    game->quadRenderer->setModelMatrix(scale(mat4(1.0f), vec3(width, height, 1.0f)));
+}
 
 void HomeState::cleanup() {}
 

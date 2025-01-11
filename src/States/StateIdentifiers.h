@@ -1,13 +1,13 @@
-// StateIdentifiers.h
 #pragma once
 
 enum class GameStateType {
-    HOME,
+    ABOUT,
     ACTIVE,
     CUSTOMIZE,
-    SETTINGS,
-    ABOUT,
+    HOME,
     LOADING,
-    PAUSE
-    // Add other states here
+    PAUSE,
+    SELECTION,
+    SETTINGS
+
 };

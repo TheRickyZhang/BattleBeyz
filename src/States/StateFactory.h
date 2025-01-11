@@ -2,16 +2,16 @@
 
 #include <memory>
 #include "GameState.h"
-#include "StateIdentifiers.h"
-
-// Forward declaration of state classes
-class HomeState;
-class ActiveState;
-class CustomizeState;
-class AboutState;
 
 class StateFactory {
 public:
     // Static method to create a state based on the GameStateType
     static std::unique_ptr<GameState> createState(GameEngine* game, GameStateType stateType);
+
+    // Specifically to create differentiable loading states
+    static std::unique_ptr<GameState> StateFactory::createLoadingState(
+        GameEngine* game,
+        const std::vector<std::function<bool()>>& tasks,
+        std::function<void()> onComplete
+    );
 };

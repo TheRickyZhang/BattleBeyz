@@ -7,13 +7,17 @@ in vec3 Normal;          // Normal vector at the fragment
 in vec2 TexCoords;       // Texture coordinates
 in vec3 VertexColor;     // Vertex color passed from the vertex shader
 
-uniform int lightType = 0;                       // 0: Directional light, 1: Point light (TBD 2: Spotlight)
+// Global
 uniform sampler2D texture1;                      // Texture sampler
-uniform vec3 lightColor = vec3(1.0, 1.0, 1.0);   // Color of the light source
-uniform vec3 lightPos = vec3(0.0, -1.0, 0.0);    // (point light pos or directional light dir)
 uniform vec3 viewPos;                            // Position of the camera/viewer
 
-uniform vec3 tint = vec3(1.0, 1.0, 1.0);         // Tint color for additional coloring (default to white)
+uniform int lightType = 0;                       // 0: Directional light, 1: Point light (TBD 2: Spotlight)
+uniform vec3 lightColor = vec3(1.0, 1.0, 1.0);   // Color of the light source
+uniform vec3 lightPos = vec3(0.0, -1.0, 0.0);    // (point light pos or directional light dir)
+
+// Per Object
+uniform vec3 tint = vec3(-1.0, -1.0, -1.0);         // Tint color for additional coloring
+// uniform vec2 textureScale = vec2(1.0, 1.0);      // Scale for texture repetition
 
 void main()
 {

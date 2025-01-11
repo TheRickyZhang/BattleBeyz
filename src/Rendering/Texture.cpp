@@ -3,9 +3,10 @@
 // Copyright (c) 2024, Ricky Zhang.
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "Texture.h"
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
+
+#include "Texture.h"
 
 /**
 * Constructor.
@@ -52,8 +53,10 @@ Texture::Texture(const char* imagePath, std::string texType) : type(std::move(te
 * Enable texture use.
 */
 
-void Texture::use() const {
-    glBindTexture(GL_TEXTURE_2D, ID);
+void Texture::use(int textureUnit) const {
+    // TOLOOK: Different texture unit values, but only 0 is sufficient for now
+    glActiveTexture(GL_TEXTURE0 + textureUnit); // Activate the specified texture unit
+    glBindTexture(GL_TEXTURE_2D, ID);           // Bind the texture to GL_TEXTURE_2D
 }
 
 /**

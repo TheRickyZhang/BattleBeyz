@@ -1,0 +1,103 @@
+{
+    "activeProfileId": 1,
+    "profiles": [
+        {
+            "beyblades": [
+                {
+                    "body": {
+                        "disc": {
+                            "height": 0.009999999776482582,
+                            "mass": 0.027000000700354576,
+                            "momentOfInertia": 6.12359917795402e-06,
+                            "radius": 0.017999999225139618,
+                            "rotationalDragCoefficient": 0.0005000000237487257
+                        },
+                        "driver": {
+                            "coefficientOfFriction": 0.2199999988079071,
+                            "contactRadius": 0.0020000000949949026,
+                            "height": 0.014999999664723873,
+                            "mass": 0.004999999888241291,
+                            "momentOfInertia": 7.500000620552782e-09,
+                            "rotationalDragCoefficient": 0.0005000000237487257,
+                            "upperRadius": 0.012000000104308128
+                        },
+                        "layer": {
+                            "coefficientOfRestitution": 0.800000011920929,
+                            "height": 0.009999999776482582,
+                            "mass": 0.02199999988079071,
+                            "momentOfInertia": 1.1666666978271678e-05,
+                            "radius": 0.02500000037252903,
+                            "recoilDistribution": {
+                                "mean": 0.30000001192092896,
+                                "stddev": 0.10000000149011612
+                            },
+                            "rotationalDragCoefficient": 0.003499999875202775
+                        }
+                    },
+                    "id": 1,
+                    "isTemplate": false,
+                    "mesh": {
+                        "modelPath": "./assets/models/default.obj"
+                    },
+                    "name": "Test11"
+                },
+                {
+                    "body": {
+                        "disc": {
+                            "height": 0.009999999776482582,
+                            "mass": 0.027000000700354576,
+                            "momentOfInertia": 6.12359917795402e-06,
+                            "radius": 0.017999999225139618,
+                            "rotationalDragCoefficient": 0.0005000000237487257
+                        },
+                        "driver": {
+                            "coefficientOfFriction": 0.2199999988079071,
+                            "contactRadius": 0.0020000000949949026,
+                            "height": 0.014999999664723873,
+                            "mass": 0.004999999888241291,
+                            "momentOfInertia": 7.500000620552782e-09,
+                            "rotationalDragCoefficient": 0.0005000000237487257,
+                            "upperRadius": 0.012000000104308128
+                        },
+                        "layer": {
+                            "coefficientOfRestitution": 0.800000011920929,
+                            "height": 0.009999999776482582,
+                            "mass": 0.02199999988079071,
+                            "momentOfInertia": 6.875000053696567e-06,
+                            "radius": 0.02500000037252903,
+                            "recoilDistribution": {
+                                "mean": 1.0,
+                                "stddev": 0.10000000149011612
+                            },
+                            "rotationalDragCoefficient": 0.003499999875202775
+                        }
+                    },
+                    "id": 2,
+                    "isTemplate": false,
+                    "mesh": {
+                        "modelPath": "./assets/models/default.obj"
+                    },
+                    "name": "Test22"
+                }
+            ],
+            "id": 1,
+            "name": "Default",
+            "settings": {
+                "isFullscreen": false,
+                "isMuted": false,
+                "resolutionIndex": 1,
+                "volume": 0.5
+            }
+        },
+        {
+            "id": 2,
+            "name": "Hello",
+            "settings": {
+                "isFullscreen": false,
+                "isMuted": false,
+                "resolutionIndex": 1,
+                "volume": 0.5
+            }
+        }
+    ]
+}

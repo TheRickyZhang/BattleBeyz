@@ -1,30 +1,70 @@
-#include "GameState.h"
-#include "GameEngine.h"
+#include <memory>
+#include <string>
+
+#include <GL/glew.h>
+#include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-void GameState::renderBackground(GameEngine* game, const std::string& textureName) {
-    auto backgroundShader = game->backgroundShader;
-    auto quadRenderer = game->quadRenderer;
-    auto backgroundTexture = game->tm.getTexture(textureName);
+#include "GameState.h"
 
-    if (backgroundTexture && backgroundTexture->ID != 0) {
-        glm::mat4 ortho = glm::ortho(0.0f, (float)game->windowWidth, 0.0f, (float)game->windowHeight, -1.0f, 1.0f);
+#include "ObjectShader.h"
+#include "TextureManager.h"
+#include "QuadRenderer.h"
 
-        backgroundShader->use();
-        backgroundShader->setFloat("time", (float)glfwGetTime());
+using namespace std;
+using namespace glm;
+using namespace ImGui;
 
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, backgroundTexture->ID);
-        //backgroundShader->setInt("background", 0);
+// Ensure that initStyleParams() is called in GameEngine::init();
+float GameState::frameSpacingX = 0.0f;
+float GameState::frameSpacingY = 0.0f;
+float GameState::spacing = 0.0f;
 
-        quadRenderer->render(*backgroundShader); // Pass the shader to render
-    }
+const unordered_map<std::string, GameStateType> GameState::buttonStateMap = {
+    // Main Screens
+    { "Back", GameStateType::HOME }, { "Home", GameStateType::HOME },
+    { "Start Game", GameStateType::SELECTION },
+    { "Resume Game", GameStateType::ACTIVE},
+    { "Profiles & Beyblades", GameStateType::CUSTOMIZE },
+    { "Settings", GameStateType::SETTINGS},
+    { "About", GameStateType::ABOUT },
+
+    // Secondary Screens
+    { "Loading", GameStateType::LOADING },
+    { "Pause", GameStateType::PAUSE },
+
+    // Dev temp screens,
+    { "Active", GameStateType::ACTIVE}
+};
+
+
+void GameState::renderBackground(GameEngine* game, const string& textureName) {
+    BackgroundShader* backgroundShader = game->backgroundShader;
+    QuadRenderer* quadRenderer = game->quadRenderer;
+    int width = game->windowWidth;
+    int height = game->windowHeight;
+    shared_ptr<Texture> backgroundTexture = game->tm.getTexture(textureName);
+
+    glm::mat4 orthoProjection = glm::ortho(
+        0.0f, static_cast<float>(game->windowWidth),
+        0.0f, static_cast<float>(game->windowHeight),
+        -1.0f, 1.0f
+    );
+
+    backgroundShader->setBackgroundGlobalParams(orthoProjection, 4.0f, (float)glfwGetTime());
+
+    backgroundShader->setBackgroundObjectParams(scale(mat4(1.0f), vec3(width, height, 1.0f)), 0);
+
+    // TOLOOK: Removing these causes background to not render until window is resized, even though it should be initialized with correct matrices.
+    //glm::mat4 model = glm::scale(glm::mat4(1.0f), glm::vec3(game->windowWidth, game->windowHeight, 1.0f));
+    //game->quadRenderer->setModelMatrix(scale(mat4(1.0f), vec3(width, height, 1.0f)));
+    quadRenderer->render(*backgroundShader, backgroundTexture);
 }
 
-void GameState::renderWindowWithButtons(GameEngine* game, const std::string& windowTitle,
-    const std::vector<std::string>& buttonTexts,
-    const std::string& beforeText, const std::string& afterText) {
+void GameState::renderWindowWithButtons(GameEngine* game, const string& windowTitle,
+    const vector<string>& buttonTexts,
+    const string& beforeText, const string& afterText) {
 
     // Define padding and spacing
     const ImVec2 padding(50.0f, 50.0f);
@@ -43,7 +83,7 @@ void GameState::renderWindowWithButtons(GameEngine* game, const std::string& win
     }
 
     // Calculate total width and height required for the window
-    float totalWidth = std::max({ beforeTextSize.x, maxButtonWidth, afterTextSize.x }) + padding.x * 2;
+    float totalWidth = max({ beforeTextSize.x, maxButtonWidth, afterTextSize.x }) + padding.x * 2;
     float totalHeight = padding.y * 2; // Start with top and bottom padding
 
     if (!beforeText.empty()) {

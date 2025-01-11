@@ -1,10 +1,9 @@
 #pragma once
-#include <glm/vec3.hpp>
+#include <cmath>
 #include <iostream>
 #include <iomanip>
 #include <type_traits>
-#include <cmath>
-
+#include <glm/vec3.hpp>
 
 namespace Units {
     /**
