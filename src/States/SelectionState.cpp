@@ -6,8 +6,6 @@
 #include "ProfileManager.h"
 #include "PhysicsWorld.h"
 #include "UI.h"
-#include "../lib/ImGuiFileDialog/ImGuiFileDialog.h"
-#include "../lib/ImGuiFileDialog/ImGuiFileDialogConfig.h"
 
 using namespace std;
 using namespace ImGui;
