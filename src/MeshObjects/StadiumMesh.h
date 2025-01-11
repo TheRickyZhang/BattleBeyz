@@ -24,6 +24,7 @@ public:
 
     Texture* getTexture() { return texture; }
 
+    int tempGetVAO() const { return VAO; }
     //void printDebugInfo();
 protected:
     Texture* texture{};

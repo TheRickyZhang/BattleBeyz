@@ -52,7 +52,7 @@ void Stadium::render(ObjectShader& shader) {
 
 
 void Stadium::initializeMesh() {
-    auto m = mesh;
+    auto& m = mesh;
     // Get reference to edit directly
     auto& vertices = m->vertices;
     auto& normals = m->normals;

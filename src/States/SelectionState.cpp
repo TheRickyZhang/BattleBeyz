@@ -189,9 +189,9 @@ void SelectionState::showStadiumOptions() {
         // TODO: Upload for texture and texture scale
 
         if (Button("Set Stadium")) {
-            StadiumBody* stadiumBody = new StadiumBody(vec3(0.0f), tempRadius, tempCurvature, tempFriction);
-            StadiumMesh* stadiumMesh = new StadiumMesh(nullptr, tempVerticesPerRing, tempNumberOfRings, tempRingColor, tempCrossColor, tempColor, 1.0f);
-            stadium = make_shared<Stadium>(stadiumBody, stadiumMesh, "default");
+            unique_ptr<StadiumBody> stadiumBody = make_unique<StadiumBody>(vec3(0.0f), tempRadius, tempCurvature, tempFriction);
+            unique_ptr<StadiumMesh> stadiumMesh = make_unique<StadiumMesh>(nullptr, tempVerticesPerRing, tempNumberOfRings, tempRingColor, tempCrossColor, tempColor, 1.0f);
+            stadium = make_shared<Stadium>(move(stadiumBody), move(stadiumMesh), "default");
 
             //renderStadiumPreview(); // TODO: Check if anything is needed here
         }
@@ -218,29 +218,59 @@ void SelectionState::setupStadiumPreview() {
 }
 
 void SelectionState::renderStadiumPreview() {
-    // TODO: Make these adaptable to screen size
+    if (stadium->getMesh() == nullptr) {
+        std::cerr << "Error: StadiumMesh is nullptr" << std::endl;
+        return;
+    }
+
+    std::cout << "Rendering stadium preview..." << std::endl;
+
     int previewX = 10, previewY = 10;
     int previewWidth = 300, previewHeight = 300;
 
     setupViewport(previewX, previewY, previewWidth, previewHeight);
-
+    GLenum err = glGetError();
+    if (err != GL_NO_ERROR) std::cerr << "Error after setting viewport: " << err << std::endl;
 
     glm::mat4 projection = setupCamera(previewWidth, previewHeight);
+
+    // Adjust camera parameters to ensure the stadium is visible.
     glm::mat4 view = glm::lookAt(
-        glm::vec3(5.0f, 5.0f, 5.0f), // Camera pos
-        glm::vec3(0.0f, 0.0f, 0.0f), // Center of stadium 
-        glm::vec3(5.0f, 1.0f, 0.0f) // Up vector
+        glm::vec3(0.0f, 2.0f, 5.0f),   // Camera closer to the origin
+        glm::vec3(0.0f, 0.0f, 0.0f),   // Looking at origin
+        glm::vec3(0.0f, 1.0f, 0.0f)    // Up vector
     );
+    std::cout << "Camera set up with position (0,2,5)" << std::endl;
 
     game->objectShader->use();
     ObjectShader* objectShader = game->objectShader;
     objectShader->setMat4("projection", projection);
     objectShader->setMat4("view", view);
 
-    if (stadium) stadium->render(*objectShader);
+    // Debug the VAO and vertex count
+    auto mesh = stadium->getMesh();
+    if (mesh) {
+        std::cout << "Using VAO: " << mesh->tempGetVAO() << std::endl;
+        //std::cout << "Indices count: " << mesh->indices.size() << std::endl;
+    }
+    else {
+        std::cerr << "Mesh is nullptr before rendering" << std::endl;
+    }
+
+    if (stadium) {
+        stadium->render(*objectShader);
+        err = glGetError();
+        if (err != GL_NO_ERROR)
+            std::cerr << "OpenGL error during stadium render: " << err << std::endl;
+        else
+            std::cout << "Stadium rendered successfully." << std::endl;
+    }
+    else {
+        std::cerr << "Error: Stadium is nullptr" << std::endl;
+    }
 
     resetViewport();
-   
+    std::cout << "Viewport reset." << std::endl;
 }
 
 void SelectionState::setupViewport(int previewX, int previewY, int previewWidth, int previewHeight) {

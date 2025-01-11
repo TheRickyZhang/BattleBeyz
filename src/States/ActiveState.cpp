@@ -28,11 +28,11 @@ void ActiveState::init()
     //floor->setTextureScale(vec2(100.0f, 100.0f));
 
     // TODO: this should add stadiums dynamically in future, but use default single one for now
-    StadiumBody* rigidBody = new StadiumBody();
-    StadiumMesh* stadiumMesh = new StadiumMesh();
+    auto rigidBody = std::make_unique<StadiumBody>();
+    auto stadiumMesh = std::make_unique<StadiumMesh>();
     rigidBody->center = glm::vec3(0.0f, 0.0f, 0.0f);
-    Stadium* stadium1 = new Stadium(rigidBody, stadiumMesh, "Stadium 1");
-    stadiums.push_back(stadium1);
+    auto stadium1 = std::make_unique<Stadium>(std::move(rigidBody), std::move(stadiumMesh), "Stadium 1");
+    stadiums.push_back(stadium1.get()); // TODO: Ensure that get() here acts the same
 
     physicsWorld->resetPhysics();
 
