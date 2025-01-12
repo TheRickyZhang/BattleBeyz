@@ -41,10 +41,28 @@ public:
 	const M getY(M x, M z) const;
 	const Vec3_Scalar getNormal(M x, M z) const;
 
+	// Getters (read-only access)
 	Vec3_M getCenter() const { return center; }
+	const M getRadius() const { return radius; }
+	const Scalar getCurvature() const { return curvature; }
 	Scalar getCOF() const { return coefficientOfFriction; }
 
+	// Setters
+	void setRadius(float newRadius) {
+		radius = M(newRadius);
+		scaledCurvature = __M(curvature.value() / newRadius);
+	}
+	void setCurvature(float newCurvature) {
+		curvature = Scalar(newCurvature);
+		scaledCurvature = __M(newCurvature / radius.value());
+	}
+	void setFriction(float newFriction) {
+		coefficientOfFriction = Scalar(newFriction);
+	}
+
 	std::vector<BoundingBox*> boundingBoxes{};
+
+
 
 	// Dimensions
 	Vec3_M center{};

@@ -26,6 +26,14 @@ public:
 
     int tempGetVAO() const { return VAO; }
     //void printDebugInfo();
+
+    // Expose references for slider
+    int& getVerticesPerRing() { return verticesPerRing; }
+    int& getNumberOfRings() { return numRings; }
+    glm::vec3& getOverallColor() { return color; }
+    glm::vec3& getRingColor() { return ringColor; }
+    glm::vec3& getCrossColor() { return crossColor; }
+
 protected:
     Texture* texture{};
 

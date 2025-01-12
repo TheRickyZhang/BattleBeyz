@@ -1,12 +1,13 @@
 #include "SelectionState.h"
 
-#include "StateIdentifiers.h"
 #include "Beyblade.h"
 #include "BeybladeConstants.h"
+#include "InputUtils.h"
+#include "ObjectShader.h"
 #include "ProfileManager.h"
 #include "PhysicsWorld.h"
+#include "StateIdentifiers.h"
 #include "UI.h"
-#include "ObjectShader.h"
 
 #include <glm/gtc/type_ptr.hpp>
 
@@ -16,7 +17,9 @@ using namespace glm;
 using namespace ImGui;
 
 void SelectionState::init() {
-
+    stadiumRenderer = make_unique<FramebufferRenderer>(previewWidth, previewHeight);
+    camera = make_unique<Camera>(glm::vec3(5.0f, 5.0f, 5.0f), glm::vec3(0.0f), game->physicsWorld, 
+        static_cast<float>(previewWidth), static_cast<float>(previewHeight));
 }
 
 void SelectionState::cleanup() {}
@@ -25,9 +28,29 @@ void SelectionState::pause() {}
 
 void SelectionState::resume() {}
 
-void SelectionState::handleEvents() {}
+void SelectionState::handleEvents() {
+    if (isMouseHoveringPreview) {
+        if (IsMouseDragging(ImGuiMouseButton_Left)) {
+            ImVec2 mouseDelta = GetMouseDragDelta(ImGuiMouseButton_Left);
+            camera->processMouseMovement(mouseDelta.x, -mouseDelta.y);  // Negative y for inverted controls
+            ResetMouseDragDelta(ImGuiMouseButton_Left);
+        }
+        if (GetIO().MouseWheel != 0.0f) {
+            camera->processMouseScroll(GetIO().MouseWheel);
+        }
+    }
 
-void SelectionState::update(float deltaTime) {}
+    //cout << "Game dt" << game->deltaTime << endl;
+    // Handle keyboard inputs for the camera
+    if (IsKeyPressed(ImGuiKey_W)) camera->processKeyboard(Action::MoveForward, game->deltaTime);
+    if (IsKeyPressed(ImGuiKey_S)) camera->processKeyboard(Action::MoveBackward, game->deltaTime);
+    if (IsKeyPressed(ImGuiKey_A)) camera->processKeyboard(Action::MoveLeft, game->deltaTime);
+    if (IsKeyPressed(ImGuiKey_D)) camera->processKeyboard(Action::MoveRight, game->deltaTime);
+}
+
+void SelectionState::update(float deltaTime) {
+    camera->update(deltaTime);
+}
 
 // Draw Method
 void SelectionState::draw() {
@@ -144,10 +167,6 @@ void SelectionState::showPlayers() {
     int numRows = numPlayers > 4 ? 2 : 1;
     Columns(numColumns, nullptr, false);
 
-    //cout << numColumns << endl;
-    //Text("Test 1");
-    //NextColumn();
-    //Text("Test 2");
     for (int i = 0; i < numPlayers; ++i) {
         const shared_ptr<Beyblade>& beyblade = players[i];
         Text("Name: %s", beyblade->getName().c_str());
@@ -168,39 +187,62 @@ void SelectionState::showStadiumOptions() {
 
     Text("Select Stadium:");
 
-    // Be able to customize stadium
+    Text("Modify Stadium");
+    Separator();
+
     if (stadium == nullptr) {
-        Text("Stadium Body COntrols");
-        Separator();
-        
-        // Stadium Body (Note that center is always set to (0, 0, 0) by default)
-        SliderFloat("Radius (m)", &tempRadius, 0.25f, 3.0f);
-        SliderFloat("Curvature", &tempCurvature, 0.0f, 0.9f);
-        SliderFloat("Friction", &tempFriction, 0.0f, 0.9f);
-
-        // Stadium Mesh
-        SliderInt("Roundness (vertices per ring)", &tempVerticesPerRing, 8, 200);
-        SliderInt("Number of Rings", &tempNumberOfRings, 4, 100);
-        SliderFloat3("Overall Color", glm::value_ptr(tempColor), 0.0f, 1.0f, "Color: %.2f");
-        SliderFloat3("Ring Color", glm::value_ptr(tempRingColor), 0.0f, 1.0f, "Color: %.2f");
-        SliderFloat3("Cross Color", glm::value_ptr(tempCrossColor), 0.0f, 1.0f, "Color: %.2f");
-
-
-        // TODO: Upload for texture and texture scale
-
-        if (Button("Set Stadium")) {
-            unique_ptr<StadiumBody> stadiumBody = make_unique<StadiumBody>(vec3(0.0f), tempRadius, tempCurvature, tempFriction);
-            unique_ptr<StadiumMesh> stadiumMesh = make_unique<StadiumMesh>(nullptr, tempVerticesPerRing, tempNumberOfRings, tempRingColor, tempCrossColor, tempColor, 1.0f);
-            stadium = make_shared<Stadium>(move(stadiumBody), move(stadiumMesh), "default");
-
-            //renderStadiumPreview(); // TODO: Check if anything is needed here
-        }
+        Text("No stadium selected!");
     }
     else {
-        Text("Stadium is selected. Yay!!!");
-
         renderStadiumPreview();
+        ImGui::BeginChild("StadiumPreview", ImVec2(static_cast<float>(previewWidth), static_cast<float>(previewHeight)), false, ImGuiWindowFlags_NoScrollbar);
+        {
+            isMouseHoveringPreview = IsItemHovered(); // Check if the mouse is over the preview
+            Image((void*)(intptr_t)stadiumRenderer->getTexture(), ImVec2(static_cast<float>(previewWidth), static_cast<float>(previewHeight)));
+        }
+        ImGui::EndChild();
     }
+    
+    StadiumBody& body = *stadium->getRigidBody();
+    StadiumMesh& mesh = *stadium->getMesh();
+
+    // Stadium Body (Note that center is always set to (0, 0, 0) by default)
+    if (SliderFloat("Radius (m)", &tempRadius, 0.25f, 3.0f)) {
+        body.setRadius(tempRadius);
+    }
+    if (SliderFloat("Curvature", &tempCurvature, 0.0f, 0.9f)) {
+        body.setCurvature(tempCurvature);
+    }
+    if (SliderFloat("Friction", &tempFriction, 0.0f, 0.9f)) {
+        body.setFriction(tempFriction);
+    }
+
+    // Stadium Mesh
+    //if (SliderIntDiscrete("Vertices per Ring", &tempVerticesPerRing, 8, 200, 4)) {
+    //    mesh.setVerticesPerRing(tempVerticesPerRing);
+    //}
+    //if (SliderIntDiscrete("Number of Rings", &tempNumberOfRings, 4, 100, 4)) {
+    //    mesh.setNumberOfRings(tempNumberOfRings);
+    //}
+    //if (SliderFloat3("Overall Color", glm::value_ptr(tempColor), 0.0f, 1.0f, "Color: %.2f")) {
+    //    mesh.setOverallColor(tempColor);
+    //}
+    //if (SliderFloat3("Ring Color", glm::value_ptr(tempRingColor), 0.0f, 1.0f, "Color: %.2f")) {
+    //    mesh.setRingColor(tempRingColor);
+    //}
+    //if (SliderFloat3("Cross Color", glm::value_ptr(tempCrossColor), 0.0f, 1.0f, "Color: %.2f")) {
+    //    mesh.setCrossColor(tempCrossColor);
+    //}
+
+
+    // TODO: Upload for texture and texture scale
+
+    if (Button("Set Stadium")) {
+        unique_ptr<StadiumBody> stadiumBody = make_unique<StadiumBody>(vec3(0.0f), tempRadius, tempCurvature, tempFriction);
+        unique_ptr<StadiumMesh> stadiumMesh = make_unique<StadiumMesh>(nullptr, tempVerticesPerRing, tempNumberOfRings, tempRingColor, tempCrossColor, tempColor, 1.0f);
+        stadium = make_shared<Stadium>(move(stadiumBody), move(stadiumMesh), "default");
+    }
+
 }
 
 void SelectionState::showPhysicsOptions() {
@@ -222,69 +264,19 @@ void SelectionState::renderStadiumPreview() {
         std::cerr << "Error: StadiumMesh is nullptr" << std::endl;
         return;
     }
+    stadiumRenderer->bind();
 
-    std::cout << "Rendering stadium preview..." << std::endl;
+    glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    int previewX = 10, previewY = 10;
-    int previewWidth = 300, previewHeight = 300;
-
-    setupViewport(previewX, previewY, previewWidth, previewHeight);
-    GLenum err = glGetError();
-    if (err != GL_NO_ERROR) std::cerr << "Error after setting viewport: " << err << std::endl;
-
-    glm::mat4 projection = setupCamera(previewWidth, previewHeight);
-
-    // Adjust camera parameters to ensure the stadium is visible.
-    glm::mat4 view = glm::lookAt(
-        glm::vec3(0.0f, 2.0f, 5.0f),   // Camera closer to the origin
-        glm::vec3(0.0f, 0.0f, 0.0f),   // Looking at origin
-        glm::vec3(0.0f, 1.0f, 0.0f)    // Up vector
-    );
-    std::cout << "Camera set up with position (0,2,5)" << std::endl;
-
-    game->objectShader->use();
     ObjectShader* objectShader = game->objectShader;
-    objectShader->setMat4("projection", projection);
-    objectShader->setMat4("view", view);
+    objectShader->use();
+    objectShader->setMat4("projection", glm::perspective(glm::radians(camera->zoom), (float)previewWidth / previewHeight, 0.1f, 100.0f));
+    objectShader->setMat4("view", camera->getViewMatrix());
 
-    // Debug the VAO and vertex count
-    auto mesh = stadium->getMesh();
-    if (mesh) {
-        std::cout << "Using VAO: " << mesh->tempGetVAO() << std::endl;
-        //std::cout << "Indices count: " << mesh->indices.size() << std::endl;
-    }
-    else {
-        std::cerr << "Mesh is nullptr before rendering" << std::endl;
-    }
+    stadium->render(*objectShader);
 
-    if (stadium) {
-        stadium->render(*objectShader);
-        err = glGetError();
-        if (err != GL_NO_ERROR)
-            std::cerr << "OpenGL error during stadium render: " << err << std::endl;
-        else
-            std::cout << "Stadium rendered successfully." << std::endl;
-    }
-    else {
-        std::cerr << "Error: Stadium is nullptr" << std::endl;
-    }
-
-    resetViewport();
-    std::cout << "Viewport reset." << std::endl;
-}
-
-void SelectionState::setupViewport(int previewX, int previewY, int previewWidth, int previewHeight) {
-    glEnable(GL_SCISSOR_TEST);
-    glScissor(previewX, previewY, previewWidth, previewHeight);
-    glViewport(previewX, previewY, previewWidth, previewHeight);
-}
-
-void SelectionState::resetViewport() {
-    glDisable(GL_SCISSOR_TEST);
-
-    GLint viewport[4];
-    glGetIntegerv(GL_VIEWPORT, viewport);
-    glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
+    stadiumRenderer->unbind();
 }
 
 glm::mat4 SelectionState::setupCamera(int previewWidth, int previewHeight) {

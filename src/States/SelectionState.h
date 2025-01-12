@@ -5,10 +5,12 @@
 #include <string>
 #include <glm/glm.hpp>
 
+#include "Camera.h"
 #include "GameState.h"
 #include "Profile.h"
 #include "Stadium.h"
 #include "MeshObject.h"
+#include "FramebufferRenderer.h"
 
 #include "Units.h"
 using namespace Units;
@@ -52,9 +54,20 @@ private:
     void setupStadiumPreview();
     void renderStadiumPreview();
 
-    void setupViewport(int previewX, int previewY, int previewWidth, int previewHeight);
-    void resetViewport();
+    // TODO: Move this elsewhere and see if used?
     glm::mat4 setupCamera(int previewWidth, int previewHeight);
+
+    // For interacting with stadium preview
+    std::unique_ptr<FramebufferRenderer> stadiumRenderer;
+    std::unique_ptr<Camera> camera = nullptr;
+    bool isMouseHoveringPreview = false;
+
+    // TODO: Change magic numbers here
+    int previewWidth = 300;
+    int previewHeight = 300;
+    std::shared_ptr<Stadium> stadium = nullptr; // TODO: Make profile default stadium?
+
+    glm::mat4 previewModelMatrix = glm::mat4(1.0f);
 
     float tempGravity = 0.0f;
 
@@ -69,11 +82,22 @@ private:
     glm::vec3 tempRingColor = glm::vec3(1.0f, 0.0f, 0.0f);
     glm::vec3 tempCrossColor = glm::vec3(0.0f, 0.0f, 1.0f);
 
-    std::shared_ptr<Stadium> stadium = nullptr; // TODO: Make profile default stadium?
-
-    std::unique_ptr<MeshObject> stadiumPreview = nullptr;
-    glm::mat4 previewModelMatrix;
     
 
     const int MAX_PLAYERS = 8;
+
+    // Int slider for step size n != 1
+    bool SliderIntDiscrete(const char* label, int* value, int minVal, int maxVal, int step) {
+        *value = std::clamp(*value, minVal, maxVal);
+        if ((*value - minVal) % step != 0) {
+            *value = minVal + ((*value - minVal) / step) * step;
+        }
+        bool modified = ImGui::SliderInt(label, value, minVal, maxVal, "%d");
+        if (modified) {
+            *value = minVal + ((*value - minVal + step / 2) / step) * step; // Round to nearest step
+        }
+
+        return modified;
+    }
+
 };
