@@ -1,28 +1,31 @@
 class Timer {
 public:
-    Timer(float interval, bool isRepeating = true, float duration = -1.0f)
+    Timer(float interval, bool isRepeating = true, float duration = -1.0f, std::function<void()> onUpdate = nullptr)
         : updateInterval(interval),
         totalDuration(duration),
         timeSinceLastUpdate(0.0f),
         timeElapsed(0.0f),
         repeat(isRepeating),
-        paused(false) {}
+        paused(false),
+        onUpdateCallback(onUpdate) {
+    }
 
-    bool shouldUpdate(float deltaTime) {
-        if (paused) return false;
+    void update(float deltaTime) {
+        if (paused) return;
 
         timeSinceLastUpdate += deltaTime;
         timeElapsed += deltaTime;
 
         if (totalDuration > 0.0f && timeElapsed >= totalDuration) {
-            return false;
+            paused = true; // Stops the timer
+            return;
         }
 
         if (timeSinceLastUpdate >= updateInterval) {
+            if (onUpdateCallback) onUpdateCallback();
             if (repeat) timeSinceLastUpdate = 0.0f;
-            return true;
+            else paused = true; // Stops a non-repeating timer
         }
-        return false;
     }
 
     void pause() { paused = true; }
@@ -36,4 +39,5 @@ private:
     float timeElapsed;
     bool repeat;
     bool paused;
+    std::function<void()> onUpdateCallback;
 };

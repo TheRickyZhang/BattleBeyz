@@ -25,6 +25,7 @@
 
 #include <glm/glm.hpp>
 
+#include "DefaultValues.h"
 #include "MeshObject.h"
 #include "BoundingBox.h"
 #include "Units.h"
@@ -33,22 +34,21 @@
 
 using namespace Units;
 
-
 class Stadium : public MeshObject {
 public:
     Stadium(
-        const std::string name  = "Default Stadium",
-        const glm::vec3& center = glm::vec3(0.0f, 0.0f, 0.0f),
-        float radius            = 1.2f, 
-        float curvature         = 0.10f, 
-        float COF               = 0.35f,
-        int verticesPerRing     = 64,
-        int numRings            = 10,
-        const glm::vec3& ringColor  = glm::vec3(1.0f, 0.0f, 0.0f),
-        const glm::vec3& crossColor = glm::vec3(0.0f, 0.0f, 1.0f),
-        const glm::vec3& tint       = glm::vec3(1.0f),
-        std::shared_ptr<Texture> texture = std::make_shared<Texture>(MISSING_TEXTURE_PATH),
-        float textureScale = 1.5f
+        const std::string name = StadiumDefaults::name,
+        const glm::vec3& center = StadiumDefaults::center,
+        float radius = StadiumDefaults::radius,
+        float curvature = StadiumDefaults::curvature,
+        float COF = StadiumDefaults::COF,
+        int verticesPerRing = StadiumDefaults::verticesPerRing,
+        int numRings = StadiumDefaults::numRings,
+        const glm::vec3& ringColor = StadiumDefaults::ringColor,
+        const glm::vec3& crossColor = StadiumDefaults::crossColor,
+        const glm::vec3& tint = StadiumDefaults::tint,
+        std::shared_ptr<Texture> texture = DefaultTexture(),
+        float textureScale = StadiumDefaults::textureScale
     );
 
     virtual void initializeMesh() override;
@@ -61,26 +61,62 @@ public:
     const Vec3_Scalar getNormal(M x, M z) const;
 
     // Getters (read-only access)
+    std::string getName() const { return name; }
     Vec3_M getCenter() const { return center; }
     const M getRadius() const { return radius; }
     const Scalar getCurvature() const { return curvature; }
     Scalar getCOF() const { return coefficientOfFriction; }
+    int getVerticesPerRing() const { return verticesPerRing; }
+    int getNumRings() const { return numRings; }
+    glm::vec3 getRingColor() const { return ringColor; }
+    glm::vec3 getCrossColor() const { return crossColor; }
+    float getTextureScale() const { return textureScale; }
+    std::shared_ptr<Texture> getTexture() const { return texture; }
+
 
     // Setters
+    void setName(const std::string& newName) {
+        name = newName;
+    }
     void setRadius(float newRadius) {
         radius = M(newRadius);
         scaledCurvature = __M(curvature.value() / newRadius);
+        meshChanged = true;
     }
     void setCurvature(float newCurvature) {
         curvature = Scalar(newCurvature);
         scaledCurvature = __M(newCurvature / radius.value());
+        meshChanged = true;
     }
     void setFriction(float newFriction) {
         coefficientOfFriction = Scalar(newFriction);
     }
-
-    std::string getName() const {
-        return name;
+    void setCenter(const glm::vec3& newCenter) {
+        center = Vec3_M(newCenter);
+        meshChanged = true;
+    }
+    void setVerticesPerRing(int newVerticesPerRing) {
+        verticesPerRing = newVerticesPerRing;
+    }
+    void setNumRings(int newNumRings) {
+        numRings = newNumRings;
+        meshChanged = true;
+    }
+    void setRingColor(const glm::vec3& newRingColor) {
+        ringColor = newRingColor;
+        meshChanged = true;
+    }
+    void setCrossColor(const glm::vec3& newCrossColor) {
+        crossColor = newCrossColor;
+        meshChanged = true;
+    }
+    void setTextureScale(float newTextureScale) {
+        textureScale = newTextureScale;
+        meshChanged = true;
+    }
+    void setTexture(std::shared_ptr<Texture> newTexture) {
+        texture = std::move(newTexture);
+        meshChanged = true;
     }
 
     std::vector<BoundingBox*> boundingBoxes;
@@ -102,4 +138,6 @@ private:
     glm::vec3 crossColor;
     float textureScale;
     std::shared_ptr<Texture> texture;
+
+    bool meshChanged = false;
 };

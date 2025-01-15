@@ -1,5 +1,6 @@
 #include "SelectionState.h"
 
+#include "DefaultValues.h"
 #include "Beyblade.h"
 #include "BeybladeConstants.h"
 #include "InputUtils.h"
@@ -17,7 +18,11 @@ using namespace glm;
 using namespace ImGui;
 
 void SelectionState::init() {
+    stadium = make_unique<Stadium>();
+    previewStadium = make_unique<Stadium>(*stadium); // Copy initial state
+
     stadiumRenderer = make_unique<FramebufferRenderer>(previewWidth, previewHeight);
+
     camera = make_unique<Camera>(glm::vec3(5.0f, 5.0f, 5.0f), glm::vec3(0.0f), game->physicsWorld, 
         static_cast<float>(previewWidth), static_cast<float>(previewHeight));
 }
@@ -204,39 +209,47 @@ void SelectionState::showStadiumOptions() {
     }
     
 
-    //// Stadium Body (Note that center is always set to (0, 0, 0) by default)
-    //if (SliderFloat("Radius (m)", &tempRadius, 0.25f, 3.0f)) {
-    //    body.setRadius(tempRadius);
-    //}
-    //if (SliderFloat("Curvature", &tempCurvature, 0.0f, 0.9f)) {
-    //    body.setCurvature(tempCurvature);
-    //}
-    //if (SliderFloat("Friction", &tempFriction, 0.0f, 0.9f)) {
-    //    body.setFriction(tempFriction);
-    //}
+    // Stadium Body (Note that center is always set to (0, 0, 0) by default)
+    if (SliderFloat("Radius (m)", &tempRadius, StadiumDefaults::radiusMin, StadiumDefaults::radiusMax)) {
+        stadium->setRadius(tempRadius);
+    }
+    if (SliderFloat3("Center (x, y, z)", glm::value_ptr(tempCenter),
+        *glm::value_ptr(StadiumDefaults::centerMin),
+        *glm::value_ptr(StadiumDefaults::centerMax))) {
+        stadium->setCenter(tempCenter);
+    }
+    if (SliderFloat("Curvature", &tempCurvature, StadiumDefaults::curvatureMin, StadiumDefaults::curvatureMax)) {
+        stadium->setCurvature(tempCurvature);
+    }
+    if (SliderFloat("Friction", &tempFriction, StadiumDefaults::COFMin, StadiumDefaults::COFMax)) {
+        stadium->setFriction(tempFriction);
+    }
 
     // Stadium Mesh
-    //if (SliderIntDiscrete("Vertices per Ring", &tempVerticesPerRing, 8, 200, 4)) {
-    //    mesh.setVerticesPerRing(tempVerticesPerRing);
-    //}
-    //if (SliderIntDiscrete("Number of Rings", &tempNumberOfRings, 4, 100, 4)) {
-    //    mesh.setNumberOfRings(tempNumberOfRings);
-    //}
-    //if (SliderFloat3("Overall Color", glm::value_ptr(tempColor), 0.0f, 1.0f, "Color: %.2f")) {
-    //    mesh.setOverallColor(tempColor);
-    //}
-    //if (SliderFloat3("Ring Color", glm::value_ptr(tempRingColor), 0.0f, 1.0f, "Color: %.2f")) {
-    //    mesh.setRingColor(tempRingColor);
-    //}
-    //if (SliderFloat3("Cross Color", glm::value_ptr(tempCrossColor), 0.0f, 1.0f, "Color: %.2f")) {
-    //    mesh.setCrossColor(tempCrossColor);
-    //}
-
+    if (SliderIntDiscrete("Vertices per Ring", &tempVerticesPerRing, StadiumDefaults::verticesPerRingMin, StadiumDefaults::verticesPerRingMax, 4)) {
+        stadium->setVerticesPerRing(tempVerticesPerRing);
+    }
+    if (SliderIntDiscrete("Number of Rings", &tempNumRings, StadiumDefaults::numRingsMin, StadiumDefaults::numRingsMax, 4)) {
+        stadium->setNumRings(tempNumRings);
+    }
+    if (SliderFloat3("Overall Color", glm::value_ptr(tempTint), 0.0f, 1.0f, "Color: %.2f")) {
+        stadium->setTint(tempTint);
+    }
+    if (SliderFloat3("Ring Color", glm::value_ptr(tempRingColor), 0.0f, 1.0f, "Color: %.2f")) {
+        stadium->setRingColor(tempRingColor);
+    }
+    if (SliderFloat3("Cross Color", glm::value_ptr(tempCrossColor), 0.0f, 1.0f, "Color: %.2f")) {
+        stadium->setCrossColor(tempCrossColor);
+    }
 
     // TODO: Upload for texture and texture scale
 
-    if (Button("Set Stadium")) {
-        //stadium = make_shared<Stadium>(move(stadiumBody), move(stadiumMesh), "default");
+    // Apply changes to stadiums
+    if (Button("Update Stadium")) {
+        *stadium = *previewStadium;
+    }
+    if (Button("Undo Changes")) {
+        *previewStadium = *stadium;
     }
 
 }
@@ -256,6 +269,7 @@ void SelectionState::setupStadiumPreview() {
 }
 
 void SelectionState::renderStadiumPreview() {
+    cout << "Rendering" << endl;
     if (!stadium) {
         std::cerr << "Error: Stadium is nullptr" << std::endl;
         return;

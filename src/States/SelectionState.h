@@ -65,7 +65,9 @@ private:
     // TODO: Change magic numbers here
     int previewWidth = 300;
     int previewHeight = 300;
+
     std::shared_ptr<Stadium> stadium = nullptr; // TODO: Make profile default stadium?
+    std::shared_ptr<Stadium> previewStadium = nullptr;
 
     glm::mat4 previewModelMatrix = glm::mat4(1.0f);
 
@@ -73,12 +75,13 @@ private:
 
     // Align these with usual defaults
     float tempRadius = 1.2f;
+    glm::vec3 tempCenter{};
     float tempCurvature = 0.1f;
     float tempFriction = 0.35f;
 
     int tempVerticesPerRing = 1;
-    int tempNumberOfRings = 1;
-    glm::vec3 tempColor = glm::vec3(1.0f);
+    int tempNumRings = 1;
+    glm::vec3 tempTint = glm::vec3(1.0f);
     glm::vec3 tempRingColor = glm::vec3(1.0f, 0.0f, 0.0f);
     glm::vec3 tempCrossColor = glm::vec3(0.0f, 0.0f, 1.0f);
 
