@@ -11,7 +11,7 @@
 enum Action;
 class PhysicsWorld;
 class BeybladeBody;
-class StadiumBody;
+class Stadium;
 
 /*
 * Free: Unrestricted movement and view.
@@ -31,7 +31,7 @@ public:
 
     // Must call these before changing the mode (initial only works in free UNTIL attached to beybalde/stadium)
     void setFollowingBey(BeybladeBody* bey) { followingBey = bey; }
-    void setPanningVariables(StadiumBody* stadiumBody);
+    void setPanningVariables(Stadium* stadium);
     void changeCameraMode(CameraMode newMode) { activeMode = newMode; }
 
     static const glm::vec3 worldUp;

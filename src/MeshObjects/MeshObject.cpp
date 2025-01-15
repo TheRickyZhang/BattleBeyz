@@ -7,7 +7,7 @@ using namespace std;
 
 MeshObject::MeshObject() : VAO(0), VBO(0), EBO(0) {}
 
-MeshObject::~MeshObject() {
+MeshObject::~MeshObject() noexcept {
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
     glDeleteBuffers(1, &EBO);
@@ -60,8 +60,8 @@ void MeshObject::setupBuffersFromMembers() {
     );
 }
 
-
-void MeshObject::render(ObjectShader& shader, std::shared_ptr<Texture> texture) {
+// TODO: Now call with Texture*instad of shared ptr
+void MeshObject::render(ObjectShader& shader, Texture* texture) {
     shader.use();
     shader.setObjectRenderParams(modelMatrix, tint);
     //shader.setVec2("textureScale", textureScale);   // If you need to scale the texture

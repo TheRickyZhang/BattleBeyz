@@ -12,7 +12,7 @@
 * Constructor.
 */
 
-Texture::Texture(const char* imagePath, std::string texType) : type(std::move(texType)), path(imagePath) {
+Texture::Texture(const char* imagePath) : path(imagePath) {
     //std::cout << "Loading texture: " << imagePath << std::endl;
 
     glGenTextures(1, &ID);

@@ -10,15 +10,15 @@
 
 #include <GL/glew.h>
 
+// TODO: Create Material class if needed
 class Texture {
 public:
     unsigned int ID{};
-    std::string type;
     std::string path;
     unsigned int width{}, height{};
 
     // Constructor for loading and creating a texture
-    Texture(const char* imagePath, std::string texType);
+    Texture(const char* imagePath);
     ~Texture() {
         cleanup();
     }

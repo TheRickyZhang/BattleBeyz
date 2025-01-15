@@ -9,7 +9,7 @@
 using namespace Units;
 
 class BeybladeBody;
-class StadiumBody;
+class Stadium;
 
 class Physics {
 public:
@@ -31,12 +31,12 @@ public:
     }
 
     void accumulateAirResistance(BeybladeBody* beyblade) const;
-    void accumulateFriction(BeybladeBody* beyblade, StadiumBody* stadium) const;
-    void accumulateSlope(BeybladeBody* beyblade, StadiumBody* stadium) const;
+    void accumulateFriction(BeybladeBody* beyblade, Stadium* stadium) const;
+    void accumulateSlope(BeybladeBody* beyblade, Stadium* stadium) const;
 
     // Important: These are not const, as they immediately change position due to contact
     void accumulateImpact(BeybladeBody* beyblade1, BeybladeBody* beyblade2, M contactDistance);
-    void preventStadiumClipping(BeybladeBody* beybladeBody, StadiumBody* stadiumBody);
+    void preventStadiumClipping(BeybladeBody* beybladeBody, Stadium* stadium);
 
 
     M_S2 GRAVITY = 9.81_m_s2;

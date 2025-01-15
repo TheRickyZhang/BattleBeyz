@@ -23,7 +23,7 @@ void PhysicsWorld::addBeyblade(Beyblade* body) {
 /**
 * Add a stadium body to the scene.
 *
-* @param body               [in] A StadiumBody object
+* @param body               [in] A Stadium object
 */
 
 void PhysicsWorld::addStadium(Stadium* body) {
@@ -66,8 +66,7 @@ void PhysicsWorld::update(float deltaTime) {
 
         // Should usually only be one stadium, but may need to scale to more
         for (Stadium* stadium : stadiums) {
-            StadiumBody* stadiumBody = stadium->getRigidBody();
-            if(!stadiumBody->isInside(beyBottom.xTyped(), beyBottom.zTyped())) {
+            if(!stadium->isInside(beyBottom.xTyped(), beyBottom.zTyped())) {
                 MessageLog::getInstance().addMessage("Beyblade " + beyblade->getName() + " out of bounds", MessageType::NORMAL);
                 return;
             }
@@ -75,7 +74,7 @@ void PhysicsWorld::update(float deltaTime) {
             // Add air resistance
             physics.accumulateAirResistance(beybladeBody);
 
-            M stadiumY = stadiumBody->getY(beyBottom.xTyped(), beyBottom.zTyped());
+            M stadiumY = stadium->getY(beyBottom.xTyped(), beyBottom.zTyped());
 
             // If the Beyblade is airborne by some significant amount, only apply gravity
             if (beyBottom.yTyped() - stadiumY > 0.005_m) {
@@ -83,8 +82,8 @@ void PhysicsWorld::update(float deltaTime) {
             }
             else {
                 // Add friction and slope forces from contact
-                physics.accumulateFriction(beybladeBody, stadiumBody);
-                physics.accumulateSlope(beybladeBody, stadiumBody);
+                physics.accumulateFriction(beybladeBody, stadium);
+                physics.accumulateSlope(beybladeBody, stadium);
             }
         }
     }
@@ -122,9 +121,8 @@ void PhysicsWorld::update(float deltaTime) {
         beybladeBody->applyAccumulatedChanges(deltaTime);
         beybladeBody->update(deltaTime);
         for (Stadium* stadium : stadiums) {
-            StadiumBody* stadiumBody = stadium->getRigidBody();
             // Prevent beyblade from ever clipping into the stadium during rendering
-            physics.preventStadiumClipping(beybladeBody, stadiumBody);
+            physics.preventStadiumClipping(beybladeBody, stadium);
         }
     }
 }
@@ -149,9 +147,8 @@ void PhysicsWorld::renderDebug(ObjectShader& shader) const {
     }
 
     for (Stadium* stadium : stadiums) {
-        StadiumBody* stadiumBody = stadium->getRigidBody();
-        for (int i = 0; i < stadiumBody->boundingBoxes.size() && i < 100; i++) {
-            stadiumBody->boundingBoxes[i]->renderDebug(shader, stadiumBody->getCenter().value());
+        for (int i = 0; i < stadium->boundingBoxes.size() && i < 100; i++) {
+            stadium->boundingBoxes[i]->renderDebug(shader, stadium->getCenter().value());
         }
     }
 }

@@ -27,12 +27,9 @@ void ActiveState::init()
     this->floor = new Floor(1000.0f, 1000.0f, 0.0f, 0.0f, 0.0f);
     //floor->setTextureScale(vec2(100.0f, 100.0f));
 
-    // TODO: this should add stadiums dynamically in future, but use default single one for now
-    auto rigidBody = std::make_unique<StadiumBody>();
-    auto stadiumMesh = std::make_unique<StadiumMesh>();
-    rigidBody->center = glm::vec3(0.0f, 0.0f, 0.0f);
-    auto stadium1 = std::make_unique<Stadium>(std::move(rigidBody), std::move(stadiumMesh), "Stadium 1");
-    stadiums.push_back(stadium1.get()); // TODO: Ensure that get() here acts the same
+    // TODO: this should add stadiums dynamically in future, but use default single one for now. Also convert stadiums to uniqe_pre
+    auto stadium = std::make_unique<Stadium>("Stadium 1");
+    stadiums.push_back(move(stadium));
 
     physicsWorld->resetPhysics();
 
@@ -53,11 +50,13 @@ void ActiveState::init()
     beyblades.push_back(beyblade1);  // TODO: 2024-11-18.  Is the extra vector really necessary?
     beyblades.push_back(beyblade2);
 
-    for (Stadium* stadium : stadiums) physicsWorld->addStadium(stadium);
+    for (const std::unique_ptr<Stadium>& stadium : stadiums) {
+        physicsWorld->addStadium(stadium.get());
+    }
     for (Beyblade* beyblade : beyblades) physicsWorld->addBeyblade(beyblade);
 
     if(!beyblades.empty()) game->camera->setFollowingBey(beyblades[0]->getRigidBody());
-    if(!stadiums.empty()) game->camera->setPanningVariables(stadiums[0]->getRigidBody());
+    if(!stadiums.empty()) game->camera->setPanningVariables(stadiums[0].get());
 }
 
 void ActiveState::cleanup()
@@ -156,10 +155,11 @@ void ActiveState::draw() {
     objectShader->setGlobalRenderParams(view, game->projection, cameraPos);
 
 
-    floor->render(*game->objectShader, tm.getTexture("floor"));
+    floor->render(*game->objectShader, tm.getTexture("floor").get());
 
-    for(auto stadium : stadiums) stadium->render(*objectShader);
-
+    for (const std::unique_ptr<Stadium>& stadium : stadiums) {
+        stadium->render(*objectShader);
+    }
     for (auto beyblade : beyblades) beyblade->render(*objectShader);
 
 

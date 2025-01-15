@@ -203,19 +203,17 @@ void SelectionState::showStadiumOptions() {
         ImGui::EndChild();
     }
     
-    StadiumBody& body = *stadium->getRigidBody();
-    StadiumMesh& mesh = *stadium->getMesh();
 
-    // Stadium Body (Note that center is always set to (0, 0, 0) by default)
-    if (SliderFloat("Radius (m)", &tempRadius, 0.25f, 3.0f)) {
-        body.setRadius(tempRadius);
-    }
-    if (SliderFloat("Curvature", &tempCurvature, 0.0f, 0.9f)) {
-        body.setCurvature(tempCurvature);
-    }
-    if (SliderFloat("Friction", &tempFriction, 0.0f, 0.9f)) {
-        body.setFriction(tempFriction);
-    }
+    //// Stadium Body (Note that center is always set to (0, 0, 0) by default)
+    //if (SliderFloat("Radius (m)", &tempRadius, 0.25f, 3.0f)) {
+    //    body.setRadius(tempRadius);
+    //}
+    //if (SliderFloat("Curvature", &tempCurvature, 0.0f, 0.9f)) {
+    //    body.setCurvature(tempCurvature);
+    //}
+    //if (SliderFloat("Friction", &tempFriction, 0.0f, 0.9f)) {
+    //    body.setFriction(tempFriction);
+    //}
 
     // Stadium Mesh
     //if (SliderIntDiscrete("Vertices per Ring", &tempVerticesPerRing, 8, 200, 4)) {
@@ -238,9 +236,7 @@ void SelectionState::showStadiumOptions() {
     // TODO: Upload for texture and texture scale
 
     if (Button("Set Stadium")) {
-        unique_ptr<StadiumBody> stadiumBody = make_unique<StadiumBody>(vec3(0.0f), tempRadius, tempCurvature, tempFriction);
-        unique_ptr<StadiumMesh> stadiumMesh = make_unique<StadiumMesh>(nullptr, tempVerticesPerRing, tempNumberOfRings, tempRingColor, tempCrossColor, tempColor, 1.0f);
-        stadium = make_shared<Stadium>(move(stadiumBody), move(stadiumMesh), "default");
+        //stadium = make_shared<Stadium>(move(stadiumBody), move(stadiumMesh), "default");
     }
 
 }
@@ -260,8 +256,8 @@ void SelectionState::setupStadiumPreview() {
 }
 
 void SelectionState::renderStadiumPreview() {
-    if (stadium->getMesh() == nullptr) {
-        std::cerr << "Error: StadiumMesh is nullptr" << std::endl;
+    if (!stadium) {
+        std::cerr << "Error: Stadium is nullptr" << std::endl;
         return;
     }
     stadiumRenderer->bind();

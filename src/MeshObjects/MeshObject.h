@@ -16,10 +16,10 @@
 class MeshObject {
 public:
     MeshObject();
-    virtual ~MeshObject();
+    virtual ~MeshObject() noexcept;
 
     virtual void initializeMesh() = 0;
-    virtual void render(ObjectShader& shader, std::shared_ptr<Texture> texture = nullptr);
+    virtual void render(ObjectShader& shader, Texture* texture = nullptr);
 
     // Getters and setters
     void setModelMatrix(const glm::mat4& newModel);

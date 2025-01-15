@@ -16,7 +16,7 @@ std::shared_ptr<Texture> TextureManager::loadTexture(const std::string& name, co
     if (it != textures.end()) {
         return it->second;
     }
-    std::shared_ptr<Texture> texture = std::make_shared<Texture>(filePath.c_str(), name);
+    std::shared_ptr<Texture> texture = std::make_shared<Texture>(filePath.c_str());
 
     textures[name] = texture;
     return texture;

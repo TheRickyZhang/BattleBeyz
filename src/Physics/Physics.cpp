@@ -6,7 +6,7 @@
 #include "Physics.h"
 
 #include "BeybladeBody.h"
-#include "StadiumBody.h"
+#include "Stadium.h"
 
 using namespace std;
 /**
@@ -53,7 +53,7 @@ void Physics::accumulateAirResistance(BeybladeBody* beyblade) const {
 * @param stadium                    [in] Pointer to the stadium body.
 */
 
-void Physics::accumulateFriction(BeybladeBody* beyblade, StadiumBody* stadium) const {
+void Physics::accumulateFriction(BeybladeBody* beyblade, Stadium* stadium) const {
     // Gets the normal of the stadium at the beyblade's position
     Vec3_Scalar stadiumNormal = stadium->getNormal(beyblade->getCenter().xTyped(), beyblade->getCenter().zTyped());
 
@@ -100,7 +100,7 @@ void Physics::accumulateFriction(BeybladeBody* beyblade, StadiumBody* stadium) c
 * @param stadium                    [in] Pointer to the stadium body.
 */
 
-void Physics::accumulateSlope(BeybladeBody* beyblade, StadiumBody* stadium) const
+void Physics::accumulateSlope(BeybladeBody* beyblade, Stadium* stadium) const
 {
     Vec3_M beyBottomPosition = beyblade->getBottomPosition();
     Vec3_Scalar beybladeNormal = beyblade->getNormal();
@@ -227,10 +227,10 @@ void Physics::accumulateImpact(BeybladeBody* beyblade1, BeybladeBody* beyblade2,
 * @param statidumBody                   [in] Pointer to the statidum body.
 */
 
-void Physics::preventStadiumClipping(BeybladeBody* beybladeBody, StadiumBody* stadiumBody)
+void Physics::preventStadiumClipping(BeybladeBody* beybladeBody, Stadium* stadium)
 {
     Vec3_M beyBottom = beybladeBody->getBottomPosition();
-    M stadiumY = stadiumBody->getY(beyBottom.xTyped(), beyBottom.zTyped());
+    M stadiumY = stadium->getY(beyBottom.xTyped(), beyBottom.zTyped());
 
     // Beyblade is clipping into stadium. Push it out along y-axis.
     if (stadiumY > beyBottom.yTyped()) {

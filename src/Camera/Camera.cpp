@@ -23,10 +23,10 @@ Camera::Camera(const vec3& pos, const vec3& viewPoint, PhysicsWorld* world, floa
     updateCameraVectors();
 }
 
-void Camera::setPanningVariables(StadiumBody* stadiumBody) {
-    radius = 1.5f * stadiumBody->getRadius().value();
-    viewCenter = stadiumBody->getCenter().value();
-    rotationCenter = viewCenter; rotationCenter.y += stadiumBody->getYLocal(M(radius)).value() + heightAbove;
+void Camera::setPanningVariables(Stadium* stadium) {
+    radius = 1.5f * stadium->getRadius().value();
+    viewCenter = stadium->getCenter().value();
+    rotationCenter = viewCenter; rotationCenter.y += stadium->getYLocal(M(radius)).value() + heightAbove;
     currentAngle = 0;
     angularVelocity = 0.5;
 }
@@ -56,9 +56,8 @@ vec3 Camera::applyCollisions(const vec3& currPos, vec3& nextPos) const {
     }
 
     for (const Stadium* stadium : physicsWorld->getStadiums()) {
-        StadiumBody* body = stadium->getRigidBody();
-        if (body->isInside(M(nextPos.x), M(nextPos.z))) {
-            float surfaceY = (body->getY(M(nextPos.x), M(nextPos.z)).value());
+        if (stadium->isInside(M(nextPos.x), M(nextPos.z))) {
+            float surfaceY = (stadium->getY(M(nextPos.x), M(nextPos.z)).value());
             if (nextPos.y < surfaceY) {
                 nextPos.y = surfaceY;
             }

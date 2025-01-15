@@ -28,8 +28,8 @@ private:
     float imguiColor[3] = { 0.45f, 0.55f, 0.60f };
 
     Floor* floor{};
-    std::vector<Stadium*> stadiums;
-    std::vector<Beyblade*> beyblades;
+    std::vector<std::unique_ptr<Stadium>> stadiums;
+    std::vector<Beyblade*> beyblades;   // NOTE that the Beyblade pointers work because lifetime is managed by the profile manager (do cahnges to these affcet those)?
 
     void drawInfoScreen();
 };
