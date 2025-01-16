@@ -3,14 +3,14 @@
 
 Floor::Floor(float w, float d, float y, float centerX, float centerZ)
     : MeshObject(), center(centerX, y, centerZ) {
-    initializeMesh();
+    updateMesh();
 
     // Precompute the model matrix for the floor based on center
     setModelMatrix(glm::translate(glm::mat4(1.0f), center) *
         glm::scale(glm::mat4(1.0f), glm::vec3(w, 1.0f, d)));
 }
 
-void Floor::initializeMesh() {
+void Floor::updateMesh() {
     // Define vertices for a unit quad centered at the origin
     vertices = {
         {-0.5f, 0.0f, -0.5f},

@@ -1,27 +1,27 @@
 #pragma once
 
-#include <GL/glew.h>
-#include <GLFW/glfw3.h>
 #include <memory>
 #include <iostream>
 #include <functional>
-#include <glm/glm.hpp>
+#include <queue>
 
+#include <GL/glew.h>
+#include <GLFW/glfw3.h>
+#include <glm/glm.hpp>
 #include <imgui.h>
 
 #include "StateIdentifiers.h"
+#include "Timer.h"
 
 #define MINI_CASE_SENSITIVE
 #include <mini/ini.h>
 
 class GameState;
-//class ShaderProgram;
 class ObjectShader;
 class BackgroundShader;
 class PhysicsWorld;
 class Camera;
 class MessageLog;
-class Timer;
 
 class FontManager;
 class InputManager;
@@ -36,14 +36,11 @@ public:
     ~GameEngine();
 
     bool init(const char* title, int width, int height);
-    void initTimers();
-    void cleanup();
 
     void changeState(GameStateType stateType);
     GameState* getGameState();  // Return current state.
     void pushState(GameStateType stateType);
     void pushState(std::unique_ptr<GameState> state);
-
     void popState();
 
     void handleEvents();
@@ -100,6 +97,7 @@ public:
     TextRenderer* textRenderer{};
     QuadRenderer* quadRenderer{};
 
+    float currTime{};
     float prevTime{};
     float deltaTime{};
 
@@ -108,21 +106,37 @@ public:
     bool debugMode{};
     bool paused{};
 
-    std::vector<Timer> timers; // In very future, if have dynamic timers separate from the fixed timers (frame rate, etc)
-    std::vector<std::function<void()>> timerCallbacks;
+    std::priority_queue<Timer, std::vector<Timer>, TimerComparison> timers;
 
     std::string fpsText{};
     std::string coordsText{};
 
 private:
+    void cleanup();
     std::unique_ptr<GameState> createState(GameStateType stateType);
     std::vector<std::unique_ptr<GameState>> stateStack;
+
     GLFWwindow* window;
     bool isRunning;
     bool debugScreenActive = false;
 
+    // Used in execution
     void handleGlobalEvents();
+    void updateTimers(float currentTime);
+    void drawDebugScreen();
 
+    // Level 1 helper functions
+    bool initializeGLFW();
+    bool createWindow(const char* title, int width, int height);
+    bool initializeGLEW();
+    void setupImGuiAndCallbacks();
+    bool attemptSaveDataLoad();
+    void initCamera();
+    void initShaders();
+    void initRenderers();
+    void initTimers();
+
+    // Level 2 helper functions
     static void framebufferSizeCallback(GLFWwindow* window, int width, int height);
     static void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
     static void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods);

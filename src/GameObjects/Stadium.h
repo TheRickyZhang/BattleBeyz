@@ -51,7 +51,7 @@ public:
         float textureScale = StadiumDefaults::textureScale
     );
 
-    virtual void initializeMesh() override;
+    virtual void updateMesh() override;
 
     void render(ObjectShader& shader);
 
@@ -139,5 +139,5 @@ private:
     float textureScale;
     std::shared_ptr<Texture> texture;
 
-    bool meshChanged = false;
+    bool meshChanged = true;
 };

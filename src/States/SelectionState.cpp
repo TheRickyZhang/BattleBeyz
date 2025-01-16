@@ -27,7 +27,9 @@ void SelectionState::init() {
         static_cast<float>(previewWidth), static_cast<float>(previewHeight));
 }
 
-void SelectionState::cleanup() {}
+void SelectionState::cleanup() {
+    glViewport(0, 0, game->windowWidth, game->windowHeight);
+}
 
 void SelectionState::pause() {}
 
@@ -247,6 +249,7 @@ void SelectionState::showStadiumOptions() {
     // Apply changes to stadiums
     if (Button("Update Stadium")) {
         *stadium = *previewStadium;
+        previewStadium->updateMesh();
     }
     if (Button("Undo Changes")) {
         *previewStadium = *stadium;

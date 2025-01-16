@@ -43,26 +43,19 @@ int main() {
 
     /* ----------------------MAIN RENDERING LOOP-------------------------- */
 
-    std::function<bool()> wait = { [&]() -> bool { MockLoading::getInstance().mock(); return true; } };
-    game->pushState(StateFactory::createLoadingState(
-        game,
-        {wait, wait, wait},
-        [&]() {
-            game->changeState(GameStateType::HOME);
-        }
-    ));
+    //std::function<bool()> wait = { [&]() -> bool { MockLoading::getInstance().mock(); return true; } };
+    //game->pushState(StateFactory::createLoadingState(
+    //    game,
+    //    {wait, wait, wait},
+    //    [&]() {
+    //        game->changeState(GameStateType::HOME);
+    //    }
+    //));
+    game->pushState(GameStateType::HOME);
 
     while (game->running()) {
-#if 1
-        auto currentTime = static_cast<float>(glfwGetTime());
-        game->deltaTime = currentTime - game->prevTime;
-        game->prevTime = currentTime;
-# else
-        game->deltaTime = 0.0052f; // fixed frame rate, lower = slower
-#endif
-
-        if (!game->paused) game->handleEvents();  // External inputs: user/system
         game->update();        // Time-based state updates
+        if (!game->paused) game->handleEvents();  // External inputs: user/system
         game->draw();          // Render the current state
     }
     return 0;

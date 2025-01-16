@@ -16,15 +16,15 @@
 
 class ObjectShader;
 
-// Need to call loadModel and initializeMesh for using the mesh
+// Need to call loadModel and updateMesh for using the mesh
 class BeybladeMesh {
 public:
     BeybladeMesh(std::string& modelPath, unsigned int vao, unsigned int vbo, unsigned int ebo, glm::vec3& tint = glm::vec3(1.0f))
         : modelPath(std::move(modelPath)), VAO(vao), VBO(vbo), EBO(ebo), tint(tint) {
-        initializeMesh();
+        updateMesh();
     }
     BeybladeMesh(const char* path = "./assets/models/default.obj") : modelPath(path), VAO(0), VBO(0), EBO(0), tint(glm::vec3(1.0f)) {
-        initializeMesh();
+        updateMesh();
     }
 
     bool loadModel(const std::string& path);
@@ -60,5 +60,5 @@ private:
 
     unsigned int VAO{}, VBO{}, EBO{};
 
-    void initializeMesh();
+    void updateMesh();
 };

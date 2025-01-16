@@ -48,11 +48,9 @@ GameEngine::GameEngine()
     ImGui::StyleColorsDark();
 }
 
-
 GameEngine::~GameEngine() {
     cleanup();
 }
-
 
 bool GameEngine::init(const char* title, int width, int height) {
     // Handle window sizes
@@ -62,91 +60,28 @@ bool GameEngine::init(const char* title, int width, int height) {
     minWidth = width / 4;
     minHeight = height / 4;
 
-    /*
-    * Initialize All OpenGL (GLFW, GLEW)
-    */
-    
-    // GLFW must come first
-    if (!glfwInit()) {
-        cerr << "Failed to initialize GLFW" << endl;
+    // Basic setup with GFLW, window, and GLEW
+    if (!initializeGLFW()) {
         isRunning = false;
         return false;
     }
-
-    // Set window
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
-    glfwWindowHint(GLFW_DECORATED, GLFW_TRUE);
-    glfwWindowHint(GLFW_DEPTH_BITS, 24);
-
-    window = glfwCreateWindow(static_cast<int>(width), static_cast<int>(height), title, nullptr, nullptr);
-    if (!window) {
-        cerr << "Failed to create window" << endl;
+    if (!createWindow(title, width, height)) {
+        glfwTerminate();
+        isRunning = false;
+        cleanup();
+        return false;
+    }
+    if (!initializeGLEW()) {
         glfwTerminate();
         isRunning = false;
         cleanup();
         return false;
     }
 
-    // Set the OpenGL context for this window
-    glfwMakeContextCurrent(window);
-    glfwSetWindowAspectRatio(window, static_cast<int>(aspectRatio * 100), 100);
+    setupImGuiAndCallbacks();
 
-    // Center window on the primary monitor
-    monitors = glfwGetMonitors(&nMonitors);
-    videoMode = glfwGetVideoMode(monitors[0]);
-    glfwGetMonitorPos(monitors[0], &monitorX, &monitorY);
-    glfwSetWindowPos(window,
-        monitorX + static_cast<int>(videoMode->width - windowWidth) / 2,
-        monitorY + static_cast<int>(videoMode->height - windowHeight) / 2);
-    glfwSetWindowUserPointer(window, this);
-    glfwSetWindowSizeLimits(window, static_cast<int>(minWidth), static_cast<int>(minHeight), GLFW_DONT_CARE, GLFW_DONT_CARE);
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-
-    // Initialize GLEW
-    glewExperimental = GL_TRUE;
-    if (glewInit() != GLEW_OK) {
-        cerr << "Failed to initialize GLEW" << endl;
-        glfwTerminate();
-        isRunning = false;
-        cleanup();
-        return false;
-    }
-
-    glEnable(GL_DEPTH_TEST);
-    while (glGetError() != GL_NO_ERROR) {}  // Do not remove; flushes error buffer
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-    /*
-    * Initialize ImGui and attempt to import existing game data through JSONs
-    */
-
-    // Catch any errors from file importing, returning a blue screen of informational death if failing
-    try {
-        // TODO: Add default profiles instead of crashing if json not parsed correctly
-        setupImGui(window);
-
-        glfwSetFramebufferSizeCallback(window, framebufferSizeCallback);
-        glfwSetKeyCallback(window, keyCallback);
-        glfwSetMouseButtonCallback(window, mouseButtonCallback);
-        glfwSetCursorPosCallback(window, cursorPosCallback);
-        glfwSetScrollCallback(window, scrollCallback);
-
-        pm.loadProfilesFromFile(PROFILE_SAVE_PATH);
-    }
-    catch (const nlohmann::json::exception& e) {
-        
-        //pm.addDefaultProfiles();
-        
-        // Add critical error messages to the message log
-        ml.addMessage("Critical error during initialization: " + string(e.what()), MessageType::ERROR);
-        ml.addMessage("Please investigate the issue, and reach out to the contact email for further support");
-        ml.open();
-
-        // Enter error handling loop
+    // Largest change of crashing on json save data import
+    if (!attemptSaveDataLoad()) {
         while (!glfwWindowShouldClose(window)) {
             glfwPollEvents();
             ImGui_ImplOpenGL3_NewFrame();
@@ -160,91 +95,26 @@ bool GameEngine::init(const char* title, int width, int height) {
             glfwSwapBuffers(window);
         }
     }
-    catch (exception& e) {
-        cerr << "Exception: " << e.what() << endl;
-    }
-    catch (...) {
-        cerr << "An unknown error occurred during initialization." << endl;
-    }
-    GameState::initStyleParams();
 
-
-    /*
-    * Initialize everything physics and space related
-    */
+    // Physics/space related
     physicsWorld = new PhysicsWorld();
+    initCamera();
+    initShaders();
+    initRenderers();
 
-    // Camera and initial view initialization
-    vec3 initialCameraPos(2.0f, 1.5f, 0.0f);
-    vec3 lookAtPoint(0.0f, 0.0f, 0.0f);
-
-    model = mat4(1.0f);
-    view = lookAt(initialCameraPos, lookAtPoint, vec3(0.0f, 1.0f, 0.0f));
-    projection = perspective(radians(45.0f), float(windowWidth) / float(windowHeight), 0.1f, 100.0f);
-    backgroundModel = mat4(1.0f);
-    backgroundView = mat4(1.0f);
-    orthoProjection = ortho(0.0f, float(windowWidth), 0.0f, float(windowHeight), 0.0f, 1.0f);
-
-    camera = new Camera(initialCameraPos, lookAtPoint, physicsWorld, windowWidth / 2.0f, windowHeight / 2.0f);
-
-
-    /*
-    * Set all shaders and renderers
-    */
-    // TODO: Give backgroundShader same treatment as objectShader, but with different functions
-    backgroundShader = new BackgroundShader(BACKGROUND_VERTEX_SHADER_PATH, BACKGROUND_FRAGMENT_SHADER_PATH);
-    backgroundShader->setBackgroundGlobalParams(projection, 4.0, float(glfwGetTime()));
-
-    objectShader = new ObjectShader(OBJECT_VERTEX_SHADER_PATH, OBJECT_FRAGMENT_SHADER_PATH);
-    objectShader->setGlobalRenderParams(view, projection, initialCameraPos);
-    // TODO: Remove this? 
-    objectShader->setObjectRenderParams(model, glm::vec3(1.0f));
-    objectShader->setLight(LightType::Directional, vec3(1.0f, 1.0f, 1.0f), vec3(0.0f, -1.0f, 0.0f));
-
-    quadRenderer = new QuadRenderer(scale(mat4(1.0f), vec3(width, height, 1.0f)));
-
-
-    /*
-    * Initialize all managers / class - specific inits
-    */
-
-    textRenderer = new TextRenderer("./assets/fonts/OpenSans-Regular.ttf", 800, 600);
-    tm.loadTexture("defaultBackground", "./assets/textures/Brickbeyz.jpg");
-    tm.loadTexture("sceneBackground", "./assets/textures/HexagonSmall.jpg");
-    tm.loadTexture("stadium", "./assets/textures/Hexagon.jpg");
-    tm.loadTexture("floor", "./assets/textures/Wood1.jpg");
-    fm.loadDefaultFonts();
-
+    // Other
+    initTimers();
     GameState::initStyleParams();
 
-    /*
-    * Other unassigned variables
-    */
     boundCamera = false;
     debugMode = false;
-
-    prevTime = 0.0f;
-    deltaTime = 0.0f;
-
     isRunning = true;
+
     return true;
 }
 
-void GameEngine::initTimers() {
-    // Frame rate timer - updates every second, repeats indefinitely
-    timers.push_back(Timer(1.0f, true, -1.0f));
-    timerCallbacks.push_back([this]() {
-        stringstream ss;
-        ss << fixed << setprecision(1) << "FPS: " << ImGui::GetIO().Framerate;
-        fpsText = ss.str();
-    });
-
-    // Coordinate timer - updates every 0.1 seconds, repeats indefinitely
-    timers.push_back(Timer(0.1f, true, -1.0f));
-    timerCallbacks.push_back([this]() {
-        stringstream ss;
-        ss << fixed << setprecision(1) << "X: " << camera->position.x << " Y: " << camera->position.y << " Z: " << camera->position.z;
-    });
+unique_ptr<GameState> GameEngine::createState(GameStateType stateType) {
+    return StateFactory::createState(this, stateType);
 }
 
 void GameEngine::changeState(GameStateType stateType) {
@@ -262,6 +132,21 @@ void GameEngine::changeState(GameStateType stateType) {
     }
 }
 
+/**
+* Retrieves the current game state.
+*
+* @return a unique_ptr to the state or nullptr if no state.
+*/
+GameState* GameEngine::getGameState()
+{
+    if (stateStack.empty()) {
+        return nullptr;
+    }
+    else {
+        return stateStack.back().get();
+    }
+}
+
 // Hm... this loose handling of states may potentially be an issue (see: expected behavior of pushing a loadingState from init() calls)
 void GameEngine::pushState(GameStateType stateType) {
     if (!stateStack.empty()) {
@@ -273,6 +158,10 @@ void GameEngine::pushState(GameStateType stateType) {
         if (!stateStack.empty()) stateStack.back()->init();
     }
 }
+
+/**
+* Adds a customizable GameState with more detail than the generic factory function
+*/
 void GameEngine::pushState(std::unique_ptr<GameState> state) {
     if (!stateStack.empty()) {
         stateStack.back()->pause();
@@ -281,6 +170,11 @@ void GameEngine::pushState(std::unique_ptr<GameState> state) {
     if (!stateStack.empty()) stateStack.back()->init();
 }
 
+/**
+* Performs cleanup on the current state, then pops it
+* 
+* Resumes the next state if it exists.
+*/
 void GameEngine::popState() {
     if (!stateStack.empty()) {
         stateStack.back()->cleanup();
@@ -296,26 +190,11 @@ void GameEngine::popState() {
     }
 }
 
-unique_ptr<GameState> GameEngine::createState(GameStateType stateType) {
-    return StateFactory::createState(this, stateType);
-}
-
 /**
-* Get the current game state.
-* 
-* @return a unique_ptr to the state or nullptr if no state.
+* Handles polling with rendering events and device input
+*
+* Updates input manager state at en
 */
-
-GameState* GameEngine::getGameState()
-{
-    if (stateStack.empty()) {
-        return nullptr;
-    }
-    else {
-        return stateStack.back().get();
-    }
-}
-
 void GameEngine::handleEvents() {
     // Poll GLFW events (handles window events, input events, etc.)
     glfwPollEvents();
@@ -334,7 +213,23 @@ void GameEngine::handleEvents() {
     im.updateState();  // Must be called at end
 }
 
+/**
+* Updates all master time variables usting glfwGetTime()
+*
+* Updates timers correspondingly and calls update() with the deltaTime
+*/
 void GameEngine::update() {
+    // Update the time
+#if 1
+    currTime = static_cast<float>(glfwGetTime());
+    deltaTime = currTime - prevTime;
+    prevTime = currTime;
+# else
+    deltaTime = 0.0052f; // fixed frame rate, lower = slower
+#endif
+
+    updateTimers(currTime);
+
     if (!stateStack.empty()) {
         stateStack.back()->update(deltaTime);
     }
@@ -357,19 +252,7 @@ void GameEngine::draw() {
     ml.render();
 
     if (debugScreenActive) {
-        // Render faded background
-        ImDrawList* drawList = ImGui::GetForegroundDrawList();
-        drawList->AddRectFilled(ImVec2(0, 0), ImVec2(float(windowWidth), float(windowHeight)),IM_COL32(0, 0, 0, 150));
-        ImGui::Begin("Debug Screen", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize);
-        ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
-        ImGui::Text("Window Size: %dx%d", windowWidth, windowHeight);
-        double mouseX, mouseY; glfwGetCursorPos(window, &mouseX, &mouseY);
-        ImGui::Text("Mouse Position: (%.1f, %.1f)", mouseX, mouseY);
-        if (!stateStack.empty() && stateStack.back()->getStateType() == GameStateType::ACTIVE) {
-            ImGui::Text("Coordinates: %s", coordsText.c_str());
-        }
-        ImGui::Text("OpenGL Version: %s", glGetString(GL_VERSION));
-        ImGui::End();
+        drawDebugScreen();
     }
 
     // END IMGUI FRAME: renders to screen
@@ -377,6 +260,13 @@ void GameEngine::draw() {
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
     glfwSwapBuffers(window);
 }
+
+
+/**
+* BEGIN PRIVATE
+*
+* Implementation of helper funcitons within class
+*/
 
 void GameEngine::cleanup() {
     // Save current state
@@ -439,6 +329,198 @@ void GameEngine::handleGlobalEvents() {
 
 }
 
+void GameEngine::updateTimers(float currentTime) {
+    while (!timers.empty()) {
+        Timer topTimer = timers.top();
+
+        if (topTimer.shouldTrigger(currentTime)) {
+            timers.pop();
+            topTimer.trigger(currentTime);
+            if (topTimer.isActive()) {
+                timers.push(topTimer);
+            }
+        }
+        else {
+            break;
+        }
+    }
+}
+
+void GameEngine::drawDebugScreen()
+{
+    // Render faded background
+    ImDrawList* drawList = ImGui::GetForegroundDrawList();
+    drawList->AddRectFilled(ImVec2(0, 0), ImVec2(float(windowWidth), float(windowHeight)), IM_COL32(0, 0, 0, 150));
+    ImGui::Begin("Debug Screen", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize);
+
+    ImGui::Text("Exit by pressing F3");
+    ImGui::Text(fpsText.c_str());
+    ImGui::Text("Window Size: %dx%d", windowWidth, windowHeight);
+    double mouseX, mouseY; glfwGetCursorPos(window, &mouseX, &mouseY); ImGui::Text("Mouse Position: (%.1f, %.1f)", mouseX, mouseY);
+    ImGui::Text(coordsText.c_str());
+
+    ImGui::Text("OpenGL Version: %s", glGetString(GL_VERSION));
+    ImGui::End();
+}
+
+
+/**
+* Immediate helper functions to init()
+*
+* Returns bool if there is a possibility of failing, otherwise return void.
+*/
+
+bool GameEngine::initializeGLFW()
+{
+    if (!glfwInit()) {
+        cerr << "Failed to initialize GLFW" << endl;
+        return false;
+    }
+
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
+    glfwWindowHint(GLFW_DECORATED, GLFW_TRUE);
+    glfwWindowHint(GLFW_DEPTH_BITS, 24);
+
+    return true;
+}
+
+bool GameEngine::createWindow(const char* title, int width, int height)
+{
+    window = glfwCreateWindow(width, height, title, nullptr, nullptr);
+    if (!window) {
+        cerr << "Failed to create window" << endl;
+        return false;
+    }
+
+    glfwMakeContextCurrent(window);
+    glfwSetWindowAspectRatio(window, static_cast<int>(aspectRatio * 100), 100);
+
+    // Center window on the primary monitor
+    monitors = glfwGetMonitors(&nMonitors);
+    videoMode = glfwGetVideoMode(monitors[0]);
+    glfwGetMonitorPos(monitors[0], &monitorX, &monitorY);
+    glfwSetWindowPos(window,
+        monitorX + static_cast<int>(videoMode->width - windowWidth) / 2,
+        monitorY + static_cast<int>(videoMode->height - windowHeight) / 2);
+
+    glfwSetWindowUserPointer(window, this);
+    glfwSetWindowSizeLimits(window, static_cast<int>(minWidth), static_cast<int>(minHeight), GLFW_DONT_CARE, GLFW_DONT_CARE);
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+
+    return true;
+}
+
+bool GameEngine::initializeGLEW()
+{
+    glewExperimental = GL_TRUE;
+    if (glewInit() != GLEW_OK) {
+        cerr << "Failed to initialize GLEW" << endl;
+        return false;
+    }
+
+    glEnable(GL_DEPTH_TEST);
+    while (glGetError() != GL_NO_ERROR) {}  // Do not remove, flushes error buffer
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    return true;
+}
+
+void GameEngine::setupImGuiAndCallbacks()
+{
+    setupImGui(window);
+
+    // Since these callbacks also forward to ImGui, we declare them after
+    glfwSetFramebufferSizeCallback(window, framebufferSizeCallback);
+    glfwSetKeyCallback(window, keyCallback);
+    glfwSetMouseButtonCallback(window, mouseButtonCallback);
+    glfwSetCursorPosCallback(window, cursorPosCallback);
+    glfwSetScrollCallback(window, scrollCallback);
+}
+
+bool GameEngine::attemptSaveDataLoad()
+{
+    // Catch any errors from file importing, returning a blue screen of informational death if failing
+    try {
+        // TODO: Add default profiles instead of crashing if json not parsed correctly
+        pm.loadProfilesFromFile(PROFILE_SAVE_PATH);
+        return true;
+    }
+    catch (const nlohmann::json::exception& e) {
+        //pm.addDefaultProfiles();
+
+        // Add critical error messages to the message log
+        ml.addMessage("Critical error during initialization: " + string(e.what()), MessageType::ERROR);
+        ml.addMessage("Please investigate the issue, and reach out to the contact email for further support");
+        ml.open();
+    }
+    catch (exception& e) {
+        cerr << "Exception: " << e.what() << endl;
+    }
+    catch (...) {
+        cerr << "An unknown error occurred during initialization." << endl;
+    }
+    return false;
+}
+
+void GameEngine::initCamera()
+{
+    // Camera and initial view initialization
+    vec3 initialCameraPos(2.0f, 1.5f, 0.0f);
+    vec3 lookAtPoint(0.0f, 0.0f, 0.0f);
+
+    model = mat4(1.0f);
+    view = lookAt(initialCameraPos, lookAtPoint, vec3(0.0f, 1.0f, 0.0f));
+    projection = perspective(radians(45.0f), float(windowWidth) / float(windowHeight), 0.1f, 100.0f);
+    backgroundModel = mat4(1.0f);
+    backgroundView = mat4(1.0f);
+    orthoProjection = ortho(0.0f, float(windowWidth), 0.0f, float(windowHeight), 0.0f, 1.0f);
+
+    camera = new Camera(initialCameraPos, lookAtPoint, physicsWorld, windowWidth / 2.0f, windowHeight / 2.0f);
+}
+
+void GameEngine::initShaders()
+{
+    backgroundShader = new BackgroundShader(BACKGROUND_VERTEX_SHADER_PATH, BACKGROUND_FRAGMENT_SHADER_PATH);
+    backgroundShader->setBackgroundGlobalParams(projection, 4.0, float(glfwGetTime()));
+
+    objectShader = new ObjectShader(OBJECT_VERTEX_SHADER_PATH, OBJECT_FRAGMENT_SHADER_PATH);
+    objectShader->setGlobalRenderParams(view, projection, camera->position);
+    // TODO: Remove this? 
+    objectShader->setObjectRenderParams(model, glm::vec3(1.0f));
+    objectShader->setLight(LightType::Directional, vec3(1.0f, 1.0f, 1.0f), vec3(0.0f, -1.0f, 0.0f));
+}
+
+void GameEngine::initRenderers() {
+    quadRenderer = new QuadRenderer(scale(mat4(1.0f), vec3(windowWidth, windowHeight, 1.0f)));
+
+    textRenderer = new TextRenderer("./assets/fonts/OpenSans-Regular.ttf", 800, 600);
+    tm.loadTexture("defaultBackground", "./assets/textures/Brickbeyz.jpg");
+    tm.loadTexture("sceneBackground", "./assets/textures/HexagonSmall.jpg");
+    tm.loadTexture("stadium", "./assets/textures/Hexagon.jpg");
+    tm.loadTexture("floor", "./assets/textures/Wood1.jpg");
+    fm.loadDefaultFonts();
+}
+
+
+void GameEngine::initTimers() {
+    // Frame rate timer
+    timers.push(Timer(0.5f, true, -1.0f, [this]() {
+        stringstream ss;
+        ss << fixed << setprecision(1) << "FPS: " << ImGui::GetIO().Framerate;
+        fpsText = ss.str();
+    }));
+
+    // Coordinate timer - updates every 0.1 seconds, repeats indefinitely
+    timers.push(Timer(0.1f, true, -1.0f, [this]() {
+        stringstream ss;
+        ss << fixed << setprecision(1) << "X: " << camera->position.x << " Y: " << camera->position.y << " Z: " << camera->position.z;
+        coordsText = ss.str();
+    }));
+}
 
 /**
 * Various callbacks for inputManager. Important to forward to ImGui if needed!
@@ -472,12 +554,10 @@ void GameEngine::framebufferSizeCallback(GLFWwindow* window, int width, int heig
     engine->windowWidth = width;
     engine->windowHeight = height;
 
-    engine->textRenderer->resize(width, height); 
+    engine->textRenderer->resize(width, height);
 
     glViewport(0, 0, width, height);
     engine->projection = perspective(radians(45.0f), (float)width / height, 0.1f, 100.0f);
-    //engine->objectShader->use();
-    //engine->objectShader->setMat4("projection", engine->projection);
 }
 
 void GameEngine::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {

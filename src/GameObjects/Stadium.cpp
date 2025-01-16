@@ -38,7 +38,7 @@ Stadium::Stadium(
     textureScale(textureScale)
 {
     setTint(tint);
-    initializeMesh();
+    updateMesh();
 }
 
 
@@ -93,7 +93,10 @@ const Vec3_Scalar Stadium::getNormal(M x, M z) const {
 
 
 
-void Stadium::initializeMesh() {
+void Stadium::updateMesh() {
+    if (!meshChanged) return;
+    meshChanged = false;
+
     std::vector<float> vertexData;
 
     // Clear existing data

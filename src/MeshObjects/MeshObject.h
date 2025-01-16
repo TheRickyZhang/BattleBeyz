@@ -18,7 +18,7 @@ public:
     MeshObject();
     virtual ~MeshObject() noexcept;
 
-    virtual void initializeMesh() = 0;
+    virtual void updateMesh() = 0;
     virtual void render(ObjectShader& shader, Texture* texture = nullptr);
 
     // Getters and setters

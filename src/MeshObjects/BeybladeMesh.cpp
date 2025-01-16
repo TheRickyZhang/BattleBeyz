@@ -212,7 +212,7 @@ bool BeybladeMesh::loadModel(const string& path) {
 * Internal routine to initialize the mesh.
 */
 
-void BeybladeMesh::initializeMesh() {
+void BeybladeMesh::updateMesh() {
     loadModel(modelPath);
 
     if (vertices.size() != normals.size() || vertices.size() != texCoords.size()) {
