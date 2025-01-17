@@ -11,6 +11,7 @@
 #include "Stadium.h"
 #include "MeshObject.h"
 #include "FramebufferRenderer.h"
+#include "Timer.h"
 
 #include "Units.h"
 using namespace Units;
@@ -44,7 +45,6 @@ public:
 
 private:
     void precomputeLayout(int& leftPanelWidth, int& rightPanelWidth);
-    std::vector<std::shared_ptr<Beyblade>> players; // TODO: Modify this to support differnt profiles in the future?
     
     void showPlayerButtons();
     void showPlayers();
@@ -66,10 +66,15 @@ private:
     int previewWidth = 300;
     int previewHeight = 300;
 
-    std::shared_ptr<Stadium> stadium = nullptr; // TODO: Make profile default stadium?
-    std::shared_ptr<Stadium> previewStadium = nullptr;
-
+    std::unique_ptr<Stadium> previewStadium = nullptr;
     glm::mat4 previewModelMatrix = glm::mat4(1.0f);
+
+    std::unique_ptr<Timer> stadiumRenderTimer;
+
+
+    std::vector<std::shared_ptr<Stadium>> stadiums; // TODO: Make profile default stadium?
+    std::vector<std::shared_ptr<Beyblade>> players; // TODO: Modify this to support differnt profiles in the future?
+    std::shared_ptr<PhysicsWorld> physicsWorld;
 
     float tempGravity = 0.0f;
 
@@ -85,7 +90,6 @@ private:
     glm::vec3 tempRingColor = glm::vec3(1.0f, 0.0f, 0.0f);
     glm::vec3 tempCrossColor = glm::vec3(0.0f, 0.0f, 1.0f);
 
-    
 
     const int MAX_PLAYERS = 8;
 

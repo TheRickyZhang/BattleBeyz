@@ -113,25 +113,6 @@ bool GameEngine::init(const char* title, int width, int height) {
     return true;
 }
 
-unique_ptr<GameState> GameEngine::createState(GameStateType stateType) {
-    return StateFactory::createState(this, stateType);
-}
-
-void GameEngine::changeState(GameStateType stateType) {
-    // Clear the entire stack
-    while (!stateStack.empty()) {
-        stateStack.back()->cleanup();
-        stateStack.pop_back();
-    }
-
-    // Create and initialize the new state
-    auto newState = createState(stateType);
-    if (newState) {
-        newState->init();
-        stateStack.push_back(move(newState));
-    }
-}
-
 /**
 * Retrieves the current game state.
 *
@@ -147,15 +128,17 @@ GameState* GameEngine::getGameState()
     }
 }
 
-// Hm... this loose handling of states may potentially be an issue (see: expected behavior of pushing a loadingState from init() calls)
-void GameEngine::pushState(GameStateType stateType) {
-    if (!stateStack.empty()) {
-        stateStack.back()->pause();
+void GameEngine::changeState(std::unique_ptr<GameState> newState) {
+    // Clear the entire stack
+    while (!stateStack.empty()) {
+        stateStack.back()->cleanup();
+        stateStack.pop_back();
     }
-    auto newState = createState(stateType);
+
+    // Initialize and push the new state
     if (newState) {
-        stateStack.push_back(move(newState));
-        if (!stateStack.empty()) stateStack.back()->init();
+        newState->init();
+        stateStack.push_back(std::move(newState));
     }
 }
 
@@ -508,18 +491,19 @@ void GameEngine::initRenderers() {
 
 void GameEngine::initTimers() {
     // Frame rate timer
-    timers.push(Timer(0.5f, true, -1.0f, [this]() {
+    timers.push(Timer(0.5f, [this]() {
         stringstream ss;
         ss << fixed << setprecision(1) << "FPS: " << ImGui::GetIO().Framerate;
         fpsText = ss.str();
-    }));
+        }, true, -1.0f));
 
     // Coordinate timer - updates every 0.1 seconds, repeats indefinitely
-    timers.push(Timer(0.1f, true, -1.0f, [this]() {
+    timers.push(Timer(0.1f, [this]() {
         stringstream ss;
         ss << fixed << setprecision(1) << "X: " << camera->position.x << " Y: " << camera->position.y << " Z: " << camera->position.z;
         coordsText = ss.str();
-    }));
+        }, true, -1.0f));
+
 }
 
 /**

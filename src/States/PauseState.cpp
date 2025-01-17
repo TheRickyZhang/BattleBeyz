@@ -23,7 +23,7 @@ void PauseState::draw() {
         game->popState();
     }
     if (ImGui::Button("Quit to Main Menu")) {
-        game->changeState(GameStateType::HOME);
+        game->changeState(StateFactory::createState(game, GameStateType::HOME));
     }
     ImGui::End();
 }

@@ -137,7 +137,7 @@ void GameState::renderWindowWithButtons(GameEngine* game, const string& windowTi
             // Handle button actions based on button index or text
             auto it = buttonStateMap.find(btnText);
             if (it != buttonStateMap.end()) {
-                game->changeState(it->second);
+                game->changeState(StateFactory::createState(game, it->second));
             }
         }
 

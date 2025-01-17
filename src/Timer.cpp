@@ -7,7 +7,7 @@ Timer::Timer()
     onUpdateCallback(nullptr) {
 }
 
-Timer::Timer(float interval, bool isRepeating, float duration, std::function<void()> onUpdate, float currentTime)
+Timer::Timer(float interval, std::function<void()> onUpdate, bool isRepeating, float duration, float currentTime)
     : updateInterval(interval),
     startTime(currentTime),
     repeat(isRepeating),
@@ -18,8 +18,9 @@ Timer::Timer(float interval, bool isRepeating, float duration, std::function<voi
     if (duration >= 0.0f)
         endTime = startTime + duration;
     else
-        endTime = -1.0f; // Infinite duration
+        endTime = -1.0f;
 }
+
 
 bool Timer::shouldTrigger(float currentTime) {
     if (!active)

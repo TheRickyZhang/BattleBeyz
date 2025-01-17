@@ -3,7 +3,7 @@
 #include "GameEngine.h"
 #include "PhysicsWorld.h"
 #include "Buffers.h"
-#include "StateIdentifiers.h"
+//#include "StateIdentifiers.h"
 #include "ObjectShader.h"
 #include "UI.h"
 #include "Camera.h"
@@ -18,6 +18,7 @@
 using namespace std;
 using namespace glm;
 
+
 void ActiveState::init()
 {
     // Set up keyboard and mouse callbacks.
@@ -27,40 +28,54 @@ void ActiveState::init()
     this->floor = new Floor(1000.0f, 1000.0f, 0.0f, 0.0f, 0.0f);
     //floor->setTextureScale(vec2(100.0f, 100.0f));
 
-    // TODO: this should add stadiums dynamically in future, but use default single one for now. Also convert stadiums to uniqe_pre
-    auto stadium = std::make_unique<Stadium>("Stadium 1");
-    stadiums.push_back(move(stadium));
-
+   
     physicsWorld->resetPhysics();
-
-    // NEWMESH: Load meshes before bodies so we can get the actual object sizes. Then pass the
-    // mesh to the BeybladdeBody constructor. remove radius and heigth from these objects, leaving just some physics coefficients.
-
-    // These might be null for now, quell errors
-    Beyblade* beyblade1 = game->pm.getActiveProfile()->getBeyblade(1).get();
-    Beyblade* beyblade2 = game->pm.getActiveProfile()->getBeyblade(2).get();
-
-    // 2024-11-18. Reset various things before [re]starting the game.
-    // TODO: Screen to modify initial conditions (launch location, angle, speed) beforehand so resetPhysics() works
-    beyblades.clear();
-
-    beyblade1->getRigidBody()->resetPhysics();
-    beyblade2->getRigidBody()->resetPhysics();
-
-    beyblades.push_back(beyblade1);  // TODO: 2024-11-18.  Is the extra vector really necessary?
-    beyblades.push_back(beyblade2);
-
-    for (const std::unique_ptr<Stadium>& stadium : stadiums) {
+    for (shared_ptr<Stadium> stadium : stadiums) {
         physicsWorld->addStadium(stadium.get());
     }
-    for (Beyblade* beyblade : beyblades) physicsWorld->addBeyblade(beyblade);
+    for (shared_ptr<Beyblade> beyblade : beyblades) {
+        physicsWorld->addBeyblade(beyblade.get());
+    }
+    for (shared_ptr<Beyblade> beyblade : beyblades) {
+        beyblade->getRigidBody()->resetPhysics();
+    }
 
-    if(!beyblades.empty()) game->camera->setFollowingBey(beyblades[0]->getRigidBody());
-    if(!stadiums.empty()) game->camera->setPanningVariables(stadiums[0].get());
+
+    // TODO: this should add stadiums dynamically in future, but use default single one for now. Also convert stadiums to uniqe_pre
+    //auto stadium = std::make_unique<Stadium>("Stadium 1");
+    //stadiums.push_back(move(stadium));
+
+    //physicsWorld->resetPhysics();
+
+    //// NEWMESH: Load meshes before bodies so we can get the actual object sizes. Then pass the
+    //// mesh to the BeybladdeBody constructor. remove radius and heigth from these objects, leaving just some physics coefficients.
+
+    //// These might be null for now, quell errors
+    //Beyblade* beyblade1 = game->pm.getActiveProfile()->getBeyblade(1).get();
+    //Beyblade* beyblade2 = game->pm.getActiveProfile()->getBeyblade(2).get();
+
+    //// 2024-11-18. Reset various things before [re]starting the game.
+    //// TODO: Screen to modify initial conditions (launch location, angle, speed) beforehand so resetPhysics() works
+    //beyblades.clear();
+
+    //beyblade1->getRigidBody()->resetPhysics();
+    //beyblade2->getRigidBody()->resetPhysics();
+
+    //beyblades.push_back(beyblade1);  // TODO: 2024-11-18.  Is the extra vector really necessary?
+    //beyblades.push_back(beyblade2);
+
+    //for (const std::shared_ptr<Stadium>& stadium : stadiums) {
+    //    physicsWorld->addStadium(stadium.get());
+    //}
+    //for (Beyblade* beyblade : beyblades) physicsWorld->addBeyblade(beyblade);
+
+    //if(!beyblades.empty()) game->camera->setFollowingBey(beyblades[0]->getRigidBody());
+    //if(!stadiums.empty()) game->camera->setPanningVariables(stadiums[0].get());
 }
 
 void ActiveState::cleanup()
 {
+    glClearColor(imguiColor[0], imguiColor[1], imguiColor[2], 1.00f);
     delete floor;
 }
 
@@ -132,8 +147,8 @@ void ActiveState::draw() {
 
     ImGui::Begin("Controls");
     if (ImGui::Button("Back to Home##Active")) {
-        game->changeState(GameStateType::HOME);
         ImGui::End();
+        game->changeState(StateFactory::createState(game, GameStateType::HOME));
         return;
     }
 
@@ -157,10 +172,10 @@ void ActiveState::draw() {
 
     floor->render(*game->objectShader, tm.getTexture("floor").get());
 
-    for (const std::unique_ptr<Stadium>& stadium : stadiums) {
+    for (const std::shared_ptr<Stadium>& stadium : stadiums) {
         stadium->render(*objectShader);
     }
-    for (auto beyblade : beyblades) beyblade->render(*objectShader);
+    for (const shared_ptr<Beyblade> beyblade : beyblades) beyblade->render(*objectShader);
 
 
     // Render the position
@@ -195,7 +210,9 @@ void ActiveState::drawInfoScreen() {
     // Pause button
     ImGui::SameLine();
     if (ImGui::Button("Pause")) {
-        game->pushState(GameStateType::PAUSE);
+        ImGui::End();
+        game->changeState(StateFactory::createState(game, GameStateType::PAUSE));
+        return;
     }
 
     // Exit button
@@ -205,12 +222,14 @@ void ActiveState::drawInfoScreen() {
     // Home Button
     ImGui::SameLine();
     if (ImGui::Button("Home")) {
-        game->pushState(GameStateType::HOME);
+        ImGui::End();
+        game->changeState(StateFactory::createState(game, GameStateType::HOME));
+        return;
     }
 
     ImGui::Separator();
 
-    for (Beyblade* beyblade : beyblades) {
+    for (const shared_ptr<Beyblade>& beyblade : beyblades) {
         BeybladeBody* beybladeBody = beyblade->getRigidBody();
         if (ImGui::CollapsingHeader(beyblade->getName().data())) {
             ImGui::Text("Velocity");

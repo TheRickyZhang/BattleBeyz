@@ -56,7 +56,7 @@ void SettingsState::draw() {
     ImGui::SameLine();
     // Close/Back button
     if (ImGui::Button("Close")) {
-        game->changeState(GameStateType::HOME);
+        game->changeState(StateFactory::createState(game, GameStateType::HOME));
         ImGui::End();
         return;
     }

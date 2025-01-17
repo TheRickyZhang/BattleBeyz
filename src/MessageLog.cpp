@@ -3,6 +3,7 @@
 #include <iomanip>
 #include <sstream>
 #include <ctime>
+#include <filesystem>
 
 #include "MessageLog.h"
 #include "UI.h"
@@ -67,6 +68,20 @@ void MessageLog::save(const string& path) {
     localtime_r(&now, &timeInfo);
 #endif
 
+    for (const auto& message : messageLog) {
+        std::cout << "[" << message.getTypeString() << "] " << message.text << std::endl;
+    }
+    // Ensure the directory exists
+    try {
+        if (!filesystem::exists(path)) {
+            filesystem::create_directories(path);
+        }
+    }
+    catch (const filesystem::filesystem_error& e) {
+        cerr << "Error: Could not create directory: " << e.what() << endl;
+        return;
+    }
+
     // Format the time into a readable string
     ostringstream oss;
     oss << put_time(&timeInfo, "%Y-%m-%d_%H-%M-%S");
@@ -82,6 +97,7 @@ void MessageLog::save(const string& path) {
         outFile << "[" << message.getTypeString() << "] " << message.text << endl;
     }
 
+    outFile.flush();
     outFile.close();
     cout << "Log uploaded successfully to: " << fileName << endl;
 }

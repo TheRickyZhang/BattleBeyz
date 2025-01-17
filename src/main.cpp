@@ -48,15 +48,17 @@ int main() {
     //    game,
     //    {wait, wait, wait},
     //    [&]() {
-    //        game->changeState(GameStateType::HOME);
+    //        game->changeState(StateFactory::createState(game, GameStateType::HOME));
     //    }
     //));
-    game->pushState(GameStateType::HOME);
+    game->changeState(StateFactory::createState(game, GameStateType::HOME));
 
     while (game->running()) {
         game->update();        // Time-based state updates
         if (!game->paused) game->handleEvents();  // External inputs: user/system
         game->draw();          // Render the current state
     }
+    delete game;
+
     return 0;
 }

@@ -8,6 +8,7 @@
 // Used by every state
 #include "GameEngine.h"
 #include "MessageLog.h"   
+#include "StateFactory.h"
 
 class GameState {
 public:

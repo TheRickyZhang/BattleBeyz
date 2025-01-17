@@ -1,6 +1,6 @@
 #include "CustomizeState.h"
 
-#include "StateIdentifiers.h"
+//#include "StateIdentifiers.h"
 #include "Beyblade.h"
 #include "BeybladeConstants.h"
 #include "ProfileManager.h"
@@ -45,7 +45,7 @@ void CustomizeState::draw() {
 
     // Draw "Back to Home" button
     if (Button("Back to Home")) {
-        game->changeState(GameStateType::HOME);
+        game->changeState(StateFactory::createState(game, GameStateType::HOME));
         End();  // Ensures proper window closure
         return;
     }

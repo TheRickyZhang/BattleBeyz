@@ -9,6 +9,7 @@
 #include "PhysicsWorld.h"
 #include "StateIdentifiers.h"
 #include "UI.h"
+#include "ActiveState.h"
 
 #include <glm/gtc/type_ptr.hpp>
 
@@ -18,13 +19,21 @@ using namespace glm;
 using namespace ImGui;
 
 void SelectionState::init() {
-    stadium = make_unique<Stadium>();
-    previewStadium = make_unique<Stadium>(*stadium); // Copy initial state
+    auto tempStadium = make_unique<Stadium>();
+    previewStadium = make_unique<Stadium>(*tempStadium); // Copy initial state
+    stadiums.push_back(move(tempStadium));
 
     stadiumRenderer = make_unique<FramebufferRenderer>(previewWidth, previewHeight);
 
     camera = make_unique<Camera>(glm::vec3(5.0f, 5.0f, 5.0f), glm::vec3(0.0f), game->physicsWorld, 
         static_cast<float>(previewWidth), static_cast<float>(previewHeight));
+
+    stadiumRenderTimer = make_unique<Timer>(0.15f, [this]() {
+        previewStadium->updateMesh();
+    });
+
+    // TODO: remove
+    physicsWorld = make_unique<PhysicsWorld>();
 }
 
 void SelectionState::cleanup() {
@@ -57,6 +66,11 @@ void SelectionState::handleEvents() {
 
 void SelectionState::update(float deltaTime) {
     camera->update(deltaTime);
+
+    if (stadiumRenderTimer->shouldTrigger(game->currTime)) {
+        stadiumRenderTimer->trigger(game->currTime);
+    }
+
 }
 
 // Draw Method
@@ -69,7 +83,7 @@ void SelectionState::draw() {
     Begin("Select Menu");
 
     if (Button("Back to Home")) {
-        game->changeState(GameStateType::HOME);
+        game->changeState(StateFactory::createState(game, GameStateType::HOME));
         End();
         return;
     }
@@ -93,15 +107,16 @@ void SelectionState::draw() {
         Separator();
 
         showPhysicsOptions();
+
+        // Draw "Play" button
+        if (Button("Play")) {
+            EndChild();
+            End();
+            game->changeState(make_unique<ActiveState>(game, stadiums, players, physicsWorld)); // TODO: Pass parameters here
+            return;
+        }
     }
     EndChild();
-
-    // Draw "Play" button
-    if (Button("Play")) {
-        game->changeState(GameStateType::ACTIVE); // TODO: Pass parameters here
-        End();
-        return;
-    }
 
     End();
 }
@@ -197,7 +212,7 @@ void SelectionState::showStadiumOptions() {
     Text("Modify Stadium");
     Separator();
 
-    if (stadium == nullptr) {
+    if (stadiums.empty()) {
         Text("No stadium selected!");
     }
     else {
@@ -213,46 +228,45 @@ void SelectionState::showStadiumOptions() {
 
     // Stadium Body (Note that center is always set to (0, 0, 0) by default)
     if (SliderFloat("Radius (m)", &tempRadius, StadiumDefaults::radiusMin, StadiumDefaults::radiusMax)) {
-        stadium->setRadius(tempRadius);
+        previewStadium->setRadius(tempRadius);
     }
     if (SliderFloat3("Center (x, y, z)", glm::value_ptr(tempCenter),
         *glm::value_ptr(StadiumDefaults::centerMin),
         *glm::value_ptr(StadiumDefaults::centerMax))) {
-        stadium->setCenter(tempCenter);
+        previewStadium->setCenter(tempCenter);
     }
     if (SliderFloat("Curvature", &tempCurvature, StadiumDefaults::curvatureMin, StadiumDefaults::curvatureMax)) {
-        stadium->setCurvature(tempCurvature);
+        previewStadium->setCurvature(tempCurvature);
     }
     if (SliderFloat("Friction", &tempFriction, StadiumDefaults::COFMin, StadiumDefaults::COFMax)) {
-        stadium->setFriction(tempFriction);
+        previewStadium->setFriction(tempFriction);
     }
 
     // Stadium Mesh
     if (SliderIntDiscrete("Vertices per Ring", &tempVerticesPerRing, StadiumDefaults::verticesPerRingMin, StadiumDefaults::verticesPerRingMax, 4)) {
-        stadium->setVerticesPerRing(tempVerticesPerRing);
+        previewStadium->setVerticesPerRing(tempVerticesPerRing);
     }
     if (SliderIntDiscrete("Number of Rings", &tempNumRings, StadiumDefaults::numRingsMin, StadiumDefaults::numRingsMax, 4)) {
-        stadium->setNumRings(tempNumRings);
+        previewStadium->setNumRings(tempNumRings);
     }
     if (SliderFloat3("Overall Color", glm::value_ptr(tempTint), 0.0f, 1.0f, "Color: %.2f")) {
-        stadium->setTint(tempTint);
+        previewStadium->setTint(tempTint);
     }
     if (SliderFloat3("Ring Color", glm::value_ptr(tempRingColor), 0.0f, 1.0f, "Color: %.2f")) {
-        stadium->setRingColor(tempRingColor);
+        previewStadium->setRingColor(tempRingColor);
     }
     if (SliderFloat3("Cross Color", glm::value_ptr(tempCrossColor), 0.0f, 1.0f, "Color: %.2f")) {
-        stadium->setCrossColor(tempCrossColor);
+        previewStadium->setCrossColor(tempCrossColor);
     }
 
     // TODO: Upload for texture and texture scale
 
-    // Apply changes to stadiums
+    // TODO: Keep track of active stadiums
     if (Button("Update Stadium")) {
-        *stadium = *previewStadium;
-        previewStadium->updateMesh();
+        *stadiums[0] = *previewStadium;
     }
     if (Button("Undo Changes")) {
-        *previewStadium = *stadium;
+        *previewStadium = *stadiums[0];
     }
 
 }
@@ -272,8 +286,7 @@ void SelectionState::setupStadiumPreview() {
 }
 
 void SelectionState::renderStadiumPreview() {
-    cout << "Rendering" << endl;
-    if (!stadium) {
+    if (stadiums.empty()) {
         std::cerr << "Error: Stadium is nullptr" << std::endl;
         return;
     }
@@ -287,7 +300,7 @@ void SelectionState::renderStadiumPreview() {
     objectShader->setMat4("projection", glm::perspective(glm::radians(camera->zoom), (float)previewWidth / previewHeight, 0.1f, 100.0f));
     objectShader->setMat4("view", camera->getViewMatrix());
 
-    stadium->render(*objectShader);
+    previewStadium->render(*objectShader);
 
     stadiumRenderer->unbind();
 }

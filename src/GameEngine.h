@@ -37,9 +37,8 @@ public:
 
     bool init(const char* title, int width, int height);
 
-    void changeState(GameStateType stateType);
-    GameState* getGameState();  // Return current state.
-    void pushState(GameStateType stateType);
+    GameState* getGameState();
+    void changeState(std::unique_ptr<GameState> newState);
     void pushState(std::unique_ptr<GameState> state);
     void popState();
 
@@ -113,7 +112,6 @@ public:
 
 private:
     void cleanup();
-    std::unique_ptr<GameState> createState(GameStateType stateType);
     std::vector<std::unique_ptr<GameState>> stateStack;
 
     GLFWwindow* window;

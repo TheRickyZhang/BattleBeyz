@@ -1,11 +1,12 @@
 #pragma once
 #include <functional>
+#include <GLFW/glfw3.h>
 
 class Timer {
 public:
     Timer();
-    Timer(float interval, bool isRepeating = true, float duration = -1.0f,
-        std::function<void()> onUpdate = nullptr, float currentTime = 0.0f);
+    Timer(float interval, std::function<void()> onUpdate = nullptr, bool isRepeating = true,
+        float duration = -1.0f, float currentTime = glfwGetTime());
 
     bool shouldTrigger(float currentTime);
     void trigger(float currentTime);

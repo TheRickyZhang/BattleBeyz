@@ -9,5 +9,4 @@ enum class GameStateType {
     PAUSE,
     SELECTION,
     SETTINGS
-
 };
