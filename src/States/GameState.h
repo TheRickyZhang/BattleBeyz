@@ -22,6 +22,7 @@ public:
     virtual void resume() = 0;
 
     virtual void handleEvents() = 0;
+    virtual void onResize(int width, int height) = 0;
     virtual void update(float deltaTime) = 0;
 
     // Draws the screen. Every implementation assumes ImGui::begin() is already called, but must end with an ImGui::End()

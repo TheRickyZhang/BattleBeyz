@@ -38,8 +38,8 @@ int main() {
     glm::vec3 initialVelocity1 = glm::vec3(0.0f, 0.0f, -0.1f);
     glm::vec3 initialVelocity2 = glm::vec3(0.0f, 0.0f, 0.1f);
     glm::vec3 initialAngularVelocity = glm::vec3(0.0f, -450.0f, 0.0f);
-    beyblade1->getRigidBody()->setInitialLaunch(initialPosition1, initialVelocity1, initialAngularVelocity);
-    beyblade2->getRigidBody()->setInitialLaunch(initialPosition2, initialVelocity2, initialAngularVelocity);
+    beyblade1->getBody()->setInitialLaunch(initialPosition1, initialVelocity1, initialAngularVelocity);
+    beyblade2->getBody()->setInitialLaunch(initialPosition2, initialVelocity2, initialAngularVelocity);
 
     /* ----------------------MAIN RENDERING LOOP-------------------------- */
 

@@ -36,13 +36,13 @@ Beyblade::Beyblade(int id, const string& name, bool isTemplate) :
     id(id), name(name), isTemplate(isTemplate) {
     if (isTemplate) {
         setTemplateIndices(0, 0, 0);
-        rigidBody = make_unique<BeybladeBody>(templateLayers[0].part, templateDiscs[0].part, templateDrivers[0].part);
+        body = make_unique<BeybladeBody>(templateLayers[0].part, templateDiscs[0].part, templateDrivers[0].part);
         // TODO: Implement a combineMesh function. Requires all obj files to be standardized, centered and aligned correctly. Then combine them
         mesh = make_unique<BeybladeMesh>();
         //mesh = combineMesh(templateLayers[0].modelPath, templateDiscs[0].modelPath, templateDrivers[0].modelPath);
     }
     else {
-        rigidBody = make_unique<BeybladeBody>();
+        body = make_unique<BeybladeBody>();
         mesh = make_unique<BeybladeMesh>();
     }
 }
@@ -53,8 +53,8 @@ int Beyblade::getId() const {
 string Beyblade::getName() const {
     return name;
 }
-BeybladeBody* Beyblade::getRigidBody() {
-    return rigidBody.get();
+BeybladeBody* Beyblade::getBody() {
+    return body.get();
 }
 BeybladeMesh* Beyblade::getMesh() {
     return mesh.get();
@@ -71,7 +71,7 @@ void Beyblade::render(ObjectShader& shader)
 {
     shader.use();
 
-    glm::mat4 model = glm::translate(glm::mat4(1.0f), rigidBody->getCenter().value());
+    glm::mat4 model = glm::translate(glm::mat4(1.0f), body->getCenter().value());
 
     shader.setObjectRenderParams(model, glm::vec3(1.0f));
 
@@ -83,7 +83,7 @@ void Beyblade::update(int layerIndex, int discIndex, int driverIndex) {
     TemplateFormat<Layer> layer = templateLayers[layerIndex];
     TemplateFormat<Disc> disc = templateDiscs[discIndex];
     TemplateFormat<Driver> driver = templateDrivers[driverIndex];
-    rigidBody = make_unique<BeybladeBody>(layer.part, disc.part, driver.part);
+    body = make_unique<BeybladeBody>(layer.part, disc.part, driver.part);
     //mesh = make_unique<BeybladeMesh>(combineMesh(templateLayers[0].modelPath, templateDiscs[0].modelPath, templateDrivers[0].modelPath));
 }
 
@@ -96,41 +96,41 @@ json Beyblade::toJson() const {
     j["isTemplate"] = isTemplate;
 
     // Serialize BeybladeBody
-    if (rigidBody) {
+    if (body) {
         json bodyJson;
 
         // Serialize Layer
         bodyJson["layer"] = {
-            { "radius", rigidBody->layer->radius.value() },
-            { "height", rigidBody->layer->height.value() },
-            { "mass", rigidBody->layer->mass.value() },
-            { "momentOfInertia", rigidBody->layer->momentOfInertia.value() },
-            { "rotationalDragCoefficient", rigidBody->layer->rotationalDragCoefficient.value() },
+            { "radius", body->layer->radius.value() },
+            { "height", body->layer->height.value() },
+            { "mass", body->layer->mass.value() },
+            { "momentOfInertia", body->layer->momentOfInertia.value() },
+            { "rotationalDragCoefficient", body->layer->rotationalDragCoefficient.value() },
             { "recoilDistribution", {
-                { "mean", rigidBody->layer->recoilDistribution.getMean().value() },
-                { "stddev", rigidBody->layer->recoilDistribution.getStdDev().value() }
+                { "mean", body->layer->recoilDistribution.getMean().value() },
+                { "stddev", body->layer->recoilDistribution.getStdDev().value() }
             }},
-            { "coefficientOfRestitution", rigidBody->layer->coefficientOfRestitution.value() }
+            { "coefficientOfRestitution", body->layer->coefficientOfRestitution.value() }
         };
 
         // Serialize Disc
         bodyJson["disc"] = {
-            { "radius", rigidBody->disc->radius.value() },
-            { "height", rigidBody->disc->height.value() },
-            { "mass", rigidBody->disc->mass.value() },
-            { "momentOfInertia", rigidBody->disc->momentOfInertia.value() },
-            { "rotationalDragCoefficient", rigidBody->disc->rotationalDragCoefficient.value() },
+            { "radius", body->disc->radius.value() },
+            { "height", body->disc->height.value() },
+            { "mass", body->disc->mass.value() },
+            { "momentOfInertia", body->disc->momentOfInertia.value() },
+            { "rotationalDragCoefficient", body->disc->rotationalDragCoefficient.value() },
         };
 
         // Serialize Driver
         bodyJson["driver"] = {
-            { "contactRadius", rigidBody->driver->contactRadius.value() },
-            { "upperRadius", rigidBody->driver->upperRadius.value() },
-            { "height", rigidBody->driver->height.value() },
-            { "mass", rigidBody->driver->mass.value() },
-            { "momentOfInertia", rigidBody->driver->momentOfInertia.value() },
-            { "rotationalDragCoefficient", rigidBody->driver->rotationalDragCoefficient.value() },
-            { "coefficientOfFriction", rigidBody->driver->coefficientOfFriction.value() }
+            { "contactRadius", body->driver->contactRadius.value() },
+            { "upperRadius", body->driver->upperRadius.value() },
+            { "height", body->driver->height.value() },
+            { "mass", body->driver->mass.value() },
+            { "momentOfInertia", body->driver->momentOfInertia.value() },
+            { "rotationalDragCoefficient", body->driver->rotationalDragCoefficient.value() },
+            { "coefficientOfFriction", body->driver->coefficientOfFriction.value() }
         };
 
         j["body"] = bodyJson;
@@ -156,46 +156,46 @@ Beyblade Beyblade::fromJson(const nlohmann::json& j) {
     // Deserialize body
     if (j.contains("body")) {
         const auto& bodyJson = j.at("body");
-        auto rigidBody = std::make_unique<BeybladeBody>();
+        auto body = std::make_unique<BeybladeBody>();
 
         // Layer
         if (bodyJson.contains("layer")) {
             const auto& layerJson = bodyJson.at("layer");
-            rigidBody->layer->radius = M(layerJson.at("radius").get<float>());
-            rigidBody->layer->height = M(layerJson.at("height").get<float>());
-            rigidBody->layer->mass = Kg(layerJson.at("mass").get<float>());
-            rigidBody->layer->momentOfInertia = KgM2(layerJson.at("momentOfInertia").get<float>());
+            body->layer->radius = M(layerJson.at("radius").get<float>());
+            body->layer->height = M(layerJson.at("height").get<float>());
+            body->layer->mass = Kg(layerJson.at("mass").get<float>());
+            body->layer->momentOfInertia = KgM2(layerJson.at("momentOfInertia").get<float>());
             const auto& recoilJson = layerJson.at("recoilDistribution");
-            rigidBody->layer->recoilDistribution = RandomDistribution(
+            body->layer->recoilDistribution = RandomDistribution(
                 Scalar(recoilJson.at("mean").get<float>()),
                 Scalar(recoilJson.at("stddev").get<float>())
             );
-            rigidBody->layer->coefficientOfRestitution = Scalar(layerJson.at("coefficientOfRestitution").get<float>());
+            body->layer->coefficientOfRestitution = Scalar(layerJson.at("coefficientOfRestitution").get<float>());
         }
 
         // Disc
         if (bodyJson.contains("disc")) {
             const auto& discJson = bodyJson.at("disc");
-            rigidBody->disc->radius = M(discJson.at("radius").get<float>());
-            rigidBody->disc->height = M(discJson.at("height").get<float>());
-            rigidBody->disc->mass = Kg(discJson.at("mass").get<float>());
-            rigidBody->disc->momentOfInertia = KgM2(discJson.at("momentOfInertia").get<float>());
-            rigidBody->disc->rotationalDragCoefficient = Scalar(discJson.at("rotationalDragCoefficient").get<float>());
+            body->disc->radius = M(discJson.at("radius").get<float>());
+            body->disc->height = M(discJson.at("height").get<float>());
+            body->disc->mass = Kg(discJson.at("mass").get<float>());
+            body->disc->momentOfInertia = KgM2(discJson.at("momentOfInertia").get<float>());
+            body->disc->rotationalDragCoefficient = Scalar(discJson.at("rotationalDragCoefficient").get<float>());
         }
 
         // Driver
         if (bodyJson.contains("driver")) {
             const auto& driverJson = bodyJson.at("driver");
-            rigidBody->driver->contactRadius = M(driverJson.at("contactRadius").get<float>());
-            rigidBody->driver->upperRadius = M(driverJson.at("upperRadius").get<float>());
-            rigidBody->driver->height = M(driverJson.at("height").get<float>());
-            rigidBody->driver->mass = Kg(driverJson.at("mass").get<float>());
-            rigidBody->driver->momentOfInertia = KgM2(driverJson.at("momentOfInertia").get<float>());
-            rigidBody->driver->rotationalDragCoefficient = Scalar(driverJson.at("rotationalDragCoefficient").get<float>());
-            rigidBody->driver->coefficientOfFriction = Scalar(driverJson.at("coefficientOfFriction").get<float>());
+            body->driver->contactRadius = M(driverJson.at("contactRadius").get<float>());
+            body->driver->upperRadius = M(driverJson.at("upperRadius").get<float>());
+            body->driver->height = M(driverJson.at("height").get<float>());
+            body->driver->mass = Kg(driverJson.at("mass").get<float>());
+            body->driver->momentOfInertia = KgM2(driverJson.at("momentOfInertia").get<float>());
+            body->driver->rotationalDragCoefficient = Scalar(driverJson.at("rotationalDragCoefficient").get<float>());
+            body->driver->coefficientOfFriction = Scalar(driverJson.at("coefficientOfFriction").get<float>());
         }
 
-        beyblade.rigidBody = std::move(rigidBody);
+        beyblade.body = std::move(body);
     }
 
     // Deserialize mesh (init() upon instantiation shoul handle most)

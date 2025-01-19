@@ -539,6 +539,10 @@ void GameEngine::framebufferSizeCallback(GLFWwindow* window, int width, int heig
     engine->windowHeight = height;
 
     engine->textRenderer->resize(width, height);
+    if (!engine->stateStack.empty()) {
+        engine->stateStack.back()->onResize(width, height);
+    }
+
 
     glViewport(0, 0, width, height);
     engine->projection = perspective(radians(45.0f), (float)width / height, 0.1f, 100.0f);

@@ -37,29 +37,15 @@ void ActiveState::init()
         physicsWorld->addBeyblade(beyblade.get());
     }
     for (shared_ptr<Beyblade> beyblade : beyblades) {
-        beyblade->getRigidBody()->resetPhysics();
+        beyblade->getBody()->resetPhysics();
     }
-
-
-    // TODO: this should add stadiums dynamically in future, but use default single one for now. Also convert stadiums to uniqe_pre
-    //auto stadium = std::make_unique<Stadium>("Stadium 1");
-    //stadiums.push_back(move(stadium));
-
-    //physicsWorld->resetPhysics();
-
-    //// NEWMESH: Load meshes before bodies so we can get the actual object sizes. Then pass the
-    //// mesh to the BeybladdeBody constructor. remove radius and heigth from these objects, leaving just some physics coefficients.
-
-    //// These might be null for now, quell errors
-    //Beyblade* beyblade1 = game->pm.getActiveProfile()->getBeyblade(1).get();
-    //Beyblade* beyblade2 = game->pm.getActiveProfile()->getBeyblade(2).get();
 
     //// 2024-11-18. Reset various things before [re]starting the game.
     //// TODO: Screen to modify initial conditions (launch location, angle, speed) beforehand so resetPhysics() works
     //beyblades.clear();
 
-    //beyblade1->getRigidBody()->resetPhysics();
-    //beyblade2->getRigidBody()->resetPhysics();
+    //beyblade1->getBody()->resetPhysics();
+    //beyblade2->getBody()->resetPhysics();
 
     //beyblades.push_back(beyblade1);  // TODO: 2024-11-18.  Is the extra vector really necessary?
     //beyblades.push_back(beyblade2);
@@ -69,8 +55,8 @@ void ActiveState::init()
     //}
     //for (Beyblade* beyblade : beyblades) physicsWorld->addBeyblade(beyblade);
 
-    //if(!beyblades.empty()) game->camera->setFollowingBey(beyblades[0]->getRigidBody());
-    //if(!stadiums.empty()) game->camera->setPanningVariables(stadiums[0].get());
+    if(!beyblades.empty()) game->camera->setFollowingBey(beyblades[0]->getBody());
+    if(!stadiums.empty()) game->camera->setPanningVariables(stadiums[0].get());
 }
 
 void ActiveState::cleanup()
@@ -230,7 +216,7 @@ void ActiveState::drawInfoScreen() {
     ImGui::Separator();
 
     for (const shared_ptr<Beyblade>& beyblade : beyblades) {
-        BeybladeBody* beybladeBody = beyblade->getRigidBody();
+        BeybladeBody* beybladeBody = beyblade->getBody();
         if (ImGui::CollapsingHeader(beyblade->getName().data())) {
             ImGui::Text("Velocity");
             vec3 initialVelocity = beybladeBody->getVelocity().value();

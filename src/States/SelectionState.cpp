@@ -263,10 +263,10 @@ void SelectionState::showStadiumOptions() {
 
     // TODO: Keep track of active stadiums
     if (Button("Update Stadium")) {
-        *stadiums[0] = *previewStadium;
+        stadiums[0] = Stadium::assignWithId(*previewStadium, -1);
     }
     if (Button("Undo Changes")) {
-        *previewStadium = *stadiums[0];
+        previewStadium = Stadium::assignWithId(*stadiums[0], -1);
     }
 
 }

@@ -11,6 +11,7 @@
 using namespace std;
 
 Stadium::Stadium(
+    int id,
     const std::string name,
     const glm::vec3& center,
     float radius,
@@ -24,7 +25,7 @@ Stadium::Stadium(
     std::shared_ptr<Texture> texture,
     float textureScale
 )
-    : name(std::move(name)),
+    : id(id), name(name),
     center(Vec3_M(center)),
     radius(M(radius)),
     curvature(Scalar(curvature)),
@@ -41,6 +42,24 @@ Stadium::Stadium(
     updateMesh();
 }
 
+// Returns a unique pointer given an object (COPIES the stadium; original is unaffected)
+std::unique_ptr<Stadium> Stadium::assignWithId(const Stadium& other, const int newId) {
+    return std::make_unique<Stadium>(
+        newId, // Use the new ID
+        other.name,
+        other.center.value(),
+        other.radius.value(),
+        other.curvature.value(),
+        other.coefficientOfFriction.value(),
+        other.verticesPerRing,
+        other.numRings,
+        other.ringColor,
+        other.crossColor,
+        other.tint,
+        other.texture,
+        other.textureScale
+    );
+}
 
 /**
 * Stadium renderer

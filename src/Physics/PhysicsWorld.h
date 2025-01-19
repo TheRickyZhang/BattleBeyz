@@ -36,7 +36,7 @@ public:
         beyblades.clear();
         stadiums.clear();
         currTime = 0.0f;
-        for (auto& bey : beyblades) bey->getRigidBody()->prevCollision = 0.0f;
+        for (auto& bey : beyblades) bey->getBody()->prevCollision = 0.0f;
     };
 
     void update(float deltaTime);

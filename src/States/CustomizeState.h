@@ -9,6 +9,7 @@
 
 class Profile;
 class Beyblade;
+class Stadium;
 
 class CustomizeState : public GameState {
 public:
@@ -19,34 +20,48 @@ public:
 
     void pause() override;
     void resume() override;
-
+    
     void handleEvents() override;
+    void onResize(int width, int height) override;
     void update(float deltaTime) override;
     void draw() override;
+
 
     GameStateType getStateType() const override { return GameStateType::CUSTOMIZE; }
 
 private:
+    float leftTextWidth, rightButton1Width, rightButton2Width;  // Static, initialized in init()
+    float rightButton1X, rightButton2X, dropdownLeftX, dropdownWidth; // Change during onResize();
+
     enum class PopupState {
         NONE,
         NEW_PROFILE,
         NEW_BEYBLADE,
+        NEW_STADIUM,
         DELETE_PROFILE,
-        DELETE_BEYBLADE
+        DELETE_BEYBLADE,
+        DELETE_STADIUM
     };
 
     // Helper Methods
-    void precomputeLayout(float& windowWidth, float& leftTextWidth, float& rightButton1X,
-        float& rightButton2X, float& dropdownLeftX, float& dropdownWidth);
 
-    void initializeData(std::vector<std::shared_ptr<Profile>>& profiles, std::shared_ptr<Profile>& profile,
-        std::vector<std::shared_ptr<Beyblade>>& beyblades, std::shared_ptr<Beyblade>& beyblade);
+    void initializeData(vector<shared_ptr<Profile>>& profiles, shared_ptr<Profile>& profile,
+                        vector<shared_ptr<Beyblade>>& beyblades, shared_ptr<Beyblade>& beyblade,
+                        vector<shared_ptr<Stadium>>& stadiums, shared_ptr<Stadium>& stadium);
 
-    std::shared_ptr<Profile> drawProfileSection(const std::vector<std::shared_ptr<Profile>>& profiles, const std::shared_ptr<Profile>& activeProfile,
-        float dropdownLeftX, float dropdownWidth, float rightButton1X, float rightButton2X);
+    std::shared_ptr<Profile> drawProfileSection(
+        const std::vector<std::shared_ptr<Profile>>& profiles, const std::shared_ptr<Profile>& activeProfile
+    );
 
-    std::shared_ptr<Beyblade> CustomizeState::drawBeybladeSection(const std::vector<std::shared_ptr<Beyblade>>& beyblades, const std::shared_ptr<Beyblade>& activeBeyblade,
-        const std::shared_ptr<Profile>& profile, float dropdownLeftX, float dropdownWidth, float rightButton1X, float rightButton2X);
+    std::shared_ptr<Beyblade> CustomizeState::drawBeybladeSection(
+        const std::vector<std::shared_ptr<Beyblade>>& beyblades, const std::shared_ptr<Beyblade>& activeBeyblade,
+        const std::shared_ptr<Profile>& profile
+    );
+
+    shared_ptr<Stadium> drawStadiumSection(
+        const vector<shared_ptr<Stadium>>& stadiums, const shared_ptr<Stadium>& activeStadium,
+        const shared_ptr<Profile>& profile
+    );
 
     void drawManualCustomizeSection(std::shared_ptr<Beyblade> beyblade);
     void drawTemplateCustomizeSection(std::shared_ptr<Beyblade> beyblade);
@@ -59,8 +74,10 @@ private:
 
     char newProfileName[32] = "";
     char newBeybladeName[32] = "";
+    char newStadiumName[32] = "";
     std::string currentProfileName = "";
     std::string currentBeybladeName = "";
+    std::string currentStadiumName = "";
 
     BeybladeBody* prevbladeBody = nullptr;
     
@@ -70,8 +87,10 @@ private:
     int tempSelectedDisc = -1;
     int tempSelectedDriver = -1;
 
-    // Manual
-    //float tempLayerMass = 0.020f;
-    //float tempLayerMOI = 0.7f * 0.027f * 0.018f * 0.018f;
-    //float tempDriverCOF = 0.22f;
-};
+    // Helper functions
+    template <typename T>
+    std::shared_ptr<T> CustomizeState::drawSection(
+        const std::string& sectionName, const std::string& comboId,
+        const vector<std::shared_ptr<T>>& items, const std::shared_ptr<T>& activeItem,
+        std::function<void(const std::shared_ptr<T>&)> setActiveItem, std::function<std::string(const std::shared_ptr<T>&)> getItemName,
+        std::function<void()> onCreateNew, std::function<void()> onDelete);

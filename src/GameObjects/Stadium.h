@@ -37,6 +37,7 @@ using namespace Units;
 class Stadium : public MeshObject {
 public:
     Stadium(
+        int id = -1,
         const std::string name = StadiumDefaults::name,
         const glm::vec3& center = StadiumDefaults::center,
         float radius = StadiumDefaults::radius,
@@ -50,6 +51,9 @@ public:
         std::shared_ptr<Texture> texture = DefaultTexture(),
         float textureScale = StadiumDefaults::textureScale
     );
+    // Cannot copy because of const id. Use assignWithId instead
+    Stadium& operator=(const Stadium&) = delete;
+    static std::unique_ptr<Stadium> assignWithId(const Stadium& other, const int newId);
 
     virtual void updateMesh() override;
 
@@ -61,6 +65,7 @@ public:
     const Vec3_Scalar getNormal(M x, M z) const;
 
     // Getters (read-only access)
+    int getId() const { return id; }
     std::string getName() const { return name; }
     Vec3_M getCenter() const { return center; }
     const M getRadius() const { return radius; }
@@ -123,6 +128,7 @@ public:
 private:
     // General
     std::string name;
+    const int id;       // -1 is a temporary id. Otherwise, all other ids are 
 
     // Physical values
     Vec3_M center;

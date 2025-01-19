@@ -55,7 +55,7 @@ void PhysicsWorld::update(float deltaTime) {
     * Resolve bey-stadium collisions
     */
     for (Beyblade* beyblade : beyblades) {
-        BeybladeBody* beybladeBody = beyblade->getRigidBody();
+        BeybladeBody* beybladeBody = beyblade->getBody();
         if (beybladeBody->getAngularVelocity().length() < MIN_SPIN_THRESHOLD) {
             MessageLog::getInstance().addMessage("Beyblade " + beyblade->getName() + " ran out of spin", MessageType::NORMAL);
             return;
@@ -92,8 +92,8 @@ void PhysicsWorld::update(float deltaTime) {
     */
     for (size_t i = 0; i < beyblades.size(); ++i) {
         for (size_t j = i + 1; j < beyblades.size(); ++j) {
-            BeybladeBody* bey1 = beyblades[i]->getRigidBody();
-            BeybladeBody* bey2 = beyblades[j]->getRigidBody();
+            BeybladeBody* bey1 = beyblades[i]->getBody();
+            BeybladeBody* bey2 = beyblades[j]->getBody();
             std::optional<M> contactDistance = BeybladeBody::distanceOverlap(bey1, bey2);
 
             // Skip beys with no contact
@@ -117,7 +117,7 @@ void PhysicsWorld::update(float deltaTime) {
     */
 
     for (Beyblade* beyblade : beyblades) {
-        BeybladeBody* beybladeBody = beyblade->getRigidBody();
+        BeybladeBody* beybladeBody = beyblade->getBody();
         beybladeBody->applyAccumulatedChanges(deltaTime);
         beybladeBody->update(deltaTime);
         for (Stadium* stadium : stadiums) {
@@ -140,7 +140,7 @@ void PhysicsWorld::update(float deltaTime) {
 void PhysicsWorld::renderDebug(ObjectShader& shader) const {
     // Render all bounding boxes
     for (Beyblade* beyblade : beyblades) {
-        BeybladeBody* beybladeBody = beyblade->getRigidBody();
+        BeybladeBody* beybladeBody = beyblade->getBody();
         for (int i = 0; i < beybladeBody->boundingBoxes.size() && i < 100; i++) {
             beybladeBody->boundingBoxes[i]->renderDebug(shader, beybladeBody->getCenter().value());
         }

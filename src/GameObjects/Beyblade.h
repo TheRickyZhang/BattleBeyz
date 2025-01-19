@@ -24,8 +24,6 @@ class Beyblade {
 public:
     // Note this beyblade id is GLOBALLY UNIQUE
     Beyblade(int id, const std::string& name, bool isTemplate = false);
-    //Beyblade(int id, std::string name, BeybladeBody* rigidBody, BeybladeMesh* mesh) :
-    //    id(id), name(name), rigidBody(rigidBody), mesh(mesh), isTemplate(true) {}
 
     static Beyblade fromJson(const nlohmann::json& j);
 
@@ -35,7 +33,7 @@ public:
     std::string getName() const;
     void setName(const std::string &newName);
 
-    BeybladeBody *getRigidBody();
+    BeybladeBody *getBody();
     BeybladeMesh *getMesh();
     void setMesh(std::unique_ptr<BeybladeMesh> &newMesh);
 
@@ -52,7 +50,7 @@ protected:
 private:
     const int id; // Globally unique, will be managed by centralized server
     std::string name;
-    std::unique_ptr<BeybladeBody> rigidBody;
+    std::unique_ptr<BeybladeBody> body;
     std::unique_ptr<BeybladeMesh> mesh;
 
     void setTemplateIndices(int layerIndex, int discIndex, int driverIndex);

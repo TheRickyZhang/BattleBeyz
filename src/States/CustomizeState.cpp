@@ -1,8 +1,9 @@
 #include "CustomizeState.h"
 
 //#include "StateIdentifiers.h"
-#include "Beyblade.h"
 #include "BeybladeConstants.h"
+#include "Beyblade.h"
+#include "Stadium.h"
 #include "ProfileManager.h"
 #include "UI.h"
 #include "../lib/ImGuiFileDialog/ImGuiFileDialog.h"
@@ -11,7 +12,13 @@
 using namespace std;
 using namespace ImGui;
 
-void CustomizeState::init() {}
+void CustomizeState::init() {
+    leftTextWidth = max(CalcTextSize("Profile").x, CalcTextSize("Beyblade").x, CalcTextSize("Stadium").x) + frameSpacingX * 2;
+    rightButton2Width = CalcTextSize("Delete##profile").x + frameSpacingX * 2;
+    rightButton1Width = CalcTextSize("Create New").x + frameSpacingX * 2;
+
+    onResize(game->windowWidth, game->windowHeight);
+}
 
 void CustomizeState::cleanup() {}
 
@@ -21,21 +28,22 @@ void CustomizeState::resume() {}
 
 void CustomizeState::handleEvents() {}
 
+void CustomizeState::onResize(int width, int height) {
+    rightButton1X = width - rightButton1Width - rightButton2Width - 2 * spacing;
+    rightButton2X = width - rightButton2Width - spacing;
+    dropdownLeftX = leftTextWidth + spacing;
+    dropdownWidth = rightButton1X - spacing - dropdownLeftX;
+}
+
 void CustomizeState::update(float deltaTime) {}
 
 // Draw Method
 void CustomizeState::draw() {
-    // Precompute layout parameters
-    float windowWidth, leftTextWidth;
-    float rightButton1X, rightButton2X, dropdownLeftX, dropdownWidth;
-    CustomizeState::precomputeLayout(windowWidth, leftTextWidth, rightButton1X, rightButton2X, dropdownLeftX, dropdownWidth);
-
     // Initialize data for rendering
-    vector<shared_ptr<Profile>> profiles;
-    shared_ptr<Profile> profile = nullptr;
-    vector<shared_ptr<Beyblade>> beyblades;
-    shared_ptr<Beyblade> beyblade = nullptr;
-    initializeData(profiles, profile, beyblades, beyblade);
+    vector<shared_ptr<Profile>>  profiles;    shared_ptr<Profile>  profile  = nullptr;
+    vector<shared_ptr<Beyblade>> beyblades;   shared_ptr<Beyblade> beyblade = nullptr;
+    vector<shared_ptr<Stadium>>  stadiums;    shared_ptr<Stadium>  stadium  = nullptr;
+    initializeData(profiles, profile, beyblades, beyblade, stadiums, stadium);
 
     // Cover full screen
     SetWindowPositionAndSize(1, 1, 1, 1);
@@ -55,7 +63,8 @@ void CustomizeState::draw() {
 
     // Draw Beyblade Section if a profile is active
     if (profile) {
-        beyblade = drawBeybladeSection(beyblades, beyblade, profile, dropdownLeftX, dropdownWidth, rightButton1X, rightButton2X);
+        beyblade = drawBeybladeSection(beyblades, beyblade, profile);
+        beyblade = drawStadiumSection(stadiums, stadium, profile);
     }
     SeparatorSpacedThick();
 
@@ -80,135 +89,101 @@ void CustomizeState::draw() {
     End();
 }
 
-// Precompute layout parameters
-void CustomizeState::precomputeLayout(float& windowWidth, float& leftTextWidth, float& rightButton1X,
-    float& rightButton2X, float& dropdownLeftX, float& dropdownWidth) {
-    windowWidth = static_cast<float>(game->windowWidth);
-    leftTextWidth = max(CalcTextSize("Profile").x, CalcTextSize("Beyblade").x) + frameSpacingX * 2;
-    float rightButton2Width = CalcTextSize("Delete##profile").x + frameSpacingX * 2;
-    float rightButton1Width = CalcTextSize("Create New").x + frameSpacingX * 2;
-    rightButton1X = windowWidth - rightButton1Width - rightButton2Width - 2 * spacing;
-    rightButton2X = windowWidth - rightButton2Width - spacing;
-    dropdownLeftX = leftTextWidth + spacing;
-    float dropdownRightEdge = rightButton1X - spacing;
-    dropdownWidth = dropdownRightEdge - dropdownLeftX;
-}
-
 // Initialize data for rendering
 // PERF: This data only needs to be recomputed on initialization or change in dropdown selection. Low priority.
 void CustomizeState::initializeData(vector<shared_ptr<Profile>>& profiles, shared_ptr<Profile>& profile,
-    vector<shared_ptr<Beyblade>>& beyblades, shared_ptr<Beyblade>& beyblade) {
+    vector<shared_ptr<Beyblade>>& beyblades, shared_ptr<Beyblade>& beyblade,
+    vector<shared_ptr<Stadium>>& stadiums, shared_ptr<Stadium>& stadium) {
     profiles = game->pm.getAllProfiles();
     profile = game->pm.getActiveProfile();
     if (profile) {
         beyblades = profile->getAllBeyblades();
+        stadiums = profile->getAllStadiums();
         currentProfileName = profile->getName();
-        if (!beyblades.empty()) {
-            beyblade = profile->getActiveBeyblade();
-            currentBeybladeName = beyblade->getName();
-        }
-        else {
-            currentBeybladeName = "No Beyblade Selected";
-        }
+        beyblade = beyblades.empty() ? nullptr : profile->getActiveBeyblade();
+        stadium = stadiums.empty() ? nullptr : profile->getActiveStadium();
+        currentBeybladeName = beyblade ? beyblade->getName() : "No Beyblade Selected";
+        currentStadiumName = stadium ? stadium->getName() : "No Stadium Selected";
     }
     else {
-        currentProfileName = "No Profile Selected";
+        currentProfileName = "No Profile Selected"; currentBeybladeName = "No Beyblade Selected"; currentStadiumName = "No Stadium Selected";
     }
 }
 
 // Draw Profile Section
-std::shared_ptr<Profile> CustomizeState::drawProfileSection(const vector<shared_ptr<Profile>>& profiles, const shared_ptr<Profile>& activeProfile,
-    float dropdownLeftX, float dropdownWidth, float rightButton1X, float rightButton2X) {
-    // Line 2: [Profile] <{Profile Dropdown}...> [Create New] [Delete]
-    Text("Profile");
-    SameLine();
-    SetCursorPosX(dropdownLeftX);
-    SetNextItemWidth(dropdownWidth);
-    std::shared_ptr<Profile> updatedProfile = activeProfile;
-    if (BeginCombo("##ProfileCombo", currentProfileName.c_str())) {
-        for (const auto& profile : profiles) {
-            bool isSelected = (activeProfile == profile);
-            if (Selectable(profile->getName().c_str(), isSelected)) {
-                game->pm.setActiveProfile(profile->getId());
-                updatedProfile = profile;
-                currentProfileName = profile->getName();
-                prevbladeBody = nullptr;  // Refresh beyblade data on next draw
-            }
-            if (isSelected) {
-                SetItemDefaultFocus();
-            }
-        }
-        EndCombo();
-    }
+std::shared_ptr<Profile> CustomizeState::drawProfileSection(
+    const vector<std::shared_ptr<Profile>>& profiles,
+    const std::shared_ptr<Profile>& activeProfile) {
 
-    // Create New Profile Button
-    SameLine();
-    SetCursorPosX(rightButton1X);
-    if (Button("Create New##profile")) {
-        currentPopup = PopupState::NEW_PROFILE;
-        OpenPopup("New Profile");
-    }
-
-    // Delete Profile Button
-    if (updatedProfile) {
-        SameLine();
-        SetCursorPosX(rightButton2X);
-        if (Button("Delete##profile")) {
+    return drawSection<Profile>(
+        "Profile", "##ProfileCombo", profiles, activeProfile,
+        [&](const std::shared_ptr<Profile>& profile) { game->pm.setActiveProfile(profile->getId()); },
+        [](const std::shared_ptr<Profile>& profile) { return profile->getName(); },
+        [&]() {
+            currentPopup = PopupState::NEW_PROFILE;
+            OpenPopup("New Profile");
+        },
+        [&]() {
             currentPopup = PopupState::DELETE_PROFILE;
             OpenPopup("Confirm Profile Deletion");
         }
-    }
-    return updatedProfile; // Return update to assign while not controlling global state
+    );
 }
 
+
 // Draw Beyblade Section
-shared_ptr<Beyblade> CustomizeState::drawBeybladeSection(const vector<shared_ptr<Beyblade>>& beyblades, const shared_ptr<Beyblade>& activeBeyblade,
-    const shared_ptr<Profile>& profile, float dropdownLeftX, float dropdownWidth, float rightButton1X, float rightButton2X) {
-    // Line 3: [Beyblade] <{Beyblade Dropdown}...> [Create New] [Delete]
-    Text("Beyblade");
-    SameLine();
-    SetCursorPosX(dropdownLeftX);
-    SetNextItemWidth(dropdownWidth);
-    shared_ptr<Beyblade> updatedBeyblade = activeBeyblade;
-    if (BeginCombo("##BeybladeCombo", currentBeybladeName.c_str())) {
-        for (const auto& beyblade : beyblades) {
-            bool isSelected = (beyblade == activeBeyblade);
-            if (Selectable(beyblade->getName().c_str(), isSelected)) {
-                updatedBeyblade = beyblade;
-                profile->setActiveBeyblade(beyblade->getId());
-                currentBeybladeName = beyblade->getName();
-            }
-            if (isSelected) {
-                SetItemDefaultFocus();
-            }
-        }
-        EndCombo();
-    }
+std::shared_ptr<Beyblade> CustomizeState::drawBeybladeSection(
+    const vector<std::shared_ptr<Beyblade>>& beyblades,
+    const std::shared_ptr<Beyblade>& activeBeyblade,
+    const std::shared_ptr<Profile>& profile) {
 
-    // Create New Beyblade Button
-    SameLine();
-    SetCursorPosX(rightButton1X);
-    if (Button("Create New##blade")) {
-        currentPopup = PopupState::NEW_BEYBLADE;
-        OpenPopup("New Beyblade");
-    }
-
-    // Delete Beyblade Button
-    if (updatedBeyblade) {
-        SameLine();
-        SetCursorPosX(rightButton2X);
-        if (Button("Delete##blade")) {
+    return drawSection<Beyblade>(
+        "Beyblade", "##BeybladeCombo", beyblades, activeBeyblade,
+        [&](const std::shared_ptr<Beyblade>& beyblade) {
+            profile->setActiveBeyblade(beyblade->getId());
+            currentBeybladeName = beyblade->getName();
+        },
+        [](const std::shared_ptr<Beyblade>& beyblade) { return beyblade->getName(); },
+        [&]() {
+            currentPopup = PopupState::NEW_BEYBLADE;
+            OpenPopup("New Beyblade");
+        },
+        [&]() {
             currentPopup = PopupState::DELETE_BEYBLADE;
             OpenPopup("Confirm Beyblade Deletion");
         }
-    }
-    return updatedBeyblade;
+    );
 }
+
+std::shared_ptr<Stadium> CustomizeState::drawStadiumSection(
+    const vector<std::shared_ptr<Stadium>>& stadiums,
+    const std::shared_ptr<Stadium>& activeStadium,
+    const std::shared_ptr<Profile>& profile) {
+
+    return drawSection<Stadium>(
+        "Stadium", "##StadiumCombo", stadiums, activeStadium,
+        [&](const std::shared_ptr<Stadium>& stadium) {
+            profile->setActiveStadium(stadium->getId());
+            currentStadiumName = stadium->getName();
+        },
+        [](const std::shared_ptr<Stadium>& stadium) { return stadium->getName(); },
+        [&]() {
+            currentPopup = PopupState::NEW_STADIUM;
+            OpenPopup("New Stadium");
+        },
+        [&]() {
+            currentPopup = PopupState::DELETE_STADIUM;
+            OpenPopup("Confirm Stadium Deletion");
+        }
+    );
+}
+
+
 
 // Line 4: Customize Your Beyblade || No Beyblades To Customize || Current Beyblade Not Selected
 void CustomizeState::drawManualCustomizeSection(shared_ptr<Beyblade> beyblade) {
     // We assume from prior checks that beybladeBody is never nullptr here
-    BeybladeBody* beybladeBody = beyblade->getRigidBody();
+    BeybladeBody* beybladeBody = beyblade->getBody();
 
     Text("Customize Your Beyblade");
     // Update temporary variables if beyblade has changed
@@ -487,4 +462,55 @@ void CustomizeState::drawPopups(const shared_ptr<Profile>& profile, const shared
         }
         EndPopup();
     }
+}
+
+
+
+
+
+template <typename T>
+std::shared_ptr<T> CustomizeState::drawSection(const std::string& sectionName, const std::string& comboId,
+    const vector<std::shared_ptr<T>>& items, const std::shared_ptr<T>& activeItem,
+    std::function<void(const std::shared_ptr<T>&)> setActiveItem, std::function<std::string(const std::shared_ptr<T>&)> getItemName,
+    std::function<void()> onCreateNew, std::function<void()> onDelete) {
+
+    std::shared_ptr<T> updatedItem = activeItem;
+
+    // Text label for the section
+    Text(sectionName.c_str());
+    SameLine();
+    SetCursorPosX(dropdownLeftX);    // Use class member
+    SetNextItemWidth(dropdownWidth); // Use class member
+
+    if (BeginCombo(comboId.c_str(), activeItem ? getItemName(activeItem).c_str() : "None")) {
+        for (const auto& item : items) {
+            bool isSelected = (item == activeItem);
+            if (Selectable(getItemName(item).c_str(), isSelected)) {
+                updatedItem = item;
+                setActiveItem(item);
+            }
+            if (isSelected) {
+                SetItemDefaultFocus();
+            }
+        }
+        EndCombo();
+    }
+
+    // Create New Button
+    SameLine();
+    SetCursorPosX(rightButton1X); // Use class member
+    if (Button(("Create New##" + sectionName).c_str())) {
+        onCreateNew();
+    }
+
+    // Delete Button
+    if (updatedItem) {
+        SameLine();
+        SetCursorPosX(rightButton2X); // Use class member
+        if (Button(("Delete##" + sectionName).c_str())) {
+            onDelete();
+        }
+    }
+
+    return updatedItem;
 }
