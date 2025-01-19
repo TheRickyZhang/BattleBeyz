@@ -120,6 +120,8 @@ void ActiveState::handleEvents() {
     }
 }
 
+void ActiveState::onResize(int width, int height) {}
+
 void ActiveState::update(float deltaTime) {
     game->physicsWorld->update(deltaTime);
 }

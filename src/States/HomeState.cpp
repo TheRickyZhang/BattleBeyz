@@ -26,6 +26,7 @@ void HomeState::resume() {}
 void HomeState::handleEvents() {
     // Handle input for home state
 }
+void HomeState::onResize(int width, int height) {}
 
 void HomeState::update(float deltaTime) {}
 

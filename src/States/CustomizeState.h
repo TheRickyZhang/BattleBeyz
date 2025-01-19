@@ -3,6 +3,7 @@
 #include <vector>
 #include <memory>
 #include <string>
+#include <functional>
 
 #include "GameState.h"
 #include "BeybladeBody.h"
@@ -20,7 +21,7 @@ public:
 
     void pause() override;
     void resume() override;
-    
+
     void handleEvents() override;
     void onResize(int width, int height) override;
     void update(float deltaTime) override;
@@ -45,9 +46,9 @@ private:
 
     // Helper Methods
 
-    void initializeData(vector<shared_ptr<Profile>>& profiles, shared_ptr<Profile>& profile,
-                        vector<shared_ptr<Beyblade>>& beyblades, shared_ptr<Beyblade>& beyblade,
-                        vector<shared_ptr<Stadium>>& stadiums, shared_ptr<Stadium>& stadium);
+    void initializeData(std::vector<std::shared_ptr<Profile>>& profiles, std::shared_ptr<Profile>& profile,
+        std::vector<std::shared_ptr<Beyblade>>& beyblades, std::shared_ptr<Beyblade>& beyblade,
+        std::vector<std::shared_ptr<Stadium>>& stadiums, std::shared_ptr<Stadium>& stadium);
 
     std::shared_ptr<Profile> drawProfileSection(
         const std::vector<std::shared_ptr<Profile>>& profiles, const std::shared_ptr<Profile>& activeProfile
@@ -58,9 +59,9 @@ private:
         const std::shared_ptr<Profile>& profile
     );
 
-    shared_ptr<Stadium> drawStadiumSection(
-        const vector<shared_ptr<Stadium>>& stadiums, const shared_ptr<Stadium>& activeStadium,
-        const shared_ptr<Profile>& profile
+    std::shared_ptr<Stadium> drawStadiumSection(
+        const std::vector<std::shared_ptr<Stadium>>& stadiums, const std::shared_ptr<Stadium>& activeStadium,
+        const std::shared_ptr<Profile>& profile
     );
 
     void drawManualCustomizeSection(std::shared_ptr<Beyblade> beyblade);
@@ -80,7 +81,7 @@ private:
     std::string currentStadiumName = "";
 
     BeybladeBody* prevbladeBody = nullptr;
-    
+
     // Temporary variables to edit with
     // Templated
     int tempSelectedLayer = -1;
@@ -88,9 +89,53 @@ private:
     int tempSelectedDriver = -1;
 
     // Helper functions
+
+
+    // Note: Must be in header file if using templates!
     template <typename T>
-    std::shared_ptr<T> CustomizeState::drawSection(
-        const std::string& sectionName, const std::string& comboId,
-        const vector<std::shared_ptr<T>>& items, const std::shared_ptr<T>& activeItem,
+    std::shared_ptr<T> drawSection(const std::string& sectionName, const std::string& comboId,
+        const std::vector<std::shared_ptr<T>>& items, const std::shared_ptr<T>& activeItem,
         std::function<void(const std::shared_ptr<T>&)> setActiveItem, std::function<std::string(const std::shared_ptr<T>&)> getItemName,
-        std::function<void()> onCreateNew, std::function<void()> onDelete);
+        std::function<void()> onCreateNew, std::function<void()> onDelete) {
+
+        std::shared_ptr<T> updatedItem = activeItem;
+
+        // Text label for the section
+        Text(sectionName.c_str());
+        SameLine();
+        SetCursorPosX(dropdownLeftX);    // Use class member
+        SetNextItemWidth(dropdownWidth); // Use class member
+
+        if (BeginCombo(comboId.c_str(), activeItem ? getItemName(activeItem).c_str() : "None")) {
+            for (const auto& item : items) {
+                bool isSelected = (item == activeItem);
+                if (Selectable(getItemName(item).c_str(), isSelected)) {
+                    updatedItem = item;
+                    setActiveItem(item);
+                }
+                if (isSelected) {
+                    SetItemDefaultFocus();
+                }
+            }
+            EndCombo();
+        }
+
+        // Create New Button
+        SameLine();
+        SetCursorPosX(rightButton1X); // Use class member
+        if (Button(("Create New##" + sectionName).c_str())) {
+            onCreateNew();
+        }
+
+        // Delete Button
+        if (updatedItem) {
+            SameLine();
+            SetCursorPosX(rightButton2X); // Use class member
+            if (Button(("Delete##" + sectionName).c_str())) {
+                onDelete();
+            }
+        }
+
+        return updatedItem;
+    }
+};

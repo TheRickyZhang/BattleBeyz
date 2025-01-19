@@ -1,6 +1,6 @@
 #include "CustomizeState.h"
 
-//#include "StateIdentifiers.h"
+#include "StateIdentifiers.h"
 #include "BeybladeConstants.h"
 #include "Beyblade.h"
 #include "Stadium.h"
@@ -13,7 +13,7 @@ using namespace std;
 using namespace ImGui;
 
 void CustomizeState::init() {
-    leftTextWidth = max(CalcTextSize("Profile").x, CalcTextSize("Beyblade").x, CalcTextSize("Stadium").x) + frameSpacingX * 2;
+    leftTextWidth = std::max({ CalcTextSize("Profile").x, CalcTextSize("Beyblade").x, CalcTextSize("Stadium").x }) + frameSpacingX * 2;
     rightButton2Width = CalcTextSize("Delete##profile").x + frameSpacingX * 2;
     rightButton1Width = CalcTextSize("Create New").x + frameSpacingX * 2;
 
@@ -40,9 +40,9 @@ void CustomizeState::update(float deltaTime) {}
 // Draw Method
 void CustomizeState::draw() {
     // Initialize data for rendering
-    vector<shared_ptr<Profile>>  profiles;    shared_ptr<Profile>  profile  = nullptr;
+    vector<shared_ptr<Profile>>  profiles;    shared_ptr<Profile>  profile = nullptr;
     vector<shared_ptr<Beyblade>> beyblades;   shared_ptr<Beyblade> beyblade = nullptr;
-    vector<shared_ptr<Stadium>>  stadiums;    shared_ptr<Stadium>  stadium  = nullptr;
+    vector<shared_ptr<Stadium>>  stadiums;    shared_ptr<Stadium>  stadium = nullptr;
     initializeData(profiles, profile, beyblades, beyblade, stadiums, stadium);
 
     // Cover full screen
@@ -59,12 +59,12 @@ void CustomizeState::draw() {
     }
 
     // Draw Profile Section
-    profile = drawProfileSection(profiles, profile, dropdownLeftX, dropdownWidth, rightButton1X, rightButton2X);
+    profile = drawProfileSection(profiles, profile);
 
     // Draw Beyblade Section if a profile is active
     if (profile) {
         beyblade = drawBeybladeSection(beyblades, beyblade, profile);
-        beyblade = drawStadiumSection(stadiums, stadium, profile);
+        stadium = drawStadiumSection(stadiums, stadium, profile);
     }
     SeparatorSpacedThick();
 
@@ -464,53 +464,3 @@ void CustomizeState::drawPopups(const shared_ptr<Profile>& profile, const shared
     }
 }
 
-
-
-
-
-template <typename T>
-std::shared_ptr<T> CustomizeState::drawSection(const std::string& sectionName, const std::string& comboId,
-    const vector<std::shared_ptr<T>>& items, const std::shared_ptr<T>& activeItem,
-    std::function<void(const std::shared_ptr<T>&)> setActiveItem, std::function<std::string(const std::shared_ptr<T>&)> getItemName,
-    std::function<void()> onCreateNew, std::function<void()> onDelete) {
-
-    std::shared_ptr<T> updatedItem = activeItem;
-
-    // Text label for the section
-    Text(sectionName.c_str());
-    SameLine();
-    SetCursorPosX(dropdownLeftX);    // Use class member
-    SetNextItemWidth(dropdownWidth); // Use class member
-
-    if (BeginCombo(comboId.c_str(), activeItem ? getItemName(activeItem).c_str() : "None")) {
-        for (const auto& item : items) {
-            bool isSelected = (item == activeItem);
-            if (Selectable(getItemName(item).c_str(), isSelected)) {
-                updatedItem = item;
-                setActiveItem(item);
-            }
-            if (isSelected) {
-                SetItemDefaultFocus();
-            }
-        }
-        EndCombo();
-    }
-
-    // Create New Button
-    SameLine();
-    SetCursorPosX(rightButton1X); // Use class member
-    if (Button(("Create New##" + sectionName).c_str())) {
-        onCreateNew();
-    }
-
-    // Delete Button
-    if (updatedItem) {
-        SameLine();
-        SetCursorPosX(rightButton2X); // Use class member
-        if (Button(("Delete##" + sectionName).c_str())) {
-            onDelete();
-        }
-    }
-
-    return updatedItem;
-}

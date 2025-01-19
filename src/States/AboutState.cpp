@@ -15,6 +15,7 @@ void AboutState::cleanup() {}
 void AboutState::pause() {}
 void AboutState::resume() {}
 void AboutState::handleEvents() {}
+void AboutState::onResize(int width, int height) {}
 void AboutState::update(float deltaTime) {}
 
 void AboutState::draw() {

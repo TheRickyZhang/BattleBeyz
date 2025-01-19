@@ -17,6 +17,8 @@ public:
     void resume() override;
 
     void handleEvents() override;
+    void onResize(int width, int height) override;
+
     void update(float deltaTime) override;
     void draw() override;
 

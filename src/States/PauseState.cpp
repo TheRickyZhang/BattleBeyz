@@ -15,6 +15,8 @@ void PauseState::handleEvents() {
     }
 }
 
+void PauseState::onResize(int width, int height) {}
+
 void PauseState::update(float deltaTime) {}
 
 void PauseState::draw() {

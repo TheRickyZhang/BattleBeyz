@@ -64,6 +64,8 @@ void SelectionState::handleEvents() {
     if (IsKeyPressed(ImGuiKey_D)) camera->processKeyboard(Action::MoveRight, game->deltaTime);
 }
 
+void SelectionState::onResize(int width, int height) {}
+
 void SelectionState::update(float deltaTime) {
     camera->update(deltaTime);
 

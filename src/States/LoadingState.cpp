@@ -49,6 +49,7 @@ void LoadingState::cleanup() {
 void LoadingState::pause() {}
 void LoadingState::resume() {}
 void LoadingState::handleEvents() {}
+void LoadingState::onResize(int width, int height) {}
 
 void LoadingState::update(float deltaTime) {
     if (completed) {

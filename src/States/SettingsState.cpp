@@ -11,6 +11,7 @@ void SettingsState::cleanup() {}
 void SettingsState::pause() {}
 void SettingsState::resume() {}
 void SettingsState::handleEvents() {}
+void SettingsState::onResize(int width, int height) {}
 void SettingsState::update(float deltaTime) {}
 
 void SettingsState::draw() {
