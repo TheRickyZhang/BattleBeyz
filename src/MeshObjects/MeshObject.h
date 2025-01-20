@@ -25,6 +25,7 @@ public:
     void setModelMatrix(const glm::mat4& newModel);
     const glm::mat4& getModelMatrix() const;
 
+    glm::vec3 getTint() const { return tint; }
     void setTint(const glm::vec3& newTint);
     //void setTextureScale(const glm::vec2& scale);
     //const glm::vec2& getTextureScale() const;

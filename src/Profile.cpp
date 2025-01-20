@@ -184,7 +184,7 @@ bool Profile::setActiveStadium(int stadiumId)
 {
     auto it = getStadiumIterator(stadiumId);
     if (it != stadiumsOwned.end()) {
-        activeBeybladeId = stadiumId;
+        activeStadiumId = stadiumId;
         return true;
     }
     return false;
@@ -199,7 +199,7 @@ std::shared_ptr<Stadium> Profile::getActiveStadium() const
     if (!activeStadiumId.has_value()) {
         return nullptr;
     }
-    auto it = getStadiumIterator(activeBeybladeId.value());
+    auto it = getStadiumIterator(activeStadiumId.value());
     if (it != stadiumsOwned.end()) {
         return *it;
     }
@@ -229,6 +229,8 @@ bool Profile::addBeyblade(shared_ptr<Beyblade> beyblade) {
         return false;
     }
     beybladesOwned.push_back(beyblade);
+
+    // Set the first beyblade as active by default
     if (!activeBeybladeId.has_value()) {
         activeBeybladeId = beyblade->getId();
     }
@@ -244,10 +246,18 @@ vector<shared_ptr<Beyblade>>::const_iterator Profile::getBeybladeIterator(int be
 
 
 bool Profile::addStadium(shared_ptr<Stadium> stadium) {
-    if (getStadiumIterator(stadium->getId()) != stadiumsOwned.end() ||
-        stadiumsOwned.size() >= MAX_STADIUMS_PER_PROFILE) return false;
-
+    if (getStadiumIterator(stadium->getId()) != stadiumsOwned.end()) {
+        return false;
+    }
+    if (stadiumsOwned.size() >= MAX_STADIUMS_PER_PROFILE) {
+        return false;
+    }
     stadiumsOwned.push_back(stadium);
+
+    // Set the first stadium as active by default
+    if (!activeStadiumId.has_value()) {
+        activeStadiumId = stadium->getId();
+    }
     return true;
 }
 

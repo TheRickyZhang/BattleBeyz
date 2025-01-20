@@ -184,6 +184,18 @@ float getMaxWidth(const vector<string>& text) {
     return maxWidth + 20.0f;  // Padding
 }
 
+bool SliderIntDiscrete(const char* label, int* value, int minVal, int maxVal, int step) {
+    *value = std::clamp(*value, minVal, maxVal);
+    if ((*value - minVal) % step != 0) {
+        *value = minVal + ((*value - minVal) / step) * step;
+    }
+    bool modified = ImGui::SliderInt(label, value, minVal, maxVal, "%d");
+    if (modified) {
+        *value = minVal + ((*value - minVal + step / 2) / step) * step;
+    }
+    return modified;
+}
+
 
 /*
 Since we want to center text in a window, almost always do auto [windowCenterX, wrapWidth] = SetWindowPositionAndSize(...) for 
@@ -239,5 +251,3 @@ void SeparatorSpacedThick(float space, float thickness, const ImVec4& color) {
     );
     Dummy(ImVec2(0, space));
 }
-
-

@@ -60,6 +60,7 @@ public:
     const std::vector<std::shared_ptr<Stadium>>& getAllStadiums() const;
     std::shared_ptr<Stadium> getActiveStadium() const;  // Thread-safe for retrieval process, but the returned pointer is not thread-safe
 
+    std::optional<int> activeStadiumId;
 private:
     mutable std::mutex mtx;
 
@@ -68,7 +69,6 @@ private:
     std::vector<std::shared_ptr<Beyblade>> beybladesOwned{};   // List of Beyblades owned by the profile
     std::vector<std::shared_ptr<Stadium>> stadiumsOwned{};     // Stadiums owned by the profile
     std::optional<int> activeBeybladeId;
-    std::optional<int> activeStadiumId;
     std::string name{};
 
     // IDs start from 1

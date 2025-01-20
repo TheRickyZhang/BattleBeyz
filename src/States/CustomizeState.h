@@ -5,8 +5,11 @@
 #include <string>
 #include <functional>
 
+#include "DefaultValues.h"
+
 #include "GameState.h"
 #include "BeybladeBody.h"
+#include "StadiumPreview.h"
 
 class Profile;
 class Beyblade;
@@ -89,6 +92,17 @@ private:
     int tempSelectedDriver = -1;
 
     // Stadium
+    std::unique_ptr<StadiumPreview> stadiumPreview;
+
+    float tempRadius = StadiumDefaults::radius;
+    glm::vec3 tempCenter = StadiumDefaults::center;
+    float tempCurvature = StadiumDefaults::curvature;
+    float tempFriction = StadiumDefaults::COF;
+    int tempVerticesPerRing = StadiumDefaults::verticesPerRing;
+    int tempNumRings = StadiumDefaults::numRings;
+    glm::vec3 tempTint = StadiumDefaults::tint;
+    glm::vec3 tempRingColor = StadiumDefaults::ringColor;
+    glm::vec3 tempCrossColor = StadiumDefaults::crossColor;
 
     // Helper functions
 

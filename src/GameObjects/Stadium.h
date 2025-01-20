@@ -52,9 +52,26 @@ public:
         std::shared_ptr<Texture> texture = DefaultTexture(),
         float textureScale = StadiumDefaults::textureScale
     );
-    // Cannot copy because of const id. Use assignWithId instead
-    Stadium& operator=(const Stadium&) = delete;
-    static std::unique_ptr<Stadium> assignWithId(const Stadium& other, const int newId);
+    Stadium& Stadium::operator=(const Stadium& other) {
+        if (this != &other) {
+            this->id = -1; // Set to temporary. MUST set ID for no global conflicts
+
+            this->name = other.name;
+            this->center = other.center;
+            this->radius = other.radius;
+            this->curvature = other.curvature;
+            this->scaledCurvature = other.scaledCurvature;
+            this->coefficientOfFriction = other.coefficientOfFriction;
+            this->verticesPerRing = other.verticesPerRing;
+            this->numRings = other.numRings;
+            this->ringColor = other.ringColor;
+            this->crossColor = other.crossColor;
+            this->textureScale = other.textureScale;
+            this->texture = other.texture;  // Copy with shared ownership
+            this->meshChanged = other.meshChanged;
+        }
+        return *this;
+    }
 
     nlohmann::json toJson() const;
     static Stadium fromJson(const nlohmann::json& j);
@@ -132,7 +149,7 @@ public:
 private:
     // General
     std::string name;
-    const int id;       // -1 is a temporary id. Otherwise, all other ids are 
+    int id;       // -1 is a temporary id. Otherwise, all other ids are 
 
     // Physical values
     Vec3_M center;

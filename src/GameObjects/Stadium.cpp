@@ -44,25 +44,6 @@ Stadium::Stadium(
     updateMesh();
 }
 
-// Returns a unique pointer given an object (COPIES the stadium; original is unaffected)
-unique_ptr<Stadium> Stadium::assignWithId(const Stadium& other, const int newId) {
-    return make_unique<Stadium>(
-        newId, // Use the new ID
-        other.name,
-        other.center.value(),
-        other.radius.value(),
-        other.curvature.value(),
-        other.coefficientOfFriction.value(),
-        other.verticesPerRing,
-        other.numRings,
-        other.ringColor,
-        other.crossColor,
-        other.tint,
-        other.texture,
-        other.textureScale
-    );
-}
-
 // Serialize Stadium to JSON
 json Stadium::toJson() const {
     json j;

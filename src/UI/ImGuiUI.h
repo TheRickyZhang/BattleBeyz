@@ -48,6 +48,9 @@ void centerColoredText(float windowCenterX, const ImVec4& color, const char* tex
 void SeparatorSpaced(float space = 10.0f);
 void SeparatorSpacedThick(float space = 10.0f, float thickness = 5.0f, const ImVec4& color = ImGui::GetStyleColorVec4(ImGuiCol_Separator));
 
+// Sliders
+bool SliderIntDiscrete(const char* label, int* value, int minVal, int maxVal, int step);
+
 // Bulk Utility for specialized drawing
 float getMaxWidth(const std::vector<std::string>& text);                        // Returns the max width of any singular string for alignment
 void DrawDiscreteFloatControl(const char* parameterText, float maxTextSize,     // Render a connected slider/input for convenient editing of stats

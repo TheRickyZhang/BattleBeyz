@@ -87,7 +87,35 @@
                 "isMuted": false,
                 "resolutionIndex": 1,
                 "volume": 0.5
-            }
+            },
+            "stadiums": [
+                {
+                    "center": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ],
+                    "coefficientOfFriction": 0.3499999940395355,
+                    "crossColor": [
+                        0.0,
+                        0.0,
+                        1.0
+                    ],
+                    "curvature": 0.10000000149011612,
+                    "id": 0,
+                    "name": "Test",
+                    "numRings": 8,
+                    "radius": 1.2000000476837158,
+                    "ringColor": [
+                        1.0,
+                        0.0,
+                        0.0
+                    ],
+                    "texture": "./assets/textures/missing.jpg",
+                    "textureScale": 1.0,
+                    "verticesPerRing": 64
+                }
+            ]
         },
         {
             "id": 2,

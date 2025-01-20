@@ -8,6 +8,7 @@
 #include "ImGuiUI.h"
 #include "../lib/ImGuiFileDialog/ImGuiFileDialog.h"
 #include "../lib/ImGuiFileDialog/ImGuiFileDialogConfig.h"
+#include <glm/gtc/type_ptr.hpp>
 
 using namespace std;
 using namespace ImGui;
@@ -16,6 +17,8 @@ void CustomizeState::init() {
     leftTextWidth = std::max({ CalcTextSize("Profile").x, CalcTextSize("Beyblade").x, CalcTextSize("Stadium").x }) + frameSpacingX * 2;
     rightButton2Width = CalcTextSize("Delete##profile").x + frameSpacingX * 2;
     rightButton1Width = CalcTextSize("Create New").x + frameSpacingX * 2;
+
+    stadiumPreview = std::make_unique<StadiumPreview>(300, 300, game->physicsWorld, game->objectShader);
 
     onResize(game->windowWidth, game->windowHeight);
 }
@@ -26,7 +29,11 @@ void CustomizeState::pause() {}
 
 void CustomizeState::resume() {}
 
-void CustomizeState::handleEvents() {}
+void CustomizeState::handleEvents() {
+    if (stadiumPreview) {
+        stadiumPreview->handleInput(game->deltaTime);
+    }
+}
 
 // TODO: use onResize() in other states
 void CustomizeState::onResize(int width, int height) {
@@ -36,7 +43,9 @@ void CustomizeState::onResize(int width, int height) {
     dropdownWidth = rightButton1X - spacing - dropdownLeftX;
 }
 
-void CustomizeState::update(float deltaTime) {}
+void CustomizeState::update(float deltaTime) {
+    stadiumPreview->update(deltaTime, game->currTime);
+}
 
 // Draw Method
 void CustomizeState::draw() {
@@ -364,10 +373,87 @@ void CustomizeState::drawTemplateCustomizeSection(shared_ptr<Beyblade> beyblade)
     }
 }
 
-void CustomizeState::drawStadiumCustomizeSection(std::shared_ptr<Stadium> stadium)
-{
+void CustomizeState::drawStadiumCustomizeSection(std::shared_ptr<Stadium> stadium) {
+    Text("Stadium and Physics");
+    Separator();
 
+    if (!stadium) {
+        Text("No stadium selected!");
+        return;
+    }
+
+    Columns(2, nullptr, false);
+    BeginChild("StadiumPreview", ImVec2(0, 0), true);
+    {
+        Text("Preview:");
+        if (stadiumPreview) {
+            stadiumPreview->draw();
+        }
+    }
+    EndChild();
+
+    NextColumn();
+
+    BeginChild("StadiumSettings", ImVec2(0, 0), true);
+    {
+        Text("Settings:");
+        // Access the stadium from the preview
+        shared_ptr<Stadium> st = stadiumPreview->getStadium();
+        if (!st) return; // Safety
+
+        // Sliders to modify the stadium in real time
+        if (SliderFloat("Radius (m)", &tempRadius, StadiumDefaults::radiusMin, StadiumDefaults::radiusMax)) {
+            st->setRadius(tempRadius);
+        }
+        if (SliderFloat3("Center (x,y,z)", glm::value_ptr(tempCenter),
+            *glm::value_ptr(StadiumDefaults::centerMin),
+            *glm::value_ptr(StadiumDefaults::centerMax))) {
+            st->setCenter(tempCenter);
+        }
+        if (SliderFloat("Curvature", &tempCurvature, StadiumDefaults::curvatureMin, StadiumDefaults::curvatureMax)) {
+            st->setCurvature(tempCurvature);
+        }
+        if (SliderFloat("Friction", &tempFriction, StadiumDefaults::COFMin, StadiumDefaults::COFMax)) {
+            st->setFriction(tempFriction);
+        }
+        if (SliderIntDiscrete("Vertices per Ring", &tempVerticesPerRing,
+            StadiumDefaults::verticesPerRingMin,
+            StadiumDefaults::verticesPerRingMax,
+            4))
+        {
+            st->setVerticesPerRing(tempVerticesPerRing);
+        }
+        if (SliderIntDiscrete("Number of Rings", &tempNumRings,
+            StadiumDefaults::numRingsMin,
+            StadiumDefaults::numRingsMax,
+            4))
+        {
+            st->setNumRings(tempNumRings);
+        }
+        if (SliderFloat3("Overall Color", glm::value_ptr(tempTint), 0.f, 1.f, "Color: %.2f")) {
+            st->setTint(tempTint);
+        }
+        if (SliderFloat3("Ring Color", glm::value_ptr(tempRingColor), 0.f, 1.f, "Color: %.2f")) {
+            st->setRingColor(tempRingColor);
+        }
+        if (SliderFloat3("Cross Color", glm::value_ptr(tempCrossColor), 0.f, 1.f, "Color: %.2f")) {
+            st->setCrossColor(tempCrossColor);
+        }
+
+        // Example "Apply" or "Revert" logic
+        if (Button("Update Stadium")) {
+            *stadium.get() = *st.get();
+        }
+        SameLine();
+        if (Button("Undo Changes")) {
+            *st.get() = *stadium.get();
+        }
+    }
+    EndChild();
+
+    Columns(1);
 }
+
 
 // NOTE: Since drawPopups is the last thing called in draw(), no need to update value of beyblade and profile
 void CustomizeState::drawPopups(const shared_ptr<Profile>& profile, const shared_ptr<Beyblade>& beyblade, const shared_ptr<Stadium>& stadium) {
