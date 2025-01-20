@@ -12,7 +12,7 @@
 #include <filesystem>
 #include <iostream>
 
-#include "UI.h"
+#include "ImGuiUI.h"
 #include "Utils.h"
 
 using namespace std;
@@ -239,4 +239,5 @@ void SeparatorSpacedThick(float space, float thickness, const ImVec4& color) {
     );
     Dummy(ImVec2(0, space));
 }
+
 

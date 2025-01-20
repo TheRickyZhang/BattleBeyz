@@ -1,7 +1,7 @@
 #include "SettingsState.h"
 #include "GameEngine.h"
 #include "StateIdentifiers.h"
-#include "UI.h"
+#include "ImGuiUI.h"
 
 using namespace ImGui;
 using namespace std;

@@ -5,7 +5,7 @@
 #include "Beyblade.h"
 #include "Stadium.h"
 #include "ProfileManager.h"
-#include "UI.h"
+#include "ImGuiUI.h"
 #include "../lib/ImGuiFileDialog/ImGuiFileDialog.h"
 #include "../lib/ImGuiFileDialog/ImGuiFileDialogConfig.h"
 
@@ -28,6 +28,7 @@ void CustomizeState::resume() {}
 
 void CustomizeState::handleEvents() {}
 
+// TODO: use onResize() in other states
 void CustomizeState::onResize(int width, int height) {
     rightButton1X = width - rightButton1Width - rightButton2Width - 2 * spacing;
     rightButton2X = width - rightButton2Width - spacing;
@@ -72,18 +73,27 @@ void CustomizeState::draw() {
     if (!profile) {
         Text("No Profiles Found");
     }
-    else if (!beyblade) {
-        Text("No Beyblades Found");
-    }
-    else if (beyblade->isTemplate) {
-        drawTemplateCustomizeSection(beyblade);
-    }
     else {
-        drawManualCustomizeSection(beyblade);
+        if (!beyblade) {
+            Text("No Beyblades Found");
+        }
+        else if (beyblade->isTemplate) {
+            drawTemplateCustomizeSection(beyblade);
+        }
+        else {
+            drawManualCustomizeSection(beyblade);
+        }
+        SeparatorSpacedThick();
+        if (!stadium) {
+            Text("No Stadiums Found");
+        }
+        else {
+            drawStadiumCustomizeSection(stadium);
+        }
     }
 
     // Handle Popups
-    drawPopups(profile, beyblade);
+    drawPopups(profile, beyblade, stadium);
 
     // End main window
     End();
@@ -354,113 +364,138 @@ void CustomizeState::drawTemplateCustomizeSection(shared_ptr<Beyblade> beyblade)
     }
 }
 
+void CustomizeState::drawStadiumCustomizeSection(std::shared_ptr<Stadium> stadium)
+{
+
+}
+
 // NOTE: Since drawPopups is the last thing called in draw(), no need to update value of beyblade and profile
-void CustomizeState::drawPopups(const shared_ptr<Profile>& profile, const shared_ptr<Beyblade>& beyblade) {
+void CustomizeState::drawPopups(const shared_ptr<Profile>& profile, const shared_ptr<Beyblade>& beyblade, const shared_ptr<Stadium>& stadium) {
     ProfileManager& pm = game->pm;
-    // New Profile Popup
-    if (currentPopup == PopupState::NEW_PROFILE && BeginPopupModal("New Profile", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
-        InputText("##ProfileName", newProfileName, IM_ARRAYSIZE(newProfileName));
-        if (Button("Submit")) {
-            if (strlen(newProfileName) == 0) {
-                game->ml.addMessage("Profile name cannot be empty", MessageType::WARNING, true);
-            }
-            else if (!pm.createProfile(newProfileName)) {
-                game->ml.addMessage("Maximum profile size reached", MessageType::WARNING, true);
-            }
-            else {
-                pm.setActiveProfile(pm.getAllProfiles().back()->getId());
-                newProfileName[0] = '\0';
+
+    auto drawConfirmDeletionPopup = [&](const std::string& itemName, const std::string& popupTitle, std::function<bool()> deleteFunc) {
+        if (BeginPopupModal(popupTitle.c_str(), nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+            Text("Are you sure you want to delete: %s", itemName.c_str());
+            if (Button("Yes")) {
+                if (!deleteFunc()) {
+                    game->ml.addMessage("Error Deleting " + itemName, MessageType::ERROR, true);
+                }
                 currentPopup = PopupState::NONE;
                 CloseCurrentPopup();
             }
+            SameLine();
+            if (Button("No")) {
+                currentPopup = PopupState::NONE;
+                CloseCurrentPopup();
+            }
+            EndPopup();
         }
+        };
 
-        SameLine();
-        if (Button("Cancel")) {
-            newProfileName[0] = '\0';
-            currentPopup = PopupState::NONE;
-            CloseCurrentPopup();
-        }
-        EndPopup();
+    auto drawNewItemPopup = [&](const std::string& popupTitle, const char* inputLabel, char* inputBuffer, int bufferSize,
+        std::function<bool(const std::string&)> createFunc) {
+            if (BeginPopupModal(popupTitle.c_str(), nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+                Text("Name: "); SameLine();
+                InputText(inputLabel, inputBuffer, bufferSize);
+                if (Button("Submit")) {
+                    if (strlen(inputBuffer) == 0) {
+                        game->ml.addMessage(popupTitle + " name cannot be empty", MessageType::WARNING, true);
+                    }
+                    else {
+                        std::string nameStr(inputBuffer);
+                        if (!createFunc(nameStr)) {
+                            game->ml.addMessage("Cannot create new " + popupTitle, MessageType::ERROR, true);
+                        }
+                        inputBuffer[0] = '\0';
+                        currentPopup = PopupState::NONE;
+                        CloseCurrentPopup();
+                    }
+                }
+                SameLine();
+                if (Button("Cancel")) {
+                    inputBuffer[0] = '\0';
+                    currentPopup = PopupState::NONE;
+                    CloseCurrentPopup();
+                }
+                EndPopup();
+            }
+        };
+
+    // New Profile Popup
+    if (currentPopup == PopupState::NEW_PROFILE) {
+        drawNewItemPopup("New Profile", "##ProfileName", newProfileName, IM_ARRAYSIZE(newProfileName),
+            [&](const std::string& name) {
+                if (!pm.createProfile(name)) return false;
+                pm.setActiveProfile(pm.getAllProfiles().back()->getId());
+                return true;
+            });
     }
 
-    // New Beyblade Popup
-    if (currentPopup == PopupState::NEW_BEYBLADE && BeginPopupModal("New Beyblade", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
-        Text("Choose your type");
-        if (RadioButton("Manual", !isTemplate)) {
-            isTemplate = false;
-        }
-        if (RadioButton("Template", isTemplate)) {
-            isTemplate = true;
-        }
+    // New Beyblade Popup: Special case
+    if (currentPopup == PopupState::NEW_BEYBLADE) {
+        if (BeginPopupModal("New Beyblade", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+            Text("Choose your type");
+            if (RadioButton("Manual", !isTemplate)) isTemplate = false;
+            if (RadioButton("Template", isTemplate)) isTemplate = true;
 
-        Text("Enter a name for the new Beyblade:");
-        InputText("##BeybladeName", newBeybladeName, IM_ARRAYSIZE(newBeybladeName));
-        if (Button("Submit")) {
-            if (strlen(newBeybladeName) == 0) {
-                game->ml.addMessage("Beyblade name cannot be empty", MessageType::WARNING, true);
+            Text("Name: "); SameLine();
+            InputText("##BeybladeName", newBeybladeName, IM_ARRAYSIZE(newBeybladeName));
+            if (Button("Submit")) {
+                if (strlen(newBeybladeName) == 0) {
+                    game->ml.addMessage("Beyblade name cannot be empty", MessageType::WARNING, true);
+                }
+                else if (profile) {
+                    std::string name(newBeybladeName);
+                    bool created = isTemplate ? profile->createBeyblade(name, true) : profile->createBeyblade(name);
+                    if (!created) {
+                        game->ml.addMessage("Cannot create new Beyblade", MessageType::ERROR, true);
+                    }
+                    else {
+                        profile->setActiveBeyblade(profile->getAllBeyblades().back()->getId());
+                    }
+                    newBeybladeName[0] = '\0';
+                    currentPopup = PopupState::NONE;
+                    CloseCurrentPopup();
+                }
             }
-            else if (profile) {
-                std::string beybladeNameStr(newBeybladeName);
-                if (isTemplate) {
-                    if (!profile->createBeyblade(beybladeNameStr, true)) {
-                        game->ml.addMessage("Cannot create new Beyblade (Template)", MessageType::ERROR, true);
-                    }
-                }
-                else {
-                    if (!profile->createBeyblade(beybladeNameStr)) {
-                        game->ml.addMessage("Cannot create new Beyblade (Manual)", MessageType::ERROR, true);
-                    }
-                }
-                profile->setActiveBeyblade(profile->getAllBeyblades().back()->getId());
+            SameLine();
+            if (Button("Cancel")) {
                 newBeybladeName[0] = '\0';
                 currentPopup = PopupState::NONE;
                 CloseCurrentPopup();
             }
+            EndPopup();
         }
-        SameLine();
-        if (Button("Cancel")) {
-            newBeybladeName[0] = '\0';
-            currentPopup = PopupState::NONE;
-            CloseCurrentPopup();
-        }
-        EndPopup();
+    }
+
+    // New Stadium Popup
+    if (currentPopup == PopupState::NEW_STADIUM) {
+        drawNewItemPopup("New Stadium", "##StadiumName", newStadiumName, IM_ARRAYSIZE(newStadiumName),
+            [&](const std::string& name) {
+                if (!profile->createStadium(name)) return false;
+                profile->setActiveStadium(profile->getAllStadiums().back()->getId());
+                return true;
+            });
     }
 
     // Confirm Profile Deletion Popup
-    if (currentPopup == PopupState::DELETE_PROFILE && BeginPopupModal("Confirm Profile Deletion", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
-        Text("Are you sure you want to delete the profile: %s", currentProfileName.c_str());
-        if (Button("Yes")) {
-            if (!pm.deleteProfile(profile->getId())) {
-                game->ml.addMessage("Error Removing Profile (You must have at least one profile)", MessageType::ERROR, true);
-            }
-            currentPopup = PopupState::NONE;
-            CloseCurrentPopup();
-        }
-        SameLine();
-        if (Button("No")) {
-            currentPopup = PopupState::NONE;
-            CloseCurrentPopup();
-        }
-        EndPopup();
+    if (currentPopup == PopupState::DELETE_PROFILE) {
+        drawConfirmDeletionPopup(currentProfileName, "Confirm Profile Deletion", [&]() {
+            return pm.deleteProfile(profile->getId());
+            });
     }
 
     // Confirm Beyblade Deletion Popup
-    if (currentPopup == PopupState::DELETE_BEYBLADE && BeginPopupModal("Confirm Beyblade Deletion", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
-        Text("Are you sure you want to delete the Beyblade: %s", currentBeybladeName.c_str());
-        if (Button("Yes")) {
-            if (!profile->deleteBeyblade(beyblade->getId())) {
-                game->ml.addMessage("Error Deleting Beyblade", MessageType::ERROR, true);
-            }
-            currentPopup = PopupState::NONE;
-            CloseCurrentPopup();
-        }
-        SameLine();
-        if (Button("No")) {
-            currentPopup = PopupState::NONE;
-            CloseCurrentPopup();
-        }
-        EndPopup();
+    if (currentPopup == PopupState::DELETE_BEYBLADE) {
+        drawConfirmDeletionPopup(currentBeybladeName, "Confirm Beyblade Deletion", [&]() {
+            return profile->deleteBeyblade(beyblade->getId());
+            });
+    }
+
+    // Confirm Stadium Deletion Popup
+    if (currentPopup == PopupState::DELETE_STADIUM) {
+        drawConfirmDeletionPopup(currentStadiumName, "Confirm Stadium Deletion", [&]() {
+            return profile->deleteStadium(stadium->getId());
+            });
     }
 }
-

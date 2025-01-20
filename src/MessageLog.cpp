@@ -6,7 +6,7 @@
 #include <filesystem>
 
 #include "MessageLog.h"
-#include "UI.h"
+#include "ImGuiUI.h"
 
 using namespace std;
 

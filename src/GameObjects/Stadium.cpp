@@ -9,20 +9,22 @@
 #include "ObjectShader.h"
 
 using namespace std;
+using namespace glm;
+using namespace nlohmann;
 
 Stadium::Stadium(
     int id,
-    const std::string name,
-    const glm::vec3& center,
+    const string name,
+    const vec3& center,
     float radius,
     float curvature,
     float coefficientOfFriction,
     int verticesPerRing,
     int numRings,
-    const glm::vec3& ringColor,
-    const glm::vec3& crossColor,
-    const glm::vec3& tint,
-    std::shared_ptr<Texture> texture,
+    const vec3& ringColor,
+    const vec3& crossColor,
+    const vec3& tint,
+    shared_ptr<Texture> texture,
     float textureScale
 )
     : id(id), name(name),
@@ -35,7 +37,7 @@ Stadium::Stadium(
     numRings(numRings),
     ringColor(ringColor),
     crossColor(crossColor),
-    texture(std::move(texture)),
+    texture(move(texture)),
     textureScale(textureScale)
 {
     setTint(tint);
@@ -43,8 +45,8 @@ Stadium::Stadium(
 }
 
 // Returns a unique pointer given an object (COPIES the stadium; original is unaffected)
-std::unique_ptr<Stadium> Stadium::assignWithId(const Stadium& other, const int newId) {
-    return std::make_unique<Stadium>(
+unique_ptr<Stadium> Stadium::assignWithId(const Stadium& other, const int newId) {
+    return make_unique<Stadium>(
         newId, // Use the new ID
         other.name,
         other.center.value(),
@@ -61,12 +63,73 @@ std::unique_ptr<Stadium> Stadium::assignWithId(const Stadium& other, const int n
     );
 }
 
+// Serialize Stadium to JSON
+json Stadium::toJson() const {
+    json j;
+    j["id"] = id;
+    j["name"] = name;
+    j["center"] = { center.value().x, center.value().y, center.value().z };
+    j["radius"] = radius.value();
+    j["curvature"] = curvature.value();
+    j["coefficientOfFriction"] = coefficientOfFriction.value();
+    j["verticesPerRing"] = verticesPerRing;
+    j["numRings"] = numRings;
+    j["ringColor"] = { ringColor.r, ringColor.g, ringColor.b };
+    j["crossColor"] = { crossColor.r, crossColor.g, crossColor.b };
+    j["textureScale"] = textureScale;
+
+    // Serialize texture (optional, may need a custom method)
+    if (texture) {
+        j["texture"] = texture->path;
+    }
+
+    return j;
+}
+
+// Deserialize Stadium from JSON
+Stadium Stadium::fromJson(const json& j) {
+    try {
+        // Required
+        int id = j["id"];
+        string name = j["name"];
+
+        auto centerArray = j["center"].get<vector<float>>();
+        if (centerArray.size() != 3) throw invalid_argument("Invalid center array size in JSON.");
+        vec3 centerVec3(centerArray[0], centerArray[1], centerArray[2]);
+
+        Stadium stadium(
+            id,
+            name,
+            centerVec3,
+            j["radius"],
+            j["curvature"],
+            j["coefficientOfFriction"],
+            j["verticesPerRing"],
+            j["numRings"],
+            vec3(j["ringColor"][0], j["ringColor"][1], j["ringColor"][2]),
+            vec3(j["crossColor"][0], j["crossColor"][1], j["crossColor"][2]),
+            vec3(1.0f),
+            nullptr,
+            j["textureScale"]
+        );
+
+        if (j.contains("texture")) {
+            string texturePath = j["texture"];
+            stadium.setTexture(make_shared<Texture>(texturePath.c_str()));
+        }
+
+        return stadium;
+    }
+    catch (const json::exception& e) {
+        throw runtime_error("Error parsing Stadium JSON: " + string(e.what()));
+    }
+}
 /**
 * Stadium renderer
 */
 
 void Stadium::render(ObjectShader& shader) {
-    setModelMatrix(glm::translate(glm::mat4(1.0f), center.value())); // TODO: This only needs to be called when the center is set/changed
+    setModelMatrix(translate(mat4(1.0f), center.value())); // TODO: This only needs to be called when the center is set/changed
 
     // Assume that stadium textures are tied to the object itself
     MeshObject::render(shader, texture.get());
@@ -116,7 +179,7 @@ void Stadium::updateMesh() {
     if (!meshChanged) return;
     meshChanged = false;
 
-    std::vector<float> vertexData;
+    vector<float> vertexData;
 
     // Clear existing data
     vertices.clear();
@@ -131,7 +194,7 @@ void Stadium::updateMesh() {
     colors.emplace_back(crossColor);
 
     if (verticesPerRing % 4 != 0) {
-        std::cerr << "Vertices per ring must be a multiple of 4" << std::endl;
+        cerr << "Vertices per ring must be a multiple of 4" << endl;
         return;
     }
 
@@ -142,13 +205,13 @@ void Stadium::updateMesh() {
         float r = powf(static_cast<float>(rIdx) / numRings, 0.5f) * static_cast<float>(radius);
         for (int thetaIdx = 0; thetaIdx < verticesPerRing; ++thetaIdx) {
             float theta = (float)(2.0f * M_PI * static_cast<float>(thetaIdx) / static_cast<float>(verticesPerRing));
-            float x = r * std::cos(theta);
-            float z = r * std::sin(theta);
+            float x = r * cos(theta);
+            float z = r * sin(theta);
             float y = getYLocal(M(r)).value();
 
             vertices.emplace_back(x, y, z);
-            texCoords.emplace_back(textureScale * (r / radius * std::cos(theta)) + 0.5f,
-                textureScale * (r / radius * std::sin(theta)) + 0.5f);
+            texCoords.emplace_back(textureScale * (r / radius * cos(theta)) + 0.5f,
+                textureScale * (r / radius * sin(theta)) + 0.5f);
 
             // Set ring color for middle and end
             if (rIdx == numRings / 4 || rIdx == numRings - 1) {
@@ -171,8 +234,8 @@ void Stadium::updateMesh() {
         }
     }
 
-    normals.resize(vertices.size(), glm::vec3(0.0f));
-    //tangents.resize(vertices.size(), glm::vec3(0.0f));
+    normals.resize(vertices.size(), vec3(0.0f));
+    //tangents.resize(vertices.size(), vec3(0.0f));
 
     // Draw from origin to first ring
     for (int i = 0; i < verticesPerRing; ++i) {
@@ -182,23 +245,23 @@ void Stadium::updateMesh() {
         indices.push_back(origin);
         indices.push_back(curr);
         indices.push_back(next);
-        glm::vec3 v0 = vertices[origin];
-        glm::vec3 v1 = vertices[curr];
-        glm::vec3 v2 = vertices[next];
-        glm::vec3 edge1 = v1 - v0;
-        glm::vec3 edge2 = v2 - v0;
-        glm::vec3 normal = glm::normalize(glm::cross(edge1, edge2));
+        vec3 v0 = vertices[origin];
+        vec3 v1 = vertices[curr];
+        vec3 v2 = vertices[next];
+        vec3 edge1 = v1 - v0;
+        vec3 edge2 = v2 - v0;
+        vec3 normal = normalize(cross(edge1, edge2));
         normals[origin] += normal;
         normals[curr] += normal;
         normals[next] += normal;
         // Calculate tangent for the triangle
-        glm::vec2 uv0 = texCoords[origin];
-        glm::vec2 uv1 = texCoords[curr];
-        glm::vec2 uv2 = texCoords[next];
-        glm::vec2 deltaUV1 = uv1 - uv0;
-        glm::vec2 deltaUV2 = uv2 - uv0;
+        vec2 uv0 = texCoords[origin];
+        vec2 uv1 = texCoords[curr];
+        vec2 uv2 = texCoords[next];
+        vec2 deltaUV1 = uv1 - uv0;
+        vec2 deltaUV2 = uv2 - uv0;
         float f = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y);
-        glm::vec3 tangent = f * (deltaUV2.y * edge1 - deltaUV1.y * edge2);
+        vec3 tangent = f * (deltaUV2.y * edge1 - deltaUV1.y * edge2);
         //tangents[origin] += tangent;
         //tangents[curr] += tangent;
         //tangents[next] += tangent;
@@ -221,25 +284,25 @@ void Stadium::updateMesh() {
             indices.push_back(next1);
 
             // Calculate normal for Triangle 1
-            glm::vec3 v0 = vertices[curr1];
-            glm::vec3 v1 = vertices[curr2];
-            glm::vec3 v2 = vertices[next1];
-            glm::vec3 edge1 = v1 - v0;
-            glm::vec3 edge2 = v2 - v0;
-            glm::vec3 normal = glm::normalize(glm::cross(edge1, edge2));
+            vec3 v0 = vertices[curr1];
+            vec3 v1 = vertices[curr2];
+            vec3 v2 = vertices[next1];
+            vec3 edge1 = v1 - v0;
+            vec3 edge2 = v2 - v0;
+            vec3 normal = normalize(cross(edge1, edge2));
 
             normals[curr1] += normal;
             normals[curr2] += normal;
             normals[next1] += normal;
 
             // Calculate tangent for Triangle 1
-            glm::vec2 uv0 = texCoords[curr1];
-            glm::vec2 uv1 = texCoords[curr2];
-            glm::vec2 uv2 = texCoords[next1];
-            glm::vec2 deltaUV1 = uv1 - uv0;
-            glm::vec2 deltaUV2 = uv2 - uv0;
+            vec2 uv0 = texCoords[curr1];
+            vec2 uv1 = texCoords[curr2];
+            vec2 uv2 = texCoords[next1];
+            vec2 deltaUV1 = uv1 - uv0;
+            vec2 deltaUV2 = uv2 - uv0;
             //float f = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y);
-            //glm::vec3 tangent = f * (deltaUV2.y * edge1 - deltaUV1.y * edge2);
+            //vec3 tangent = f * (deltaUV2.y * edge1 - deltaUV1.y * edge2);
             //tangents[curr1] += tangent;
             //tangents[curr2] += tangent;
             //tangents[next1] += tangent;
@@ -255,7 +318,7 @@ void Stadium::updateMesh() {
             v2 = vertices[next2];
             edge1 = v1 - v0;
             edge2 = v2 - v0;
-            normal = glm::normalize(glm::cross(edge1, edge2));
+            normal = normalize(cross(edge1, edge2));
 
             normals[next1] += normal;
             normals[curr2] += normal;
@@ -276,17 +339,17 @@ void Stadium::updateMesh() {
     }
 
     for (auto& normal : normals) {
-        normal = glm::normalize(normal);
+        normal = normalize(normal);
     }
     //for (auto& tangent : tangents) {
-    //    tangent = glm::normalize(tangent);
+    //    tangent = normalize(tangent);
     //}
 
     // Calculate bounding boxes for each triangle
     for (size_t i = 0; i < indices.size(); i += 3) {
-        glm::vec3 v1 = vertices[indices[i]];
-        glm::vec3 v2 = vertices[indices[i + 1]];
-        glm::vec3 v3 = vertices[indices[i + 2]];
+        vec3 v1 = vertices[indices[i]];
+        vec3 v2 = vertices[indices[i + 1]];
+        vec3 v3 = vertices[indices[i + 2]];
 
         auto bbox = new BoundingBox();
         bbox->update(v1, v2, v3);
@@ -298,8 +361,8 @@ void Stadium::updateMesh() {
     /*******************************************************************/
 
     if (vertices.size() != normals.size() || vertices.size() != texCoords.size()) {
-        std::cerr << "Mesh data is inconsistent" << std::endl;
-        std::cout << "Vertices: " << vertices.size() << ", Normals: " << normals.size() << ", TexCoords: " << texCoords.size() << std::endl;
+        cerr << "Mesh data is inconsistent" << endl;
+        cout << "Vertices: " << vertices.size() << ", Normals: " << normals.size() << ", TexCoords: " << texCoords.size() << endl;
         return;
     }
     for (size_t i = 0; i < vertices.size(); ++i) {

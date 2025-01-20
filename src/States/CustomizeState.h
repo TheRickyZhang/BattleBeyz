@@ -66,13 +66,14 @@ private:
 
     void drawManualCustomizeSection(std::shared_ptr<Beyblade> beyblade);
     void drawTemplateCustomizeSection(std::shared_ptr<Beyblade> beyblade);
+    void drawStadiumCustomizeSection(std::shared_ptr<Stadium> stadium);
 
-    void drawPopups(const std::shared_ptr<Profile>& profile, const std::shared_ptr<Beyblade>& beyblade);
+    void drawPopups(const std::shared_ptr<Profile>& profile, const std::shared_ptr<Beyblade>& beyblade, const std::shared_ptr<Stadium>& stadium);
 
     // Member Variables
     PopupState currentPopup = PopupState::NONE;
-    bool isTemplate = false;
 
+    // Temporary names
     char newProfileName[32] = "";
     char newBeybladeName[32] = "";
     char newStadiumName[32] = "";
@@ -80,13 +81,14 @@ private:
     std::string currentBeybladeName = "";
     std::string currentStadiumName = "";
 
+    // Temporary Beyblade Variables
+    bool isTemplate = false;
     BeybladeBody* prevbladeBody = nullptr;
-
-    // Temporary variables to edit with
-    // Templated
     int tempSelectedLayer = -1;
     int tempSelectedDisc = -1;
     int tempSelectedDriver = -1;
+
+    // Stadium
 
     // Helper functions
 

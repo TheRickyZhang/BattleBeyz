@@ -29,14 +29,14 @@ public:
     Settings settings;
 
     // This id is ALSO globally unique, should be handled by profileManager
-    Profile(int id, const std::string& name)
-        : id(id), name(name), activeBeybladeId(std::nullopt) {}
+    Profile() : id(-1), name("") {}
+    Profile(int id, const std::string& name) : id(id), name(name), activeBeybladeId(std::nullopt) {}
 
     int getId() const { return id; }
     std::string getName() const { return name; }
 
     nlohmann::json toJson() const;
-    void fromJson(const nlohmann::json& json);
+    bool fromJson(const nlohmann::json& json);
 
 
     // CRUD (Create, Delete, Get, Set) Operations

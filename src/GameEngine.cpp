@@ -15,7 +15,7 @@
 #include "ImGuiUtils.h"
 #include "InputManager.h"
 #include "Utils.h"
-#include "UI.h"
+#include "ImGuiUI.h"
 #include "MessageLog.h"
 #include "PhysicsWorld.h"
 #include "ProfileManager.h"

@@ -53,9 +53,6 @@ private:
     void showStadiumOptions();
     void showPhysicsOptions();
 
-    void setupStadiumPreview();
-    void renderStadiumPreview();
-
     // TODO: Move this elsewhere and see if used?
     glm::mat4 setupCamera(int previewWidth, int previewHeight);
 

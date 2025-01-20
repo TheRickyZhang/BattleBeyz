@@ -8,7 +8,7 @@
 #include "ProfileManager.h"
 #include "PhysicsWorld.h"
 #include "StateIdentifiers.h"
-#include "UI.h"
+#include "ImGuiUI.h"
 #include "ActiveState.h"
 
 #include <glm/gtc/type_ptr.hpp>
@@ -17,6 +17,39 @@
 using namespace std;
 using namespace glm;
 using namespace ImGui;
+
+static bool DrawStadiumPreview(
+    FramebufferRenderer& renderer,
+    Stadium& stadium,
+    Camera& camera,
+    ObjectShader& objectShader, // Explicit shader parameter
+    int width,
+    int height
+) {
+    // Bind and clear the framebuffer
+    renderer.bind();
+    glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    // Use the shader and set the matrices
+    objectShader.use();
+    objectShader.setMat4("projection", glm::perspective(glm::radians(camera.zoom), (float)width / height, 0.1f, 100.0f));
+    objectShader.setMat4("view", camera.getViewMatrix());
+
+    // Render the stadium
+    stadium.render(objectShader);
+
+    // Unbind the renderer
+    renderer.unbind();
+
+    // Draw the preview image in ImGui
+    ImGui::BeginChild("StadiumPreview", ImVec2((float)width, (float)height), false, ImGuiWindowFlags_NoScrollbar);
+    bool isHovered = ImGui::IsItemHovered();
+    ImGui::Image((void*)(intptr_t)renderer.getTexture(), ImVec2((float)width, (float)height));
+    ImGui::EndChild();
+
+    return isHovered;
+}
 
 void SelectionState::init() {
     auto tempStadium = make_unique<Stadium>();
@@ -218,10 +251,10 @@ void SelectionState::showStadiumOptions() {
         Text("No stadium selected!");
     }
     else {
-        renderStadiumPreview();
+        //renderStadiumPreview();
         ImGui::BeginChild("StadiumPreview", ImVec2(static_cast<float>(previewWidth), static_cast<float>(previewHeight)), false, ImGuiWindowFlags_NoScrollbar);
         {
-            isMouseHoveringPreview = IsItemHovered(); // Check if the mouse is over the preview
+            isMouseHoveringPreview = DrawStadiumPreview(*stadiumRenderer, *previewStadium, *camera, *game->objectShader, previewWidth, previewHeight);
             Image((void*)(intptr_t)stadiumRenderer->getTexture(), ImVec2(static_cast<float>(previewWidth), static_cast<float>(previewHeight)));
         }
         ImGui::EndChild();
@@ -281,30 +314,6 @@ void SelectionState::showPhysicsOptions() {
         /*          Physics physics = Physics(gravity)
                   physicsWorld->setPhysics*/
     }
-}
-
-void SelectionState::setupStadiumPreview() {
-    
-}
-
-void SelectionState::renderStadiumPreview() {
-    if (stadiums.empty()) {
-        std::cerr << "Error: Stadium is nullptr" << std::endl;
-        return;
-    }
-    stadiumRenderer->bind();
-
-    glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    ObjectShader* objectShader = game->objectShader;
-    objectShader->use();
-    objectShader->setMat4("projection", glm::perspective(glm::radians(camera->zoom), (float)previewWidth / previewHeight, 0.1f, 100.0f));
-    objectShader->setMat4("view", camera->getViewMatrix());
-
-    previewStadium->render(*objectShader);
-
-    stadiumRenderer->unbind();
 }
 
 glm::mat4 SelectionState::setupCamera(int previewWidth, int previewHeight) {

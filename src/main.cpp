@@ -27,19 +27,13 @@ int main() {
     /* ----------------------OBJECT SETUP-------------------------- */
 
     // These might be null for now, quell errors
-
-    Beyblade* beyblade1 = game->pm.getActiveProfile()->getBeyblade(1).get();
-    Beyblade* beyblade2 = game->pm.getActiveProfile()->getBeyblade(2).get();
-    // Add beys
-    physicsWorld->addBeyblade(beyblade1);
-    physicsWorld->addBeyblade(beyblade2);
-    glm::vec3 initialPosition1 = glm::vec3(0.0f, 1.0f, 0.3f);
-    glm::vec3 initialPosition2 = glm::vec3(0.0f, 1.0f, -0.3f);
-    glm::vec3 initialVelocity1 = glm::vec3(0.0f, 0.0f, -0.1f);
-    glm::vec3 initialVelocity2 = glm::vec3(0.0f, 0.0f, 0.1f);
-    glm::vec3 initialAngularVelocity = glm::vec3(0.0f, -450.0f, 0.0f);
-    beyblade1->getBody()->setInitialLaunch(initialPosition1, initialVelocity1, initialAngularVelocity);
-    beyblade2->getBody()->setInitialLaunch(initialPosition2, initialVelocity2, initialAngularVelocity);
+    //glm::vec3 initialPosition1 = glm::vec3(0.0f, 1.0f, 0.3f);
+    //glm::vec3 initialPosition2 = glm::vec3(0.0f, 1.0f, -0.3f);
+    //glm::vec3 initialVelocity1 = glm::vec3(0.0f, 0.0f, -0.1f);
+    //glm::vec3 initialVelocity2 = glm::vec3(0.0f, 0.0f, 0.1f);
+    //glm::vec3 initialAngularVelocity = glm::vec3(0.0f, -450.0f, 0.0f);
+    //beyblade1->getBody()->setInitialLaunch(initialPosition1, initialVelocity1, initialAngularVelocity);
+    //beyblade2->getBody()->setInitialLaunch(initialPosition2, initialVelocity2, initialAngularVelocity);
 
     /* ----------------------MAIN RENDERING LOOP-------------------------- */
 

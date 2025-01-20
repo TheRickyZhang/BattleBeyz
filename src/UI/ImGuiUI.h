@@ -17,6 +17,8 @@
 #include <GLFW/glfw3.h>
 #include <imgui.h>
 
+class FrameBufferRenderer;
+
  // Nothing, no interaction
 const ImGuiWindowFlags MinimalWindow = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize;
 
@@ -54,4 +56,3 @@ void DrawDiscreteFloatControl(const char* parameterText, float maxTextSize,     
 
 //Segments the screen nicely with fractions and 1-based indexing
 std::pair<float, float> SetWindowPositionAndSize(int numRows, int numCols, int row, int col, int rowSize = 1, int colSize = 1);
-

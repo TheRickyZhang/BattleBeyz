@@ -117,72 +117,96 @@ const vector<shared_ptr<Profile>>& ProfileManager::getAllProfiles() const {
     return profiles;
 }
 
-void ProfileManager::saveProfilesToFile(const string& filePath) {
+bool ProfileManager::saveProfilesToFile(const string& filePath) {
     MessageLog& ml = MessageLog::getInstance();
     json js;
-    for (const auto& profile : profiles) {
-        js["profiles"].push_back(profile->toJson()); // Save all relevant profile details
-    }
-    if (activeProfileId.has_value()) {
-        js["activeProfileId"] = activeProfileId.value();
-    }
-    ofstream file(filePath);
-    if (file.is_open()) {
+
+    try {
+        for (const auto& profile : profiles) {
+            js["profiles"].push_back(profile->toJson()); // Save all relevant profile details
+        }
+        if (activeProfileId.has_value()) {
+            js["activeProfileId"] = activeProfileId.value();
+        }
+
+        // Open file and write JSON
+        ofstream file(filePath);
+        if (!file.is_open()) {
+            ml.addMessage("Error: Unable to open file for writing: " + filePath, MessageType::ERROR);
+            return false;
+        }
+
         file << js.dump(4); // Pretty print with 4 spaces
         ml.addMessage("Profiles saved successfully to " + filePath);
+        return true;
+
     }
-    else {
-        ml.addMessage("Error: unable save profiles to " + filePath, MessageType::ERROR);
+    catch (const std::exception& e) {
+        ml.addMessage("Error: Exception occurred while saving profiles: " + string(e.what()), MessageType::ERROR);
+        return false;
     }
 }
 
-void ProfileManager::loadProfilesFromFile(const string& filePath) {
-    MessageLog& ml = MessageLog::getInstance();
-    if (!filesystem::exists(filePath)) {
-        ml.addMessage("Error: cannot load profiles from " + filePath, MessageType::ERROR);
-        return;
-    }
 
+bool ProfileManager::loadProfilesFromFile(const string& filePath) {
+    MessageLog& ml = MessageLog::getInstance();
+
+    // Return early if fail; these must pass to continue
+    if (!filesystem::exists(filePath)) {
+        ml.addMessage("Error: File does not exist: " + filePath, MessageType::ERROR);
+        return false;
+    }
     ifstream file(filePath);
     if (!file.is_open()) {
-        ml.addMessage("Error: Unable to open file for reading: " + filePath, MessageType::ERROR);
-        return;
+        ml.addMessage("Error: Unable to open file: " + filePath, MessageType::ERROR);
+        return false;
     }
     json js;
-    file >> js;
-
-    for (const auto& profileJson : js["profiles"]) {
-        string name = profileJson["name"];
-        int id = profileJson["id"];
-
-        // Retrieve, populate, and add profile with ProfileManager
-        auto profile = make_shared<Profile>(id, name);
-        profile->fromJson(profileJson);
-
-        cout << profile->getName() << endl;
-
-        if (!addProfile(profile)) {
-            cout << "FAILED TO ADD" << endl;
-            ml.addMessage("Error: Failed to add profile during load. Name: ", MessageType::ERROR);
-        }
-        else {
-            cout << " ADDED SUCCESSFULLY" << endl;
-        }
+    try {
+        file >> js;
+    }
+    catch (const json::exception& e) {
+        ml.addMessage("Error: Failed to parse JSON. " + string(e.what()), MessageType::ERROR);
+        return false;
     }
 
-    // Set the active profile (optional: based on saved state)
-    if (js.contains("activeProfileId")) {
-        int activeId = js["activeProfileId"];
-        if (!setActiveProfile(activeId)) {
-            std::string loadedIds;
-            for (const auto& profile : profiles) {
-                loadedIds += std::to_string(profile->getId()) + " ";
+    // Try to import. If anything is invalid, skip data and continue
+    bool success = true;
+
+    try {
+        for (const auto& profileJson : js["profiles"]) {
+            auto profile = make_shared<Profile>();
+            if (!profile->fromJson(profileJson)) {
+                ml.addMessage("Skipping invalid profile entry.", MessageType::WARNING);
+                success = false;
             }
-            ml.addMessage("Active profile ID " + std::to_string(activeId) + " does not match any loaded ID. Available IDs: [" + loadedIds + "]",
-                MessageType::WARNING
-            );
+            if (!addProfile(profile)) {
+                ml.addMessage("Failed to add profile: " + profile->getName(), MessageType::ERROR);
+                success = false;
+            }
         }
     }
+    catch (const json::exception& e) {
+        ml.addMessage("Failed to load profiles array. " + string(e.what()), MessageType::ERROR);
+        return false;
+    }
+
+    // Optional active ids to set initially
+    if (js.contains("activeProfileId")) {
+        try {
+            int activeId = js["activeProfileId"];
+            if (!setActiveProfile(activeId)) {
+                ml.addMessage("Warning: Active profile ID not valid.", MessageType::WARNING);
+                success = false;
+            }
+        }
+        catch (const json::exception& e) {
+            ml.addMessage("Error: Invalid activeProfileId in JSON. " + string(e.what()), MessageType::ERROR);
+            success = false;
+        }
+    }
+
+    return success;
 }
 
 

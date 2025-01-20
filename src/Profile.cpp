@@ -24,6 +24,9 @@ json Profile::toJson() const {
     for (const auto& beyblade : beybladesOwned) {
         js["beyblades"].push_back(beyblade->toJson());
     }
+    for (const auto& stadium : stadiumsOwned) {
+        js["stadiums"].push_back(stadium->toJson());
+    }
     return js;
 }
 
@@ -32,21 +35,37 @@ json Profile::toJson() const {
  *
  * @param [in] js A JSON object containing: id, name, settings, beyblades {}
  */
-void Profile::fromJson(const json& js) {
-    id = js["id"];
-    name = js["name"];
-    settings.fromJson(js["settings"]);
-    if (js.contains("beyblades")) {
-        for (const auto& beybladeJson : js["beyblades"]) {
-            shared_ptr<Beyblade> beyblade = make_unique<Beyblade>(Beyblade::fromJson(beybladeJson));
-            if (!addBeyblade(beyblade)) {
-                MessageLog::getInstance().addMessage("Failed to add beyblade " + beyblade->getName(), MessageType::ERROR);
+bool Profile::fromJson(const json& js) {
+    try {
+        id = js.at("id");
+        name = js.at("name");
+        if (js.contains("settings")) {
+            settings.fromJson(js["settings"]);
+        }
+        if (js.contains("beyblades")) {
+            for (const auto& beybladeJson : js["beyblades"]) {
+                auto beyblade = make_shared<Beyblade>(Beyblade::fromJson(beybladeJson));
+                if (!addBeyblade(beyblade)) {
+                    MessageLog::getInstance().addMessage("Failed to add beyblade " + beyblade->getName(), MessageType::ERROR);
+                }
             }
-            else {
-                MessageLog::getInstance().addMessage("JSON: ADDED " + beyblade->getName() + " SUCCESSFULLY");
+
+        }
+        if (js.contains("stadiums")) {
+            for (const auto& stadiumJson : js["stadiums"]) {
+                auto stadium = make_shared<Stadium>(Stadium::fromJson(stadiumJson));
+                if (!addStadium(stadium)) {
+                    MessageLog::getInstance().addMessage("Failed to add stadium " + stadium->getName(), MessageType::ERROR);
+                }
             }
+
         }
     }
+    catch (const json::exception& e) {
+        MessageLog::getInstance().addMessage("Error parsing JSON: " + std::string(e.what()), MessageType::ERROR);
+        return false;
+    }
+    return true;
 }
 
 /*
@@ -55,12 +74,13 @@ void Profile::fromJson(const json& js) {
 
 // SERVER: (need globally unique beybladeIds across multiple different profiles)
 bool Profile::createBeyblade(const string& name, bool isTemplate) {
-    lock_guard<mutex> lock(mtx);
     if (beybladesOwned.size() >= MAX_BEYBLADES_PER_PROFILE) {
         MessageLog::getInstance().addMessage("Max beyblade count (" + to_string(MAX_BEYBLADES_PER_PROFILE) + ") reached.", MessageType::ERROR);
         return false;
     }
-    nextBeybladeId++;
+    while (getBeybladeIterator(nextBeybladeId) != beybladesOwned.end()) {
+        nextBeybladeId++;
+    }
     if (!beybladesOwned.empty() && getBeybladeIterator(nextBeybladeId) != beybladesOwned.end()) {
         MessageLog::getInstance().addMessage("Error: Beyblade with ID " + to_string(nextBeybladeId) + " already exists.", MessageType::ERROR);
         return false;
@@ -78,7 +98,6 @@ bool Profile::createBeyblade(const string& name, bool isTemplate) {
 * @return [out] a boolean indicating whether the operation was successful. 
 */
 bool Profile::deleteBeyblade(int beybladeId) {
-    lock_guard<mutex> lock(mtx);
     auto it = getBeybladeIterator(beybladeId);
     if (it == beybladesOwned.end()) {
         return false;
@@ -97,14 +116,12 @@ bool Profile::deleteBeyblade(int beybladeId) {
 }
 
 shared_ptr<Beyblade> Profile::getBeyblade(int beybladeId) const {
-    lock_guard<mutex> lock(mtx);
     auto it = getBeybladeIterator(beybladeId);
     if (it == beybladesOwned.end()) return nullptr;
     return *it;
 }
 
 bool Profile::setActiveBeyblade(int beybladeId) {
-    lock_guard<mutex> lock(mtx);
     auto it = getBeybladeIterator(beybladeId);
     if (it != beybladesOwned.end()) {
         activeBeybladeId = beybladeId;
@@ -117,7 +134,6 @@ bool Profile::setActiveBeyblade(int beybladeId) {
 // Take an optional id, or uses active one by default.
 // Returns the beyblade pointer or nullptr if not found
 shared_ptr<Beyblade> Profile::getActiveBeyblade() const {
-    lock_guard<mutex> lock(mtx);
     if (!activeBeybladeId.has_value()) {
         return nullptr;
     }
@@ -131,7 +147,6 @@ shared_ptr<Beyblade> Profile::getActiveBeyblade() const {
 }
 
 const vector<shared_ptr<Beyblade>>& Profile::getAllBeyblades() const {
-    lock_guard<mutex> lock(mtx);
     return beybladesOwned;
 }
 
@@ -139,18 +154,20 @@ const vector<shared_ptr<Beyblade>>& Profile::getAllBeyblades() const {
 * -----------------------------STADIUM LOGIC------------------------------------
 */
 bool Profile::createStadium(const string& name) {
-    lock_guard<mutex> lock(mtx);
     if (stadiumsOwned.size() >= MAX_STADIUMS_PER_PROFILE) return false;
 
-    nextStadiumID++;
-    if (getStadiumIterator(nextStadiumID) != stadiumsOwned.end()) return false;
-
+    while (getStadiumIterator(nextStadiumID) != stadiumsOwned.end()) {
+        nextStadiumID++;
+    }
+    if (!stadiumsOwned.empty() && getStadiumIterator(nextStadiumID) != stadiumsOwned.end()) {
+        MessageLog::getInstance().addMessage("Error: Stadium with ID " + to_string(nextBeybladeId) + " already exists.", MessageType::ERROR);
+        return false;
+    }
     auto stadium = make_shared<Stadium>(nextStadiumID, name);
     return addStadium(stadium);
 }
 
 bool Profile::deleteStadium(int stadiumId) {
-    lock_guard<mutex> lock(mtx);
     auto it = getStadiumIterator(stadiumId);
     if (it == stadiumsOwned.end()) return false;
 
@@ -159,14 +176,12 @@ bool Profile::deleteStadium(int stadiumId) {
 }
 
 shared_ptr<Stadium> Profile::getStadium(int stadiumId) const {
-    lock_guard<mutex> lock(mtx);
     auto it = getStadiumIterator(stadiumId);
     return it != stadiumsOwned.end() ? *it : nullptr;
 }
 
 bool Profile::setActiveStadium(int stadiumId)
 {
-    lock_guard<mutex> lock(mtx);
     auto it = getStadiumIterator(stadiumId);
     if (it != stadiumsOwned.end()) {
         activeBeybladeId = stadiumId;
@@ -176,13 +191,11 @@ bool Profile::setActiveStadium(int stadiumId)
 }
 
 const vector<shared_ptr<Stadium>>& Profile::getAllStadiums() const {
-    lock_guard<mutex> lock(mtx);
     return stadiumsOwned;
 }
 
 std::shared_ptr<Stadium> Profile::getActiveStadium() const
 {
-    lock_guard<mutex> lock(mtx);
     if (!activeStadiumId.has_value()) {
         return nullptr;
     }
@@ -209,7 +222,6 @@ std::shared_ptr<Stadium> Profile::getActiveStadium() const
 * @return [out] a boolean indicating whether the operation was successful.
 */
 bool Profile::addBeyblade(shared_ptr<Beyblade> beyblade) {
-    lock_guard<mutex> lock(mtx);
     if (getBeybladeIterator(beyblade->getId()) != beybladesOwned.end()) {
         return false;
     }
@@ -220,7 +232,6 @@ bool Profile::addBeyblade(shared_ptr<Beyblade> beyblade) {
     if (!activeBeybladeId.has_value()) {
         activeBeybladeId = beyblade->getId();
     }
-    MessageLog::getInstance().addMessage("Beyblade added successfully with ID: " + beyblade->getId());
     return true;
 }
 
@@ -233,7 +244,6 @@ vector<shared_ptr<Beyblade>>::const_iterator Profile::getBeybladeIterator(int be
 
 
 bool Profile::addStadium(shared_ptr<Stadium> stadium) {
-    lock_guard<mutex> lock(mtx);
     if (getStadiumIterator(stadium->getId()) != stadiumsOwned.end() ||
         stadiumsOwned.size() >= MAX_STADIUMS_PER_PROFILE) return false;
 

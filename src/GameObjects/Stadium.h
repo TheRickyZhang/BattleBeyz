@@ -24,6 +24,7 @@
 #include <iostream>
 
 #include <glm/glm.hpp>
+#include <json.hpp>
 
 #include "DefaultValues.h"
 #include "MeshObject.h"
@@ -54,6 +55,9 @@ public:
     // Cannot copy because of const id. Use assignWithId instead
     Stadium& operator=(const Stadium&) = delete;
     static std::unique_ptr<Stadium> assignWithId(const Stadium& other, const int newId);
+
+    nlohmann::json toJson() const;
+    static Stadium fromJson(const nlohmann::json& j);
 
     virtual void updateMesh() override;
 

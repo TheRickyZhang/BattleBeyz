@@ -29,8 +29,8 @@ public:
     std::shared_ptr<Profile> getActiveProfile() const;
     bool setActiveProfile(int profileId);
 
-    void saveProfilesToFile(const std::string& filePath);
-    void loadProfilesFromFile(const std::string& filePath);
+    bool saveProfilesToFile(const std::string& filePath);
+    bool loadProfilesFromFile(const std::string& filePath);
 private:
     ProfileManager() = default;
 

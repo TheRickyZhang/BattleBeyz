@@ -5,7 +5,7 @@
 #include "GameEngine.h"
 #include "FontManager.h"
 
-#include "UI.h"
+#include "ImGuiUI.h"
 
 using namespace std;
 using namespace ImGui;
