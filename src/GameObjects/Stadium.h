@@ -55,7 +55,6 @@ public:
     Stadium& Stadium::operator=(const Stadium& other) {
         if (this != &other) {
             this->id = -1; // Set to temporary. MUST set ID for no global conflicts
-
             this->name = other.name;
             this->center = other.center;
             this->radius = other.radius;
@@ -145,6 +144,13 @@ public:
         meshChanged = true;
     }
 
+    bool getModified() const {
+        return modified;
+    }
+    void setModified(bool _modified = true) {
+        modified = _modified;
+    }
+
     std::vector<BoundingBox*> boundingBoxes;
 private:
     // General
@@ -166,5 +172,6 @@ private:
     float textureScale;
     std::shared_ptr<Texture> texture;
 
-    bool meshChanged = true;
+    bool meshChanged = true;    // Whether the mesh has changed. Used for rendering purposes
+    bool modified = false;      // Whether any parameter has changed. Used for customization update purposes.
 };

@@ -101,11 +101,11 @@
                         0.0,
                         1.0
                     ],
-                    "curvature": 0.10000000149011612,
-                    "id": 0,
-                    "name": "Test",
+                    "curvature": 0.15000000596046448,
+                    "id": -1,
+                    "name": "Default Stadium",
                     "numRings": 8,
-                    "radius": 1.2000000476837158,
+                    "radius": 0.30000001192092896,
                     "ringColor": [
                         1.0,
                         0.0,

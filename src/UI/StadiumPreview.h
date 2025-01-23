@@ -10,10 +10,11 @@
 class PhysicsWorld;
 class ObjectShader;
 
+// TODO: Remove width and height paramters, pass into draw()
 class StadiumPreview {
 public:
     // Provide a pointer to PhysicsWorld and ObjectShader so we can do everything internally
-    StadiumPreview(int width, int height, PhysicsWorld* physicsWorld, ObjectShader* shader);
+    StadiumPreview(int width, int height, PhysicsWorld* physicsWorld, ObjectShader* shader, std::shared_ptr<Stadium> stadium = nullptr);
 
     void handleInput(float deltaTime);
     void update(float deltaTime, float currentTime);

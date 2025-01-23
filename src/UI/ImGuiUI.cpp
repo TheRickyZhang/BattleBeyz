@@ -135,7 +135,7 @@ void centerColoredText(float windowCenterX, const ImVec4& color, const char* tex
     TextColored(color, "%s", text);
 }
 
-void DrawDiscreteFloatControl(const char* parameterText, float maxTextSize, const char* prefix, float& value, float minVal, float maxVal, float step, float stepFast, const char* format, function<void()> onModified) {
+bool DrawDiscreteFloatControl(const char* parameterText, float maxTextSize, const char* prefix, float& value, float minVal, float maxVal, float step, float stepFast, const char* format, function<void()> onModified) {
     float spacing = GetStyle().ItemSpacing.x, padding = GetStyle().WindowPadding.x;
     float availableWidth = GetContentRegionAvail().x - maxTextSize - 2 * padding - 2 * spacing;
     float sliderWidth = availableWidth * 0.65f;
@@ -144,6 +144,8 @@ void DrawDiscreteFloatControl(const char* parameterText, float maxTextSize, cons
     // Unique identifier from parameter text
     string sliderLabel = string("##slider_") + prefix + parameterText;
     string inputLabel = string("##input_") + prefix + parameterText;
+
+    bool modified = false;
 
     // [--Label--|------Slider------|--Input--]
     BeginGroup();
@@ -157,6 +159,7 @@ void DrawDiscreteFloatControl(const char* parameterText, float maxTextSize, cons
     if (SliderInt(sliderLabel.c_str(), &discrete, 1, 10)) {
         value = discreteIntToFloat(discrete, minVal, maxVal);
         onModified();
+        modified = true;
     }
     PopItemWidth();
     SameLine();
@@ -166,10 +169,13 @@ void DrawDiscreteFloatControl(const char* parameterText, float maxTextSize, cons
         value = clamp(value, minVal, maxVal);
         discrete = floatToDiscreteInt(value, minVal, maxVal);
         onModified();
+        modified = true;
     }
     PopItemWidth();
 
     EndGroup();
+
+    return modified;
 }
 
 

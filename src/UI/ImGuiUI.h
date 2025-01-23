@@ -21,6 +21,8 @@ class FrameBufferRenderer;
 
  // Nothing, no interaction
 const ImGuiWindowFlags MinimalWindow = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize;
+const ImGuiWindowFlags ScrollableWindow = MinimalWindow | ImGuiWindowFlags_AlwaysVerticalScrollbar;
+const ImGuiWindowFlags NoScrolling = ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
 
 // Expands to text size
 const ImGuiWindowFlags AutoResizeWindow = ImGuiWindowFlags_AlwaysAutoResize;
@@ -53,7 +55,7 @@ bool SliderIntDiscrete(const char* label, int* value, int minVal, int maxVal, in
 
 // Bulk Utility for specialized drawing
 float getMaxWidth(const std::vector<std::string>& text);                        // Returns the max width of any singular string for alignment
-void DrawDiscreteFloatControl(const char* parameterText, float maxTextSize,     // Render a connected slider/input for convenient editing of stats
+bool DrawDiscreteFloatControl(const char* parameterText, float maxTextSize,     // Render a connected slider/input for convenient editing of stats
     const char* prefix, float& value, float minVal, float maxVal, float step,
     float stepFast, const char* format, std::function<void()> onModified);
 

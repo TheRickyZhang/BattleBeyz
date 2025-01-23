@@ -4,8 +4,8 @@
 #include "ObjectShader.h"
 #include "InputUtils.h"
 
-StadiumPreview::StadiumPreview(int width, int height, PhysicsWorld* physicsWorld, ObjectShader* shader)
-    : width(width), height(height), physicsWorld(physicsWorld), objectShader(shader)
+StadiumPreview::StadiumPreview(int width, int height, PhysicsWorld* physicsWorld, ObjectShader* shader, std::shared_ptr<Stadium> _stadium)
+    : width(width), height(height), physicsWorld(physicsWorld), objectShader(shader), stadium(_stadium)
 {
     fbo = std::make_unique<FramebufferRenderer>(width, height);
     camera = std::make_unique<Camera>(glm::vec3(5.f, 5.f, 5.f),
@@ -13,12 +13,12 @@ StadiumPreview::StadiumPreview(int width, int height, PhysicsWorld* physicsWorld
         this->physicsWorld,
         static_cast<float>(width),
         static_cast<float>(height));
-    stadium = std::make_shared<Stadium>();
+    if(_stadium == nullptr) stadium = std::make_shared<Stadium>();
 
     // Re‐generates the stadium mesh every 0.15 seconds so performance is not severly hindered
     stadiumRenderTimer = std::make_unique<Timer>(0.15f, [this]() {
         if (stadium) stadium->updateMesh();
-        });
+    });
 }
 
 void StadiumPreview::handleInput(float deltaTime) {

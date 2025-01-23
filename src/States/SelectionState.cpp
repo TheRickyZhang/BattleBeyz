@@ -223,7 +223,7 @@ void SelectionState::showStadiumOptions() {
     if (Button("Undo Changes")) {
         // Copy values from stadiums[0] back to the preview stadium
         auto st = stadiumPreview->getStadium();
-        *st = *stadiums[0]; // Use your copy assignment operator here
+        *st = *stadiums[0];
 
         // Sync sliders with the reverted stadium values
         tempRadius = stadiums[0]->getRadius().value();
@@ -235,6 +235,7 @@ void SelectionState::showStadiumOptions() {
         tempTint = stadiums[0]->getTint();
         tempRingColor = stadiums[0]->getRingColor();
         tempCrossColor = stadiums[0]->getCrossColor();
+        stadiumPreview->draw();
     }
 }
 

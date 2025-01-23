@@ -14,11 +14,15 @@ using namespace std;
 using namespace ImGui;
 
 void CustomizeState::init() {
-    leftTextWidth = std::max({ CalcTextSize("Profile").x, CalcTextSize("Beyblade").x, CalcTextSize("Stadium").x }) + frameSpacingX * 2;
+    leftTextWidth = max({ CalcTextSize("Profile").x, CalcTextSize("Beyblade").x, CalcTextSize("Stadium").x }) + frameSpacingX * 2;
     rightButton2Width = CalcTextSize("Delete##profile").x + frameSpacingX * 2;
     rightButton1Width = CalcTextSize("Create New").x + frameSpacingX * 2;
 
-    stadiumPreview = std::make_unique<StadiumPreview>(300, 300, game->physicsWorld, game->objectShader);
+
+    if (game->pm.getActiveProfile()) {
+        stadiumPreview = make_unique<StadiumPreview>(300, 300, game->physicsWorld, game->objectShader,
+                                                     game->pm.getActiveProfile()->getActiveStadium());
+    }
 
     onResize(game->windowWidth, game->windowHeight);
 }
@@ -56,10 +60,8 @@ void CustomizeState::draw() {
     initializeData(profiles, profile, beyblades, beyblade, stadiums, stadium);
 
     // Cover full screen
-    SetWindowPositionAndSize(1, 1, 1, 1);
-
-    // Begin main window
-    Begin("Customize Menu");
+    auto [centerX, wrapWidth] = SetWindowPositionAndSize(1, 1, 1, 1);
+    Begin("Customize Menu", nullptr, ScrollableWindow);
 
     // Draw "Back to Home" button
     if (Button("Back to Home")) {
@@ -130,14 +132,12 @@ void CustomizeState::initializeData(vector<shared_ptr<Profile>>& profiles, share
 }
 
 // Draw Profile Section
-std::shared_ptr<Profile> CustomizeState::drawProfileSection(
-    const vector<std::shared_ptr<Profile>>& profiles,
-    const std::shared_ptr<Profile>& activeProfile) {
-
-    return drawSection<Profile>(
+shared_ptr<Profile> CustomizeState::drawProfileSection(const vector<shared_ptr<Profile>>& profiles,
+                                                            const shared_ptr<Profile>& activeProfile) {
+    shared_ptr<Profile> newProfile = drawSection<Profile>(
         "Profile", "##ProfileCombo", profiles, activeProfile,
-        [&](const std::shared_ptr<Profile>& profile) { game->pm.setActiveProfile(profile->getId()); },
-        [](const std::shared_ptr<Profile>& profile) { return profile->getName(); },
+        [&](const shared_ptr<Profile>& profile) { game->pm.setActiveProfile(profile->getId()); },
+        [](const shared_ptr<Profile>& profile) { return profile->getName(); },
         [&]() {
             currentPopup = PopupState::NEW_PROFILE;
             OpenPopup("New Profile");
@@ -147,22 +147,27 @@ std::shared_ptr<Profile> CustomizeState::drawProfileSection(
             OpenPopup("Confirm Profile Deletion");
         }
     );
+    if (newProfile != activeProfile) {
+        shared_ptr<Stadium> newStadium = newProfile ? newProfile->getActiveStadium() : nullptr;
+        stadiumPreview->setStadium(newStadium);
+    }
+    return newProfile;
 }
 
 
 // Draw Beyblade Section
-std::shared_ptr<Beyblade> CustomizeState::drawBeybladeSection(
-    const vector<std::shared_ptr<Beyblade>>& beyblades,
-    const std::shared_ptr<Beyblade>& activeBeyblade,
-    const std::shared_ptr<Profile>& profile) {
+shared_ptr<Beyblade> CustomizeState::drawBeybladeSection(
+    const vector<shared_ptr<Beyblade>>& beyblades,
+    const shared_ptr<Beyblade>& activeBeyblade,
+    const shared_ptr<Profile>& profile) {
 
     return drawSection<Beyblade>(
         "Beyblade", "##BeybladeCombo", beyblades, activeBeyblade,
-        [&](const std::shared_ptr<Beyblade>& beyblade) {
+        [&](const shared_ptr<Beyblade>& beyblade) {
             profile->setActiveBeyblade(beyblade->getId());
             currentBeybladeName = beyblade->getName();
         },
-        [](const std::shared_ptr<Beyblade>& beyblade) { return beyblade->getName(); },
+        [](const shared_ptr<Beyblade>& beyblade) { return beyblade->getName(); },
         [&]() {
             currentPopup = PopupState::NEW_BEYBLADE;
             OpenPopup("New Beyblade");
@@ -174,18 +179,18 @@ std::shared_ptr<Beyblade> CustomizeState::drawBeybladeSection(
     );
 }
 
-std::shared_ptr<Stadium> CustomizeState::drawStadiumSection(
-    const vector<std::shared_ptr<Stadium>>& stadiums,
-    const std::shared_ptr<Stadium>& activeStadium,
-    const std::shared_ptr<Profile>& profile) {
+shared_ptr<Stadium> CustomizeState::drawStadiumSection(
+    const vector<shared_ptr<Stadium>>& stadiums,
+    const shared_ptr<Stadium>& activeStadium,
+    const shared_ptr<Profile>& profile) {
 
     return drawSection<Stadium>(
         "Stadium", "##StadiumCombo", stadiums, activeStadium,
-        [&](const std::shared_ptr<Stadium>& stadium) {
+        [&](const shared_ptr<Stadium>& stadium) {
             profile->setActiveStadium(stadium->getId());
             currentStadiumName = stadium->getName();
         },
-        [](const std::shared_ptr<Stadium>& stadium) { return stadium->getName(); },
+        [](const shared_ptr<Stadium>& stadium) { return stadium->getName(); },
         [&]() {
             currentPopup = PopupState::NEW_STADIUM;
             OpenPopup("New Stadium");
@@ -204,10 +209,35 @@ void CustomizeState::drawManualCustomizeSection(shared_ptr<Beyblade> beyblade) {
     // We assume from prior checks that beybladeBody is never nullptr here
     BeybladeBody* beybladeBody = beyblade->getBody();
 
-    Text("Customize Your Beyblade");
+    ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.0f, 1.0f), "Customize Your Beyblade: ");
+
+    SameLine();
+
+    SetCursorPosX(GetCursorPosX() + 50);
+    // Show update button in red if there are active changes
+    const ImVec4& buttonModified = ImVec4(0.6f, 0.0f, 0.0f, 1.0f);
+    bool modified = beybladeBody->getModified();
+    if (modified) PushStyleColor(ImGuiCol_Button, buttonModified);
+    if (Button("Update")) {
+        ScalarParameter::assignToBeybladeBody(beybladeBody);
+        beybladeBody->setModified(false);
+    }
+    if (modified) PopStyleColor();
+
+    SameLine();
+
+    float updateButtonWidth = CalcTextSize("Update").x + 2 * GetStyle().ItemSpacing.x + 2 * GetStyle().FramePadding.x;
+    SetCursorPosX(GetCursorPosX() + 50);
+    if (Button("Reset")) {
+        ScalarParameter::assignFromBeybladeBody(beybladeBody);
+        beybladeBody->setModified(false);
+    }
+
+    SeparatorSpaced();
+
     // Update temporary variables if beyblade has changed
     if (beybladeBody != prevbladeBody) {
-        BeybladeParameter::assignFromBeybladeBody(beybladeBody);
+        ScalarParameter::assignFromBeybladeBody(beybladeBody);
         prevbladeBody = beybladeBody;
     }
 
@@ -230,8 +260,8 @@ void CustomizeState::drawManualCustomizeSection(shared_ptr<Beyblade> beyblade) {
     // If the minimum size is not specified you can't see the dialog (seems like a bug).
     if (ImGuiFileDialog::Instance()->Display("Dlg##SelectMesh", ImGuiWindowFlags_None, ImVec2(800, 600))) {
         if (ImGuiFileDialog::Instance()->IsOk()) {
-            std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
-            auto newMesh = std::make_unique<BeybladeMesh>(filePathName.c_str());  // This loads the mesh.
+            string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
+            auto newMesh = make_unique<BeybladeMesh>(filePathName.c_str());  // This loads the mesh.
             if (newMesh != nullptr && newMesh->modelLoaded) {
                 beyblade->setMesh(newMesh);
             }
@@ -243,41 +273,23 @@ void CustomizeState::drawManualCustomizeSection(shared_ptr<Beyblade> beyblade) {
         return;
     }
 
-    for (BeybladeParameter& layer : layerParameters) {
+    for (ScalarParameter& layer : layerParameters) {
         DrawDiscreteFloatControl(layer.name.c_str(), getMaxLayerTextSize(), "layer", layer.currentValue, layer.minValue, layer.maxValue,
             layer.getStepSize(), layer.getFastStepSize(), layer.getDisplayFormat().c_str(), onModified);
     }
     SeparatorSpaced();
-    for (BeybladeParameter& disc : discParameters) {
+    for (ScalarParameter& disc : discParameters) {
         DrawDiscreteFloatControl(disc.name.c_str(), getMaxDiscTextSize(), "disc", disc.currentValue, disc.minValue, disc.maxValue,
             disc.getStepSize(), disc.getFastStepSize(), disc.getDisplayFormat().c_str(), onModified);
     }
     SeparatorSpaced();
-    for (BeybladeParameter& driver : driverParameters) {
+    for (ScalarParameter& driver : driverParameters) {
         DrawDiscreteFloatControl(driver.name.c_str(), getMaxDriverTextSize(), "driver", driver.currentValue, driver.minValue, driver.maxValue,
             driver.getStepSize(), driver.getFastStepSize(), driver.getDisplayFormat().c_str(), onModified);
     }
 
     // Line n: Update and Reset Buttons
     SeparatorSpacedThick();
-
-    // Show update button in red if there are active changes
-    const ImVec4& buttonModified = ImVec4(0.6f, 0.0f, 0.0f, 1.0f);
-    bool modified = beybladeBody->getModified();
-    if (modified) PushStyleColor(ImGuiCol_Button, buttonModified);
-    if (Button("Update")) {
-        BeybladeParameter::assignToBeybladeBody(beybladeBody);
-        beybladeBody->setModified(false);
-    }
-    if (modified) PopStyleColor();
-
-    SameLine();
-    float updateButtonWidth = CalcTextSize("Update").x + 2 * GetStyle().ItemSpacing.x + 2 * GetStyle().FramePadding.x;
-    SetCursorPosX(GetCursorPosX() + updateButtonWidth);
-    if (Button("Reset")) {
-        BeybladeParameter::assignFromBeybladeBody(beybladeBody);
-        beybladeBody->setModified(false);
-    }
 }
 
 void CustomizeState::drawTemplateCustomizeSection(shared_ptr<Beyblade> beyblade) {
@@ -373,17 +385,27 @@ void CustomizeState::drawTemplateCustomizeSection(shared_ptr<Beyblade> beyblade)
     }
 }
 
-void CustomizeState::drawStadiumCustomizeSection(std::shared_ptr<Stadium> stadium) {
-    Text("Stadium and Physics");
-    Separator();
-
+void CustomizeState::drawStadiumCustomizeSection(shared_ptr<Stadium> stadium) {
     if (!stadium) {
         Text("No stadium selected!");
         return;
     }
 
-    Columns(2, nullptr, false);
-    BeginChild("StadiumPreview", ImVec2(0, 0), true);
+    // Title
+    Text("Customize Stadium");
+    Separator();
+
+    // Example: Remove the "Update Stadium" button entirely if everything is real-time
+    // We'll keep a "Reset" button for demonstration, in case you want to reload from the stadium
+    bool stadiumModified = stadium->getModified();
+
+    if (Button("Reset Stadium")) {
+        ScalarParameter::assignFromStadium(stadium.get());
+        Vec3Parameter::assignFromStadium(stadium.get());
+        stadium->setModified(false);
+    }
+
+    BeginChild("StadiumPreview", ImVec2(400, 400), true, ImGuiWindowFlags_NoScrollbar);
     {
         Text("Preview:");
         if (stadiumPreview) {
@@ -392,74 +414,78 @@ void CustomizeState::drawStadiumCustomizeSection(std::shared_ptr<Stadium> stadiu
     }
     EndChild();
 
-    NextColumn();
+    SameLine();
 
-    BeginChild("StadiumSettings", ImVec2(0, 0), true);
+    // Child window for stadium settings
+    BeginChild("StadiumSettings", ImVec2(0, 400), true, ImGuiWindowFlags_NoScrollbar);
     {
         Text("Settings:");
-        // Access the stadium from the preview
-        shared_ptr<Stadium> st = stadiumPreview->getStadium();
-        if (!st) return; // Safety
+        Separator();
 
-        // Sliders to modify the stadium in real time
-        if (SliderFloat("Radius (m)", &tempRadius, StadiumDefaults::radiusMin, StadiumDefaults::radiusMax)) {
-            st->setRadius(tempRadius);
-        }
-        if (SliderFloat3("Center (x,y,z)", glm::value_ptr(tempCenter),
-            *glm::value_ptr(StadiumDefaults::centerMin),
-            *glm::value_ptr(StadiumDefaults::centerMax))) {
-            st->setCenter(tempCenter);
-        }
-        if (SliderFloat("Curvature", &tempCurvature, StadiumDefaults::curvatureMin, StadiumDefaults::curvatureMax)) {
-            st->setCurvature(tempCurvature);
-        }
-        if (SliderFloat("Friction", &tempFriction, StadiumDefaults::COFMin, StadiumDefaults::COFMax)) {
-            st->setFriction(tempFriction);
-        }
-        if (SliderIntDiscrete("Vertices per Ring", &tempVerticesPerRing,
-            StadiumDefaults::verticesPerRingMin,
-            StadiumDefaults::verticesPerRingMax,
-            4))
-        {
-            st->setVerticesPerRing(tempVerticesPerRing);
-        }
-        if (SliderIntDiscrete("Number of Rings", &tempNumRings,
-            StadiumDefaults::numRingsMin,
-            StadiumDefaults::numRingsMax,
-            4))
-        {
-            st->setNumRings(tempNumRings);
-        }
-        if (SliderFloat3("Overall Color", glm::value_ptr(tempTint), 0.f, 1.f, "Color: %.2f")) {
-            st->setTint(tempTint);
-        }
-        if (SliderFloat3("Ring Color", glm::value_ptr(tempRingColor), 0.f, 1.f, "Color: %.2f")) {
-            st->setRingColor(tempRingColor);
-        }
-        if (SliderFloat3("Cross Color", glm::value_ptr(tempCrossColor), 0.f, 1.f, "Color: %.2f")) {
-            st->setCrossColor(tempCrossColor);
+
+        // We'll define a small helper lambda to apply changes in real time
+        auto applyScalarChange = [&](int index) {
+            // Directly commit the changed value to the stadium
+            switch (index) {
+                case 0: stadium->setRadius(stadiumParameters[0].currentValue);      break;
+                case 1: stadium->setCurvature(stadiumParameters[1].currentValue);   break;
+                case 2: stadium->setFriction(stadiumParameters[2].currentValue);    break;
+                case 3: stadium->setVerticesPerRing((int)stadiumParameters[3].currentValue); break;
+                case 4: stadium->setNumRings((int)stadiumParameters[4].currentValue);        break;
+            }
+            stadium->setModified(true);
+        };
+
+        auto applyVec3Change = [&](int index) {
+            switch (index) {
+                case 0: stadium->setTint(stadiumVec3Parameters[0].currentValue);        break;
+                case 1: stadium->setRingColor(stadiumVec3Parameters[1].currentValue);   break;
+                case 2: stadium->setCrossColor(stadiumVec3Parameters[2].currentValue);  break;
+            }
+            stadium->setModified(true);
+         };
+
+        // On slider change, apply the updated value to the stadium
+        for (int i = 0; i < (int)stadiumParameters.size(); i++) {
+            auto& param = stadiumParameters[i];
+            if (DrawDiscreteFloatControl(
+                param.name.c_str(),
+                getMaxStadiumTextSize(),
+                "stadium",
+                param.currentValue,
+                param.minValue,
+                param.maxValue,
+                param.getStepSize(),
+                param.getFastStepSize(),
+                param.getDisplayFormat().c_str(),
+                [&]() { applyScalarChange(i); }
+            )) {
+                cout << "Changed" << endl;
+            }
         }
 
-        // Example "Apply" or "Revert" logic
-        if (Button("Update Stadium")) {
-            *stadium.get() = *st.get();
-        }
-        SameLine();
-        if (Button("Undo Changes")) {
-            *st.get() = *stadium.get();
+        SeparatorSpaced();
+
+        // Color pickers
+        for (int i = 0; i < (int)stadiumVec3Parameters.size(); i++) {
+            auto& vecParam = stadiumVec3Parameters[i];
+            Text(vecParam.name.c_str());
+            SameLine();
+            if (ColorEdit3(("##" + vecParam.name).c_str(), glm::value_ptr(vecParam.currentValue))) {
+                applyVec3Change(i);
+            }
         }
     }
     EndChild();
-
-    Columns(1);
 }
+
 
 
 // NOTE: Since drawPopups is the last thing called in draw(), no need to update value of beyblade and profile
 void CustomizeState::drawPopups(const shared_ptr<Profile>& profile, const shared_ptr<Beyblade>& beyblade, const shared_ptr<Stadium>& stadium) {
     ProfileManager& pm = game->pm;
 
-    auto drawConfirmDeletionPopup = [&](const std::string& itemName, const std::string& popupTitle, std::function<bool()> deleteFunc) {
+    auto drawConfirmDeletionPopup = [&](const string& itemName, const string& popupTitle, function<bool()> deleteFunc) {
         if (BeginPopupModal(popupTitle.c_str(), nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
             Text("Are you sure you want to delete: %s", itemName.c_str());
             if (Button("Yes")) {
@@ -478,8 +504,8 @@ void CustomizeState::drawPopups(const shared_ptr<Profile>& profile, const shared
         }
         };
 
-    auto drawNewItemPopup = [&](const std::string& popupTitle, const char* inputLabel, char* inputBuffer, int bufferSize,
-        std::function<bool(const std::string&)> createFunc) {
+    auto drawNewItemPopup = [&](const string& popupTitle, const char* inputLabel, char* inputBuffer, int bufferSize,
+        function<bool(const string&)> createFunc) {
             if (BeginPopupModal(popupTitle.c_str(), nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
                 Text("Name: "); SameLine();
                 InputText(inputLabel, inputBuffer, bufferSize);
@@ -488,7 +514,7 @@ void CustomizeState::drawPopups(const shared_ptr<Profile>& profile, const shared
                         game->ml.addMessage(popupTitle + " name cannot be empty", MessageType::WARNING, true);
                     }
                     else {
-                        std::string nameStr(inputBuffer);
+                        string nameStr(inputBuffer);
                         if (!createFunc(nameStr)) {
                             game->ml.addMessage("Cannot create new " + popupTitle, MessageType::ERROR, true);
                         }
@@ -510,7 +536,7 @@ void CustomizeState::drawPopups(const shared_ptr<Profile>& profile, const shared
     // New Profile Popup
     if (currentPopup == PopupState::NEW_PROFILE) {
         drawNewItemPopup("New Profile", "##ProfileName", newProfileName, IM_ARRAYSIZE(newProfileName),
-            [&](const std::string& name) {
+            [&](const string& name) {
                 if (!pm.createProfile(name)) return false;
                 pm.setActiveProfile(pm.getAllProfiles().back()->getId());
                 return true;
@@ -531,7 +557,7 @@ void CustomizeState::drawPopups(const shared_ptr<Profile>& profile, const shared
                     game->ml.addMessage("Beyblade name cannot be empty", MessageType::WARNING, true);
                 }
                 else if (profile) {
-                    std::string name(newBeybladeName);
+                    string name(newBeybladeName);
                     bool created = isTemplate ? profile->createBeyblade(name, true) : profile->createBeyblade(name);
                     if (!created) {
                         game->ml.addMessage("Cannot create new Beyblade", MessageType::ERROR, true);
@@ -557,7 +583,7 @@ void CustomizeState::drawPopups(const shared_ptr<Profile>& profile, const shared
     // New Stadium Popup
     if (currentPopup == PopupState::NEW_STADIUM) {
         drawNewItemPopup("New Stadium", "##StadiumName", newStadiumName, IM_ARRAYSIZE(newStadiumName),
-            [&](const std::string& name) {
+            [&](const string& name) {
                 if (!profile->createStadium(name)) return false;
                 profile->setActiveStadium(profile->getAllStadiums().back()->getId());
                 return true;
