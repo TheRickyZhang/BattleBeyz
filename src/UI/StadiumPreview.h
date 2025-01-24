@@ -7,6 +7,8 @@
 #include "Camera.h"
 #include "Stadium.h"
 #include "Timer.h"
+#include <thread>
+#include <mutex>
 
 class PhysicsWorld;
 class ObjectShader;
@@ -19,6 +21,7 @@ public:
 
     void handleInput(float deltaTime);
     void update(float deltaTime, float currentTime);
+    //void updateStadiumAsync(Stadium* newStadium);
     void draw(); // Renders the stadium into an FBO, draws ImGui image
 
     bool isHovered() const { return hovered; }
@@ -39,4 +42,9 @@ private:
     std::unique_ptr<FramebufferRenderer> fbo;
     std::unique_ptr<Camera> camera;
     std::unique_ptr<Timer> stadiumRenderTimer;
+
+    //std::atomic<bool> isLoading = false; 
+    //Stadium* tempStadium;
+    //std::thread loadingThread; 
+    //std::mutex stadiumMutex; 
 };

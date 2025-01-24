@@ -117,7 +117,7 @@ std::vector<ScalarParameter> stadiumParameters = {
     { "Radius", "m", 0.3f, 4.8f, 1.2f, 2 },
     { "Curvature", "", 0.025f, 0.4f, 0.10f, 3 },
     { "Friction (COF)", "", 0.0f, 1.0f, 0.35f, 2 },
-    { "Vertices per Ring", "", 16.0f, 1024.0f, 64.0f, 0 },
+    { "Vertices per Ring", "", 20.0f, 180.0f, 48.0f, 0 },
     { "Number of Rings", "", 4.0f, 32.0f, 8.0f, 0 }
 };
 

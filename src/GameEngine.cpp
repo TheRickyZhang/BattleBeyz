@@ -331,21 +331,27 @@ void GameEngine::updateTimers(float currentTime) {
 
 void GameEngine::drawDebugScreen()
 {
-    // Render faded background
-    ImDrawList* drawList = ImGui::GetForegroundDrawList();
-    drawList->AddRectFilled(ImVec2(0, 0), ImVec2(float(windowWidth), float(windowHeight)), IM_COL32(0, 0, 0, 150));
+    //// Render faded background
+    //ImDrawList* drawList = ImGui::GetForegroundDrawList();
+    //drawList->AddRectFilled(
+    //    ImVec2(0, 0),
+    //    ImVec2(float(windowWidth), float(windowHeight)),
+    //    IM_COL32(0, 0, 0, 150)
+    //);
+
+    ImGui::SetNextWindowFocus(); // Set to front
     ImGui::Begin("Debug Screen", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize);
 
     ImGui::Text("Exit by pressing F3");
     ImGui::Text(fpsText.c_str());
     ImGui::Text("Window Size: %dx%d", windowWidth, windowHeight);
-    double mouseX, mouseY; glfwGetCursorPos(window, &mouseX, &mouseY); ImGui::Text("Mouse Position: (%.1f, %.1f)", mouseX, mouseY);
+    double mouseX, mouseY;
+    glfwGetCursorPos(window, &mouseX, &mouseY);
+    ImGui::Text("Mouse Position: (%.1f, %.1f)", mouseX, mouseY);
     ImGui::Text(coordsText.c_str());
-
     ImGui::Text("OpenGL Version: %s", glGetString(GL_VERSION));
 
-    ImGui::Text("Profiles: ");
-
+    ImGui::Text("Profiles:");
     auto activeProfile = pm.getActiveProfile();
     for (auto& p : pm.getAllProfiles()) {
         if (p == activeProfile) {
@@ -355,6 +361,7 @@ void GameEngine::drawDebugScreen()
             ImGui::Text(p->getName().c_str());
         }
     }
+
     if (activeProfile) {
         auto activeBeyblade = activeProfile->getActiveBeyblade();
         for (auto& beyblade : activeProfile->getAllBeyblades()) {
@@ -365,14 +372,15 @@ void GameEngine::drawDebugScreen()
                 ImGui::Text(beyblade->getName().c_str());
             }
         }
+
         ImGui::Text("Beyblade Information");
-        std::ostringstream oss; oss.precision(2);
-        oss << std::fixed << activeBeyblade->getBody()->layer->radius.value();
-        oss << activeBeyblade->getBody()->layer->mass.value();
+        std::ostringstream oss;
+        oss.precision(2);
+        oss << std::fixed << activeBeyblade->getBody()->layer->radius.value() << ", "
+            << activeBeyblade->getBody()->layer->mass.value();
         ImGui::Text(oss.str().c_str());
 
         auto activeStadium = activeProfile->getActiveStadium();
-        // Display stadiums in the active profile
         for (auto& stadium : activeProfile->getAllStadiums()) {
             if (stadium == activeStadium) {
                 ImGui::TextColored(ImVec4(0.0f, 0.0f, 1.0f, 1.0f), stadium->getName().c_str());
@@ -381,6 +389,7 @@ void GameEngine::drawDebugScreen()
                 ImGui::Text(stadium->getName().c_str());
             }
         }
+
         ImGui::Text("Stadium Information");
         std::ostringstream stadiumOss;
         stadiumOss.precision(2);
@@ -392,8 +401,8 @@ void GameEngine::drawDebugScreen()
     else {
         ImGui::Text("No active profile selected");
     }
-    ImGui::End();
 
+    ImGui::End();
 }
 
 

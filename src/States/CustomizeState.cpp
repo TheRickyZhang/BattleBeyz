@@ -30,7 +30,9 @@ void CustomizeState::init() {
     onResize(game->windowWidth, game->windowHeight);
 }
 
-void CustomizeState::cleanup() {}
+void CustomizeState::cleanup() {
+    glViewport(0, 0, game->windowWidth, game->windowHeight);
+}
 
 void CustomizeState::pause() {}
 
@@ -436,7 +438,6 @@ void CustomizeState::drawStadiumCustomizeSection(shared_ptr<Stadium> stadium) {
 
     // Update temporary variables if stadium changes
     if (stadiumBody != prevStadium) {
-        cout << "HUHUHUHU" << endl;
         ScalarParameter::assignFromStadium(stadiumBody);           Vec3Parameter::assignFromStadium(stadiumBody);
         ScalarParameter::assignToStadium(stadiumPreview->stadium); Vec3Parameter::assignToStadium(stadiumPreview->stadium);
         prevStadium = stadium.get();
@@ -461,23 +462,24 @@ void CustomizeState::drawStadiumCustomizeSection(shared_ptr<Stadium> stadium) {
             if (DrawDiscreteFloatControl(param.name.c_str(), getMaxStadiumTextSize(), "stadium", param.currentValue,
                 param.minValue, param.maxValue, param.getStepSize(), param.getFastStepSize(),
                 param.getDisplayFormat().c_str(), onModified)) {
-                ScalarParameter::assignToStadium(stadiumPreview->stadium); Vec3Parameter::assignToStadium(stadiumPreview->stadium);
+                ScalarParameter::assignToStadium(stadiumPreview->stadium);
             }
         }
         SeparatorSpaced();
 
-        // Render Vec3 color pickers
+        // TODO: These seem to modify the stadium attributes when used, but don't cahnge the view much.
+        // But when saving and reloading the game there is a visible difference.
         for (Vec3Parameter& vecParam : stadiumVec3Parameters) {
             ImGui::Text(vecParam.name.c_str());
             ImGui::SameLine();
             if (ImGui::ColorEdit3(("##" + vecParam.name).c_str(), glm::value_ptr(vecParam.currentValue))) {
                 onModified();
+                Vec3Parameter::assignToStadium(stadiumPreview->stadium);
             }
         }
     }
     ImGui::EndChild();
 
-    // Line n: Final separator
     SeparatorSpacedThick();
 }
 

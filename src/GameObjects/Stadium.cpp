@@ -176,7 +176,7 @@ void Stadium::updateMesh() {
 
     if (verticesPerRing % 4 != 0) {
         cerr << "Vertices per ring must be a multiple of 4" << endl;
-        return;
+        //return;
     }
 
     float radius = this->radius.value();

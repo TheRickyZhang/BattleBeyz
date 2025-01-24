@@ -20,7 +20,8 @@
 class FrameBufferRenderer;
 
  // Nothing, no interaction
-const ImGuiWindowFlags MinimalWindow = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize;
+const ImGuiWindowFlags MinimalWindow = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoMove
+                                        | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoSavedSettings;
 const ImGuiWindowFlags ScrollableWindow = MinimalWindow | ImGuiWindowFlags_AlwaysVerticalScrollbar;
 const ImGuiWindowFlags NoScrolling = ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
 

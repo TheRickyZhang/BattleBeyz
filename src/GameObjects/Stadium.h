@@ -164,6 +164,7 @@ private:
     __M scaledCurvature;
     Scalar coefficientOfFriction;
 
+    // TOFIX: ringColor and crossColor don't affect at all?
     // Rendering
     int verticesPerRing;
     int numRings;

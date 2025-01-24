@@ -46,6 +46,10 @@ void StadiumPreview::handleInput(float deltaTime) {
 }
 
 void StadiumPreview::update(float deltaTime, float currentTime) {
+    //if (!isLoading && tempStadium) {
+    //    std::lock_guard<std::mutex> lock(stadiumMutex);
+    //    stadium = tempStadium; // Safely swap the loaded stadium
+    //}
     camera->update(deltaTime);
     if (stadiumRenderTimer->shouldTrigger(currentTime)) {
         stadiumRenderTimer->trigger(currentTime);
@@ -53,6 +57,14 @@ void StadiumPreview::update(float deltaTime, float currentTime) {
 }
 
 void StadiumPreview::draw() {
+    //if (isLoading) {
+    //    ImGui::BeginChild("StadiumPreview", ImVec2((float)width, (float)height), false, ImGuiWindowFlags_NoScrollbar);
+    //    ImGui::Text("Loading...");
+    //    ImGui::SameLine();
+    //    ImGui::Text("Please wait.");
+    //    ImGui::EndChild();
+    //    return;
+    //}
 
     fbo->bind();
     glViewport(0, 0, width, height);
@@ -76,8 +88,8 @@ void StadiumPreview::draw() {
     }
 
     fbo->unbind();
-    // Restore main viewport if you wish:
-    // glViewport(0, 0, mainWindowWidth, mainWindowHeight);
+    // TODO:
+    // Restore main viewport afterwards. Do in cleanup?
 
     ImGui::BeginChild("StadiumPreview", ImVec2((float)width, (float)height), false, ImGuiWindowFlags_NoScrollbar);
     hovered = ImGui::IsItemHovered(); // We'll use this in handleInput
@@ -85,3 +97,17 @@ void StadiumPreview::draw() {
     ImGui::EndChild();
 }
 
+// TODO: Run stadium rendering on separate thread and show loading screen
+//void StadiumPreview::updateStadiumAsync(Stadium* newStadium) {
+//    if (isLoading) return;
+//
+//    isLoading = true; // Mark as loading
+//    loadingThread = std::thread([this, newStadium = newStadium]() mutable {
+//        {
+//            std::lock_guard<std::mutex> lock(stadiumMutex);
+//            tempStadium = newStadium;
+//        }
+//        isLoading = false;
+//    });
+//    loadingThread.detach(); 
+//}
