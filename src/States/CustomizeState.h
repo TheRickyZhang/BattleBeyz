@@ -87,6 +87,7 @@ private:
     // Temporary Beyblade Variables
     bool isTemplate = false;
     BeybladeBody* prevbladeBody = nullptr;
+    Stadium* prevStadium = nullptr;
     int tempSelectedLayer = -1;
     int tempSelectedDisc = -1;
     int tempSelectedDriver = -1;

@@ -4,8 +4,9 @@
 #include "ObjectShader.h"
 #include "InputUtils.h"
 
-StadiumPreview::StadiumPreview(int width, int height, PhysicsWorld* physicsWorld, ObjectShader* shader, std::shared_ptr<Stadium> _stadium)
-    : width(width), height(height), physicsWorld(physicsWorld), objectShader(shader), stadium(_stadium)
+using namespace std;
+StadiumPreview::StadiumPreview(int width, int height, PhysicsWorld* physicsWorld, ObjectShader* shader)
+    : width(width), height(height), physicsWorld(physicsWorld), objectShader(shader)
 {
     fbo = std::make_unique<FramebufferRenderer>(width, height);
     camera = std::make_unique<Camera>(glm::vec3(5.f, 5.f, 5.f),
@@ -13,7 +14,7 @@ StadiumPreview::StadiumPreview(int width, int height, PhysicsWorld* physicsWorld
         this->physicsWorld,
         static_cast<float>(width),
         static_cast<float>(height));
-    if(_stadium == nullptr) stadium = std::make_shared<Stadium>();
+    stadium = new Stadium();
 
     // Re‐generates the stadium mesh every 0.15 seconds so performance is not severly hindered
     stadiumRenderTimer = std::make_unique<Timer>(0.15f, [this]() {
@@ -52,6 +53,7 @@ void StadiumPreview::update(float deltaTime, float currentTime) {
 }
 
 void StadiumPreview::draw() {
+
     fbo->bind();
     glViewport(0, 0, width, height);
     glEnable(GL_DEPTH_TEST);
@@ -82,3 +84,4 @@ void StadiumPreview::draw() {
     ImGui::Image((void*)(intptr_t)fbo->getTexture(), ImVec2((float)width, (float)height));
     ImGui::EndChild();
 }
+

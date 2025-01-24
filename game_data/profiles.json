@@ -95,17 +95,17 @@
                         0.0,
                         0.0
                     ],
-                    "coefficientOfFriction": 0.3499999940395355,
+                    "coefficientOfFriction": 0.4444444477558136,
                     "crossColor": [
                         0.0,
                         0.0,
                         1.0
                     ],
-                    "curvature": 0.15000000596046448,
+                    "curvature": 0.2750000059604645,
                     "id": -1,
                     "name": "Default Stadium",
-                    "numRings": 8,
-                    "radius": 0.30000001192092896,
+                    "numRings": 10,
+                    "radius": 1.2999999523162842,
                     "ringColor": [
                         1.0,
                         0.0,
@@ -113,7 +113,7 @@
                     ],
                     "texture": "./assets/textures/missing.jpg",
                     "textureScale": 1.0,
-                    "verticesPerRing": 64
+                    "verticesPerRing": 352
                 }
             ]
         },

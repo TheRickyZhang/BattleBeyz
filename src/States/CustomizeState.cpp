@@ -18,10 +18,13 @@ void CustomizeState::init() {
     rightButton2Width = CalcTextSize("Delete##profile").x + frameSpacingX * 2;
     rightButton1Width = CalcTextSize("Create New").x + frameSpacingX * 2;
 
-
     if (game->pm.getActiveProfile()) {
-        stadiumPreview = make_unique<StadiumPreview>(300, 300, game->physicsWorld, game->objectShader,
-                                                     game->pm.getActiveProfile()->getActiveStadium());
+        auto activeStadium = game->pm.getActiveProfile()->getActiveStadium();
+        stadiumPreview = std::make_unique<StadiumPreview>(
+            380, 380, // TOLOOK: This should be - 2 buffer
+            game->physicsWorld,
+            game->objectShader
+        );
     }
 
     onResize(game->windowWidth, game->windowHeight);
@@ -148,8 +151,7 @@ shared_ptr<Profile> CustomizeState::drawProfileSection(const vector<shared_ptr<P
         }
     );
     if (newProfile != activeProfile) {
-        shared_ptr<Stadium> newStadium = newProfile ? newProfile->getActiveStadium() : nullptr;
-        stadiumPreview->setStadium(newStadium);
+        stadiumPreview->stadium = (newProfile ? newProfile->getActiveStadium().get() : nullptr);
     }
     return newProfile;
 }
@@ -184,7 +186,7 @@ shared_ptr<Stadium> CustomizeState::drawStadiumSection(
     const shared_ptr<Stadium>& activeStadium,
     const shared_ptr<Profile>& profile) {
 
-    return drawSection<Stadium>(
+    shared_ptr<Stadium> newStadium = drawSection<Stadium>(
         "Stadium", "##StadiumCombo", stadiums, activeStadium,
         [&](const shared_ptr<Stadium>& stadium) {
             profile->setActiveStadium(stadium->getId());
@@ -200,8 +202,14 @@ shared_ptr<Stadium> CustomizeState::drawStadiumSection(
             OpenPopup("Confirm Stadium Deletion");
         }
     );
-}
 
+    // Update the stadium preview if the active stadium changes
+    if (newStadium != activeStadium) {
+        stadiumPreview->stadium = newStadium.get();
+    }
+
+    return newStadium;
+}
 
 
 // Line 4: Customize Your Beyblade || No Beyblades To Customize || Current Beyblade Not Selected
@@ -211,24 +219,24 @@ void CustomizeState::drawManualCustomizeSection(shared_ptr<Beyblade> beyblade) {
 
     ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.0f, 1.0f), "Customize Your Beyblade: ");
 
-    SameLine();
+    ImGui::SameLine();
 
     SetCursorPosX(GetCursorPosX() + 50);
     // Show update button in red if there are active changes
     const ImVec4& buttonModified = ImVec4(0.6f, 0.0f, 0.0f, 1.0f);
     bool modified = beybladeBody->getModified();
     if (modified) PushStyleColor(ImGuiCol_Button, buttonModified);
-    if (Button("Update")) {
+    if (Button("Save Beyblade")) {
         ScalarParameter::assignToBeybladeBody(beybladeBody);
         beybladeBody->setModified(false);
     }
     if (modified) PopStyleColor();
 
-    SameLine();
+    ImGui::SameLine();
 
     float updateButtonWidth = CalcTextSize("Update").x + 2 * GetStyle().ItemSpacing.x + 2 * GetStyle().FramePadding.x;
     SetCursorPosX(GetCursorPosX() + 50);
-    if (Button("Reset")) {
+    if (Button("Reset Beyblade")) {
         ScalarParameter::assignFromBeybladeBody(beybladeBody);
         beybladeBody->setModified(false);
     }
@@ -301,7 +309,7 @@ void CustomizeState::drawTemplateCustomizeSection(shared_ptr<Beyblade> beyblade)
     */
     Columns(2, nullptr, true);
 
-    BeginChild("SelectionColumn", ImVec2(0, 0), true);
+    ImGui::BeginChild("SelectionColumn", ImVec2(0, 0), true);
     Text("Select Parts");
     // **Layer, Disc, Driver Selection**
     if (CollapsingHeader("Layers")) {
@@ -328,10 +336,10 @@ void CustomizeState::drawTemplateCustomizeSection(shared_ptr<Beyblade> beyblade)
             }
         }
     }
-    EndChild();
+    ImGui::EndChild();
 
     NextColumn();
-    BeginChild("InfoColumn", ImVec2(0, 0), true);
+    ImGui::BeginChild("InfoColumn", ImVec2(0, 0), true);
     Text("Part Details");
 
     // **Display Layer, Disc, Driver Details**
@@ -360,11 +368,11 @@ void CustomizeState::drawTemplateCustomizeSection(shared_ptr<Beyblade> beyblade)
         Text("Mass: %.3f kg", driver->mass);
     }
 
-    EndChild();
+    ImGui::EndChild();
 
     // **Update and Reset Buttons**
     Columns(1); // Reset to single column
-    if (Button("Update")) {
+    if (Button("Update Beyblade (Template)")) {
         // Validate selections
         if (isLayerSelected && isDiscSelected && isDriverSelected) {
             beyblade->update(tempSelectedLayer, tempSelectedDisc, tempSelectedDriver);
@@ -375,9 +383,9 @@ void CustomizeState::drawTemplateCustomizeSection(shared_ptr<Beyblade> beyblade)
         }
     }
 
-    SameLine();
+    ImGui::SameLine();
 
-    if (Button("Reset")) {
+    if (Button("Reset Beyblade (Template)")) {
         tempSelectedLayer = beyblade->templateIndices[0];
         tempSelectedDisc = beyblade->templateIndices[1];
         tempSelectedDriver = beyblade->templateIndices[2];
@@ -386,97 +394,91 @@ void CustomizeState::drawTemplateCustomizeSection(shared_ptr<Beyblade> beyblade)
 }
 
 void CustomizeState::drawStadiumCustomizeSection(shared_ptr<Stadium> stadium) {
+
+    // Ensure stadium is valid
     if (!stadium) {
-        Text("No stadium selected!");
+        ImGui::Text("No stadium selected!");
         return;
     }
+    Stadium* stadiumBody = stadium.get();
 
-    // Title
-    Text("Customize Stadium");
-    Separator();
 
-    // Example: Remove the "Update Stadium" button entirely if everything is real-time
-    // We'll keep a "Reset" button for demonstration, in case you want to reload from the stadium
-    bool stadiumModified = stadium->getModified();
+    ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.0f, 1.0f), "Customize Your Stadium:");
+    ImGui::SameLine();
 
-    if (Button("Reset Stadium")) {
-        ScalarParameter::assignFromStadium(stadium.get());
-        Vec3Parameter::assignFromStadium(stadium.get());
+
+    // Show update button in red if there are active changes
+    const ImVec4& buttonModified = ImVec4(0.6f, 0.0f, 0.0f, 1.0f);
+    bool modified = stadium->getModified();
+    if (modified) ImGui::PushStyleColor(ImGuiCol_Button, buttonModified);
+    if (ImGui::Button("Save Stadium")) {
+        ScalarParameter::assignToStadium(stadiumBody);
+        Vec3Parameter::assignToStadium(stadiumBody);
+        ScalarParameter::assignToStadium(stadiumPreview->stadium);
+        Vec3Parameter::assignToStadium(stadiumPreview->stadium);
+        stadium->setModified(false);
+    }
+    if (modified) ImGui::PopStyleColor();
+
+    ImGui::SameLine();
+
+    // Always sync stadiumPreview and the extern data in stadiumPreview. Annoying and prehaps not scalable, but easiest solution that works
+    if (ImGui::Button("Reset Stadium")) {
+
+        cout << "Clicked" << endl;
+        ScalarParameter::assignFromStadium(stadiumBody);           Vec3Parameter::assignFromStadium(stadiumBody);
+        cout << "ScalarParameter for radius is now" << stadiumParameters[0].currentValue << endl;
+        ScalarParameter::assignToStadium(stadiumPreview->stadium); Vec3Parameter::assignToStadium(stadiumPreview->stadium);
         stadium->setModified(false);
     }
 
-    BeginChild("StadiumPreview", ImVec2(400, 400), true, ImGuiWindowFlags_NoScrollbar);
+    SeparatorSpaced();
+
+    // Update temporary variables if stadium changes
+    if (stadiumBody != prevStadium) {
+        cout << "HUHUHUHU" << endl;
+        ScalarParameter::assignFromStadium(stadiumBody);           Vec3Parameter::assignFromStadium(stadiumBody);
+        ScalarParameter::assignToStadium(stadiumPreview->stadium); Vec3Parameter::assignToStadium(stadiumPreview->stadium);
+        prevStadium = stadium.get();
+    }
+
+    auto onModified = [&]() { stadium->setModified(); };
+
+    ImGui::BeginChild("StadiumPreview", ImVec2(400, 400), true, ImGuiWindowFlags_NoScrollbar);
     {
-        Text("Preview:");
         if (stadiumPreview) {
             stadiumPreview->draw();
         }
     }
-    EndChild();
+    ImGui::EndChild();
 
-    SameLine();
+    ImGui::SameLine();
 
-    // Child window for stadium settings
-    BeginChild("StadiumSettings", ImVec2(0, 400), true, ImGuiWindowFlags_NoScrollbar);
+    ImGui::BeginChild("StadiumSettings", ImVec2(0, 400), true, ImGuiWindowFlags_NoScrollbar);
     {
-        Text("Settings:");
-        Separator();
-
-
-        // We'll define a small helper lambda to apply changes in real time
-        auto applyScalarChange = [&](int index) {
-            // Directly commit the changed value to the stadium
-            switch (index) {
-                case 0: stadium->setRadius(stadiumParameters[0].currentValue);      break;
-                case 1: stadium->setCurvature(stadiumParameters[1].currentValue);   break;
-                case 2: stadium->setFriction(stadiumParameters[2].currentValue);    break;
-                case 3: stadium->setVerticesPerRing((int)stadiumParameters[3].currentValue); break;
-                case 4: stadium->setNumRings((int)stadiumParameters[4].currentValue);        break;
-            }
-            stadium->setModified(true);
-        };
-
-        auto applyVec3Change = [&](int index) {
-            switch (index) {
-                case 0: stadium->setTint(stadiumVec3Parameters[0].currentValue);        break;
-                case 1: stadium->setRingColor(stadiumVec3Parameters[1].currentValue);   break;
-                case 2: stadium->setCrossColor(stadiumVec3Parameters[2].currentValue);  break;
-            }
-            stadium->setModified(true);
-         };
-
-        // On slider change, apply the updated value to the stadium
-        for (int i = 0; i < (int)stadiumParameters.size(); i++) {
-            auto& param = stadiumParameters[i];
-            if (DrawDiscreteFloatControl(
-                param.name.c_str(),
-                getMaxStadiumTextSize(),
-                "stadium",
-                param.currentValue,
-                param.minValue,
-                param.maxValue,
-                param.getStepSize(),
-                param.getFastStepSize(),
-                param.getDisplayFormat().c_str(),
-                [&]() { applyScalarChange(i); }
-            )) {
-                cout << "Changed" << endl;
+        // Render scalar sliders
+        for (ScalarParameter& param : stadiumParameters) {
+            if (DrawDiscreteFloatControl(param.name.c_str(), getMaxStadiumTextSize(), "stadium", param.currentValue,
+                param.minValue, param.maxValue, param.getStepSize(), param.getFastStepSize(),
+                param.getDisplayFormat().c_str(), onModified)) {
+                ScalarParameter::assignToStadium(stadiumPreview->stadium); Vec3Parameter::assignToStadium(stadiumPreview->stadium);
             }
         }
-
         SeparatorSpaced();
 
-        // Color pickers
-        for (int i = 0; i < (int)stadiumVec3Parameters.size(); i++) {
-            auto& vecParam = stadiumVec3Parameters[i];
-            Text(vecParam.name.c_str());
-            SameLine();
-            if (ColorEdit3(("##" + vecParam.name).c_str(), glm::value_ptr(vecParam.currentValue))) {
-                applyVec3Change(i);
+        // Render Vec3 color pickers
+        for (Vec3Parameter& vecParam : stadiumVec3Parameters) {
+            ImGui::Text(vecParam.name.c_str());
+            ImGui::SameLine();
+            if (ImGui::ColorEdit3(("##" + vecParam.name).c_str(), glm::value_ptr(vecParam.currentValue))) {
+                onModified();
             }
         }
     }
-    EndChild();
+    ImGui::EndChild();
+
+    // Line n: Final separator
+    SeparatorSpacedThick();
 }
 
 
@@ -495,7 +497,7 @@ void CustomizeState::drawPopups(const shared_ptr<Profile>& profile, const shared
                 currentPopup = PopupState::NONE;
                 CloseCurrentPopup();
             }
-            SameLine();
+            ImGui::SameLine();
             if (Button("No")) {
                 currentPopup = PopupState::NONE;
                 CloseCurrentPopup();
@@ -507,7 +509,7 @@ void CustomizeState::drawPopups(const shared_ptr<Profile>& profile, const shared
     auto drawNewItemPopup = [&](const string& popupTitle, const char* inputLabel, char* inputBuffer, int bufferSize,
         function<bool(const string&)> createFunc) {
             if (BeginPopupModal(popupTitle.c_str(), nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
-                Text("Name: "); SameLine();
+                Text("Name: "); ImGui::SameLine();
                 InputText(inputLabel, inputBuffer, bufferSize);
                 if (Button("Submit")) {
                     if (strlen(inputBuffer) == 0) {
@@ -523,7 +525,7 @@ void CustomizeState::drawPopups(const shared_ptr<Profile>& profile, const shared
                         CloseCurrentPopup();
                     }
                 }
-                SameLine();
+                ImGui::SameLine();
                 if (Button("Cancel")) {
                     inputBuffer[0] = '\0';
                     currentPopup = PopupState::NONE;
@@ -533,7 +535,8 @@ void CustomizeState::drawPopups(const shared_ptr<Profile>& profile, const shared
             }
         };
 
-    // New Profile Popup
+
+    // Popups for creating new item
     if (currentPopup == PopupState::NEW_PROFILE) {
         drawNewItemPopup("New Profile", "##ProfileName", newProfileName, IM_ARRAYSIZE(newProfileName),
             [&](const string& name) {
@@ -542,15 +545,13 @@ void CustomizeState::drawPopups(const shared_ptr<Profile>& profile, const shared
                 return true;
             });
     }
-
-    // New Beyblade Popup: Special case
     if (currentPopup == PopupState::NEW_BEYBLADE) {
         if (BeginPopupModal("New Beyblade", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
             Text("Choose your type");
             if (RadioButton("Manual", !isTemplate)) isTemplate = false;
             if (RadioButton("Template", isTemplate)) isTemplate = true;
 
-            Text("Name: "); SameLine();
+            Text("Name: "); ImGui::SameLine();
             InputText("##BeybladeName", newBeybladeName, IM_ARRAYSIZE(newBeybladeName));
             if (Button("Submit")) {
                 if (strlen(newBeybladeName) == 0) {
@@ -570,7 +571,7 @@ void CustomizeState::drawPopups(const shared_ptr<Profile>& profile, const shared
                     CloseCurrentPopup();
                 }
             }
-            SameLine();
+            ImGui::SameLine();
             if (Button("Cancel")) {
                 newBeybladeName[0] = '\0';
                 currentPopup = PopupState::NONE;
@@ -579,8 +580,6 @@ void CustomizeState::drawPopups(const shared_ptr<Profile>& profile, const shared
             EndPopup();
         }
     }
-
-    // New Stadium Popup
     if (currentPopup == PopupState::NEW_STADIUM) {
         drawNewItemPopup("New Stadium", "##StadiumName", newStadiumName, IM_ARRAYSIZE(newStadiumName),
             [&](const string& name) {
@@ -590,24 +589,14 @@ void CustomizeState::drawPopups(const shared_ptr<Profile>& profile, const shared
             });
     }
 
-    // Confirm Profile Deletion Popup
+    // Popups for deleting
     if (currentPopup == PopupState::DELETE_PROFILE) {
-        drawConfirmDeletionPopup(currentProfileName, "Confirm Profile Deletion", [&]() {
-            return pm.deleteProfile(profile->getId());
-            });
+        drawConfirmDeletionPopup(currentProfileName, "Confirm Profile Deletion", [&]() {return pm.deleteProfile(profile->getId());});
     }
-
-    // Confirm Beyblade Deletion Popup
     if (currentPopup == PopupState::DELETE_BEYBLADE) {
-        drawConfirmDeletionPopup(currentBeybladeName, "Confirm Beyblade Deletion", [&]() {
-            return profile->deleteBeyblade(beyblade->getId());
-            });
+        drawConfirmDeletionPopup(currentBeybladeName, "Confirm Beyblade Deletion", [&]() {return profile->deleteBeyblade(beyblade->getId());});
     }
-
-    // Confirm Stadium Deletion Popup
     if (currentPopup == PopupState::DELETE_STADIUM) {
-        drawConfirmDeletionPopup(currentStadiumName, "Confirm Stadium Deletion", [&]() {
-            return profile->deleteStadium(stadium->getId());
-            });
+        drawConfirmDeletionPopup(currentStadiumName, "Confirm Stadium Deletion", [&]() {return profile->deleteStadium(stadium->getId());});
     }
 }

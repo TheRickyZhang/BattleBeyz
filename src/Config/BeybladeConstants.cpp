@@ -76,12 +76,14 @@ void ScalarParameter::assignFromStadium(const Stadium* stadium) {
 }
 
 void Vec3Parameter::assignToStadium(Stadium* stadium) {
+    if (!stadium) return;
     stadium->setTint(stadiumVec3Parameters[0].currentValue);       // Assign Tint
     stadium->setRingColor(stadiumVec3Parameters[1].currentValue); // Assign Ring Color
     stadium->setCrossColor(stadiumVec3Parameters[2].currentValue);// Assign Cross Color
 }
 
 void Vec3Parameter::assignFromStadium(const Stadium* stadium) {
+    if (!stadium) return;
     stadiumVec3Parameters[0].currentValue = stadium->getTint();       // Fetch Tint
     stadiumVec3Parameters[1].currentValue = stadium->getRingColor(); // Fetch Ring Color
     stadiumVec3Parameters[2].currentValue = stadium->getCrossColor();// Fetch Cross Color

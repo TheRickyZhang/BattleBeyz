@@ -343,7 +343,57 @@ void GameEngine::drawDebugScreen()
     ImGui::Text(coordsText.c_str());
 
     ImGui::Text("OpenGL Version: %s", glGetString(GL_VERSION));
+
+    ImGui::Text("Profiles: ");
+
+    auto activeProfile = pm.getActiveProfile();
+    for (auto& p : pm.getAllProfiles()) {
+        if (p == activeProfile) {
+            ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), p->getName().c_str());
+        }
+        else {
+            ImGui::Text(p->getName().c_str());
+        }
+    }
+    if (activeProfile) {
+        auto activeBeyblade = activeProfile->getActiveBeyblade();
+        for (auto& beyblade : activeProfile->getAllBeyblades()) {
+            if (beyblade == activeBeyblade) {
+                ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), beyblade->getName().c_str());
+            }
+            else {
+                ImGui::Text(beyblade->getName().c_str());
+            }
+        }
+        ImGui::Text("Beyblade Information");
+        std::ostringstream oss; oss.precision(2);
+        oss << std::fixed << activeBeyblade->getBody()->layer->radius.value();
+        oss << activeBeyblade->getBody()->layer->mass.value();
+        ImGui::Text(oss.str().c_str());
+
+        auto activeStadium = activeProfile->getActiveStadium();
+        // Display stadiums in the active profile
+        for (auto& stadium : activeProfile->getAllStadiums()) {
+            if (stadium == activeStadium) {
+                ImGui::TextColored(ImVec4(0.0f, 0.0f, 1.0f, 1.0f), stadium->getName().c_str());
+            }
+            else {
+                ImGui::Text(stadium->getName().c_str());
+            }
+        }
+        ImGui::Text("Stadium Information");
+        std::ostringstream stadiumOss;
+        stadiumOss.precision(2);
+        stadiumOss << std::fixed
+            << "Radius: " << activeStadium->getRadius().value() << " m, "
+            << "Vertices Per Ring: " << activeStadium->getVerticesPerRing();
+        ImGui::Text(stadiumOss.str().c_str());
+    }
+    else {
+        ImGui::Text("No active profile selected");
+    }
     ImGui::End();
+
 }
 
 

@@ -173,7 +173,7 @@ void SelectionState::showStadiumOptions() {
     stadiumPreview->draw();
 
     // Access the stadium from the preview
-    auto st = stadiumPreview->getStadium();
+    Stadium* st = stadiumPreview->getStadium();
     if (!st) return; // Safety
 
     // Sliders to modify the stadium in real time
@@ -217,7 +217,7 @@ void SelectionState::showStadiumOptions() {
 
     // Example "Apply" or "Revert" logic
     if (Button("Update Stadium")) {
-        *stadiums[0].get() = *st.get();
+        *stadiums[0].get() = *st;
     }
     SameLine();
     if (Button("Undo Changes")) {
