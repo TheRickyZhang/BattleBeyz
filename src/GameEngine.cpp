@@ -77,6 +77,7 @@ bool GameEngine::init(const char* title, int width, int height) {
         cleanup();
         return false;
     }
+    glViewport(0, 0, windowWidth, windowHeight);
 
     setupImGuiAndCallbacks();
 
@@ -537,7 +538,7 @@ void GameEngine::initShaders()
 }
 
 void GameEngine::initRenderers() {
-    quadRenderer = new QuadRenderer(scale(mat4(1.0f), vec3(windowWidth, windowHeight, 1.0f)));
+    quadRenderer = new QuadRenderer();
 
     textRenderer = new TextRenderer("./assets/fonts/OpenSans-Regular.ttf", 800, 600);
     tm.loadTexture("defaultBackground", "./assets/textures/Brickbeyz.jpg");
@@ -596,14 +597,13 @@ void GameEngine::framebufferSizeCallback(GLFWwindow* window, int width, int heig
     // All logic related to resizing windows should go here. ALERT: Use this instead of recalculated window-based transformations every time!
     engine->windowWidth = width;
     engine->windowHeight = height;
+    glViewport(0, 0, width, height);
 
-    engine->textRenderer->resize(width, height);
+    engine->onResize(width, height);
     if (!engine->stateStack.empty()) {
         engine->stateStack.back()->onResize(width, height);
     }
 
-
-    glViewport(0, 0, width, height);
     engine->projection = perspective(radians(45.0f), (float)width / height, 0.1f, 100.0f);
 }
 
@@ -641,4 +641,11 @@ void GameEngine::scrollCallback(GLFWwindow* window, double xoffset, double yoffs
     if (engine) {
         engine->im.setScrollOffset(xoffset, yoffset);
     }
+}
+
+// Everything that is part of engine on resize
+void GameEngine::onResize(int width, int height)
+{
+    textRenderer->resize(width, height);
+    //quadRenderer->resize(width, height);
 }

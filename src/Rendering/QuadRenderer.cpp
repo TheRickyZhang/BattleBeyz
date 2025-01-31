@@ -1,11 +1,11 @@
 #include <iostream>
 
 #include "QuadRenderer.h"
+#include "imgui.h" // TEmporary
 
 #include "Utils.h"
 
-QuadRenderer::QuadRenderer(const glm::mat4& model)
-    : modelMatrix(model) {
+QuadRenderer::QuadRenderer() {
     setupBuffers();
 }
 
@@ -45,24 +45,24 @@ void QuadRenderer::setupBuffers() {
     glBindVertexArray(0);
 }
 
-void QuadRenderer::setModelMatrix(const glm::mat4& model) {
-    modelMatrix = model;
-}
-
 void QuadRenderer::render(BackgroundShader& shader, std::shared_ptr<Texture> texture) const {
-    if (!texture) {
-        std::cerr << "Warning: QuadRenderer received a null texture.\n";
+    if (!texture || texture->ID == 0) {
+        std::cerr << "Warning: QuadRenderer received a null or invalid texture.\n";
         return;
     }
 
-    shader.use();
-    shader.setBackgroundObjectParams(modelMatrix, 0);
+    // DEBUGGING
+    // Force absolute values to shader
+    //glViewport(0, 0, 800, 800);
+    //int vp[4];
+    //glGetIntegerv(GL_VIEWPORT, vp);
+    //std::cerr << "glViewport: " << vp[0] << ", " << vp[1] << ", " << vp[2] << ", " << vp[3] << "\n";
 
-    texture->use();
+    shader.setBackgroundObjectParams(glm::mat4(1.0f), 0);
+
+    texture->use(0);
 
     glBindVertexArray(VAO);
     glDrawArrays(GL_TRIANGLES, 0, 6);
     glBindVertexArray(0);
-
-    GL_CHECK("Quadrenderer");
 }

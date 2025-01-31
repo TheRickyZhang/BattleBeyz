@@ -28,6 +28,7 @@ public:
     void setFloat(const std::string& name, float value) const;
     void setInt(const std::string& name, int value) const;
 
+    void setTint(const glm::vec3& color) const;
     //void debugUniforms(const std::vector<std::string>& uniformNames) const;
 
 protected:

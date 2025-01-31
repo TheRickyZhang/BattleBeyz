@@ -248,12 +248,6 @@ void BeybladeMesh::updateMesh() {
             vertexData.push_back(0.0f);
             vertexData.push_back(0.0f);
         }
-        
-        if (tint != glm::vec3(1.0)) {
-            cout << "Applying tint of " << tint.x << " " << tint.y << " " << tint.z << endl;
-            // TODO: Create a globally accessible shader instance or expose how this is being shaded
-            //shader.setTint(glm::vec3(1.0f, 0.0f, 0.0f));
-        }
 
         // Color data
         vertexData.push_back(colors[i].x);
@@ -299,6 +293,12 @@ void BeybladeMesh::render(ObjectShader& shader) {
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, (GLsizei)indices.size(), GL_UNSIGNED_INT, nullptr);
     glBindVertexArray(0);
+
+    //shader.use();
+    //if (tint != glm::vec3(1.0)) {
+    //    cout << "Applying tint of " << tint.x << " " << tint.y << " " << tint.z << endl;
+    //    shader.setTint(tint);
+    //}
 
     //glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // Switch to polygon mode
 

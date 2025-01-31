@@ -61,8 +61,14 @@ include_directories(${PROJECT_SOURCE_DIR}/src/Physics/Units)
 include_directories(${PROJECT_SOURCE_DIR}/src/Rendering)
 include_directories(${PROJECT_SOURCE_DIR}/src/RigidBodies)
 include_directories(${PROJECT_SOURCE_DIR}/src/States)
+include_directories(${PROJECT_SOURCE_DIR}/src/States/Menu)
+include_directories(${PROJECT_SOURCE_DIR}/src/States/Customize)
+include_directories(${PROJECT_SOURCE_DIR}/src/States/Gameplay)
+include_directories(${PROJECT_SOURCE_DIR}/src/States/Intermediate)
 include_directories(${PROJECT_SOURCE_DIR}/src/Config)
 include_directories(${PROJECT_SOURCE_DIR}/src/UI)
+
+
 
 # Add Source and Header Files
 file(GLOB_RECURSE HEADER_FILES "src/*.h" "assets/*.h")

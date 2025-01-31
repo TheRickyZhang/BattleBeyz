@@ -15,17 +15,17 @@
 class QuadRenderer {
 public:
     // Only needs a model matrix now. Projection is handled globally.
-    explicit QuadRenderer(const glm::mat4& model);
+    QuadRenderer::QuadRenderer();
     ~QuadRenderer();
 
     void render(BackgroundShader& shader, std::shared_ptr<Texture> texture) const;
 
-    void setModelMatrix(const glm::mat4& model);
+    //void setModelMatrix(const glm::mat4& model);
 
 private:
     GLuint VAO = 0;
     GLuint VBO = 0;
-    glm::mat4 modelMatrix;
+    glm::mat4 modelMatrix = glm::mat4(1.0f);
 
     void setupBuffers();
 };

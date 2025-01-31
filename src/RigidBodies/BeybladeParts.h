@@ -102,7 +102,6 @@ struct Driver {
         coefficientOfFriction(0.22f)
     {}
 
-    // TODO: Since radius changed to contactRadius, add a
     M contactRadius;
     M upperRadius;
     M height;

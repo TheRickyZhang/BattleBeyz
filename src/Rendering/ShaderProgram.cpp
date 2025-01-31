@@ -149,6 +149,12 @@ void ShaderProgram::setInt(const std::string& name, int value) const {
     }
 }
 
+// DO NOT TOUCH
+void ShaderProgram::setTint(const glm::vec3& color) const
+{
+    setVec3("tint", color);
+}
+
 //void ShaderProgram::debugUniforms(const std::vector<std::string>& uniformNames) const {
 //    std::cout << "Debugging Uniform Locations for Shader Program (ID: " << static_cast<int>(ID) << "):" << std::endl;
 //

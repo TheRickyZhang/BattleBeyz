@@ -10,12 +10,14 @@ BackgroundShader::BackgroundShader(const char* vertexPath, const char* fragmentP
 }
 
 void BackgroundShader::setBackgroundGlobalParams(const glm::mat4& projection, float wrapFactor, float time) const {
+    use();
     setMat4("projection", projection);
     setFloat("wrapFactor", wrapFactor);
     setFloat("time", time);
 }
 
 void BackgroundShader::setBackgroundObjectParams(const glm::mat4& model, GLuint textureID) const {
+    use();
     setMat4("model", model);
-    setInt("backgroundTexture", textureID); // Always use texture unit 0 for simplicity
+    setInt("backgroundTexture", textureID);
 }

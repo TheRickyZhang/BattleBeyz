@@ -46,19 +46,8 @@ void GameState::renderBackground(GameEngine* game, const string& textureName) {
     int height = game->windowHeight;
     shared_ptr<Texture> backgroundTexture = game->tm.getTexture(textureName);
 
-    glm::mat4 orthoProjection = glm::ortho(
-        0.0f, static_cast<float>(game->windowWidth),
-        0.0f, static_cast<float>(game->windowHeight),
-        -1.0f, 1.0f
-    );
+    backgroundShader->setBackgroundGlobalParams(glm::mat4(1.0f), 1.0f, (float)glfwGetTime());
 
-    backgroundShader->setBackgroundGlobalParams(orthoProjection, 4.0f, (float)glfwGetTime());
-
-    backgroundShader->setBackgroundObjectParams(scale(mat4(1.0f), vec3(width, height, 1.0f)), 0);
-
-    // TOLOOK: Removing these causes background to not render until window is resized, even though it should be initialized with correct matrices.
-    //glm::mat4 model = glm::scale(glm::mat4(1.0f), glm::vec3(game->windowWidth, game->windowHeight, 1.0f));
-    //game->quadRenderer->setModelMatrix(scale(mat4(1.0f), vec3(width, height, 1.0f)));
     quadRenderer->render(*backgroundShader, backgroundTexture);
 }
 
