@@ -7,11 +7,13 @@
 
 #include <glm/glm.hpp>
 #include "BoundingBox.h"
+#include "CameraBehaviorManager.h"
 
 enum Action;
 class PhysicsWorld;
 class BeybladeBody;
 class Stadium;
+class InputManager;
 
 /*
 * Free: Unrestricted movement and view.
@@ -24,10 +26,15 @@ enum struct CameraMode {
     PANNING
 };
 
+// STANDARDS: Better encapsulation
 class Camera {
 public:
     // TODO: Require boundingbox, move to .cpp
     Camera(const glm::vec3& position, const glm::vec3& viewPoint, PhysicsWorld* world, float x, float y, BoundingBox box = BoundingBox(glm::vec3(-1e6), glm::vec3(1e6)));
+
+    // TODO: Manage these better with function objects / strategy patterns (composition of inheritance)
+    void setBehavior(std::unique_ptr<CameraBehavior> behavior);
+    void clearBehavior();
 
     // Must call these before changing the mode (initial only works in free UNTIL attached to beybalde/stadium)
     void setFollowingBey(BeybladeBody* bey) { followingBey = bey; }
@@ -65,6 +72,7 @@ public:
 
     void update(float deltaTime);
     void focus(const glm::vec3& viewPoint, bool teleport = false);
+    void setPositionSmooth(const glm::vec3& targetPosition, float alpha);
 
     // Camera matrices
     glm::mat4 getViewMatrix() const;
@@ -72,6 +80,9 @@ public:
     void processMouseMovement(float xoffset, float yoffset);
     void processMouseScroll(float scrollAmount);
 
+    // Callbacks for input
+    void handleMouseDrag(InputManager& im);
+    void handleMouseScroll(InputManager& im);
 
     // Inline setters (Specific setters commented for now to focus on core fucnitonality)
     //void setHeightAbove(const glm::vec3& height) { heightAbove = height; }
@@ -79,7 +90,7 @@ public:
     //void setViewCenter(const glm::vec3& center) { viewCenter = center; }
     //void setRotationCenter(const glm::vec3& center) { rotationCenter = center; }
     //void setCurrentAngle(float angle) { currentAngle = angle; }
-    //void setAngularVelocity(float velocity) { angularVelocity = velocity; }
+    //void setAngularVelocity(float velocity) { angularVelocity = velocity; }s
 private:
     glm::vec3 getDirection(Action action) const;
     void updateCameraVectors();
@@ -89,6 +100,9 @@ private:
     // Information needed for all the camera modes - looked into alternatives and I think this is the best way to do switching optimally
     
     float heightAbove = 0.25f;
+
+    // For behaviors
+    std::unique_ptr<CameraBehavior> behavior;
 
     // For attached
     BeybladeBody* followingBey{};

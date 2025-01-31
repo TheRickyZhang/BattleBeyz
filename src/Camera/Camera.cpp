@@ -7,6 +7,7 @@
 
 #include "InputUtils.h"
 #include "PhysicsWorld.h"
+#include "InputManager.h"
 
 using namespace glm;
 
@@ -21,6 +22,14 @@ Camera::Camera(const vec3& pos, const vec3& viewPoint, PhysicsWorld* world, floa
 {
     focus(viewPoint);  // Initializes pitch, yaw, roll
     updateCameraVectors();
+}
+
+void Camera::setBehavior(std::unique_ptr<CameraBehavior> behavior) {
+    currentBehavior = std::move(behavior);
+}
+
+void Camera::clearBehavior() {
+    currentBehavior.reset();
 }
 
 void Camera::setPanningVariables(Stadium* stadium) {
@@ -167,6 +176,26 @@ void Camera::processMouseScroll(float scrollAmount) {
     }
 }
 
+// Right Hold + Drag = turn camera
+void Camera::handleMouseDrag(InputManager& im) {
+    if (im.mouseButtonPressed(GLFW_MOUSE_BUTTON_RIGHT)) {
+        auto [xOffset, yOffset] = im.getMouseOffsets();
+        if (xOffset != 0.0f || yOffset != 0.0f) {
+            processMouseMovement(xOffset, yOffset);
+        }
+    }
+}
+
+// Scroll Wheel = change camera movement speed
+void Camera::handleMouseScroll(InputManager& im)
+{
+    if (im.scrollMoved()) {
+        float scrollOffsetY = im.getScrollOffsetY();
+        processMouseScroll(scrollOffsetY);
+        im.resetScrollOffset();
+    }
+}
+
 /**
 * Call after every update to yaw/pitch to update front, up, right.
 */
@@ -234,4 +263,9 @@ void Camera::focus(const vec3& viewPoint, bool teleport) {
         position = viewPoint - vec3(2.0f) * direction;
     }
     updateCameraVectors();
+}
+
+void Camera::setPositionSmooth(const glm::vec3& targetPosition, float alpha)
+{
+    position = glm::mix(position, targetPosition, alpha);
 }

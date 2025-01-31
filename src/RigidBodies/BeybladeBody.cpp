@@ -49,15 +49,14 @@ Vec3_M BeybladeBody::getBottomPosition() const {
 }
 
 /**
-* Reset physics data before start of new game.
+* Reset physics data for pre battle state
 */
 
-void BeybladeBody::resetPhysics()
+void BeybladeBody::resetPhysics(Vec3_M startingPoint)
 {
-    // Added 2024-11-18
-    center = _initialCenter;
-    velocity = _initialVelocity;
-    angularVelocity = _initialAngularVelocity;
+    center = startingPoint;
+    velocity = Vec3_M_S(0.0, 0.0, 0.0);
+    angularVelocity = Vec3_R_S(0.0, 0.0, 0.0);
 
     accumulatedAcceleration = Vec3_M_S2(0.0, 0.0, 0.0);
     accumulatedAngularAcceleration = Vec3_R_S2(0.0, 0.0, 0.0);
@@ -71,8 +70,6 @@ void BeybladeBody::setInitialLaunch(Vec3_M initialCenter, Vec3_M_S initialVeloci
     center = initialCenter;
     velocity = initialVelocity;
     angularVelocity = initialAngularVelocity;
-
-    // Save some values for restart.  2024-11-18
 
     _initialCenter = center;
     _initialVelocity = velocity;

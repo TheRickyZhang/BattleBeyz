@@ -30,33 +30,33 @@ void PreBattleState::init()
 
 
     physicsWorld->resetPhysics();
+
+    float xmin = FLT_MAX, xmax = FLT_MIN, zmin = FLT_MAX, zmax = FLT_MIN, ymin = FLT_MAX; 
+
+    if (stadiums.empty()) cout << "HUUUUUHHHHHH???" << endl;
     for (shared_ptr<Stadium> stadium : stadiums) {
+        // Add physics
         physicsWorld->addStadium(stadium.get());
+
+        // Adjust camera boundaries rectangularly based on stadium
+        float x = stadium->getCenter().x();
+        float y = stadium->getCenter().y();
+        float z = stadium->getCenter().z();
+        float r = stadium->getRadius().value();
+        xmin = std::min(xmin, x - r);
+        xmax = std::max(xmax, x + r);
+        zmin = std::min(zmin, z - r);
+        zmax = std::max(zmax, z + r);
+        ymin = std::min(ymin, y);
     }
+    // TODO: Better design to handle these as part of the camera than the state class (use func enforceBoundaries selectively)
+    cameraMin = vec3(xmin, ymin, zmin);
+    cameraMax = vec3(xmax, ymin + 20.0f, zmax);
+
     for (shared_ptr<Beyblade> beyblade : beyblades) {
+        beyblade->getBody()->resetPhysics(Vec3_M(0.0f, 1.0f, 0.0f));
         physicsWorld->addBeyblade(beyblade.get());
     }
-    for (shared_ptr<Beyblade> beyblade : beyblades) {
-        beyblade->getBody()->resetPhysics();
-    }
-
-    //// 2024-11-18. Reset various things before [re]starting the game.
-    //// TODO: Screen to modify initial conditions (launch location, angle, speed) beforehand so resetPhysics() works
-    //beyblades.clear();
-
-    //beyblade1->getBody()->resetPhysics();
-    //beyblade2->getBody()->resetPhysics();
-
-    //beyblades.push_back(beyblade1);  // TODO: 2024-11-18.  Is the extra vector really necessary?
-    //beyblades.push_back(beyblade2);
-
-    //for (const std::shared_ptr<Stadium>& stadium : stadiums) {
-    //    physicsWorld->addStadium(stadium.get());
-    //}
-    //for (Beyblade* beyblade : beyblades) physicsWorld->addBeyblade(beyblade);
-
-    if (!beyblades.empty()) game->camera->setFollowingBey(beyblades[0]->getBody());
-    if (!stadiums.empty()) game->camera->setPanningVariables(stadiums[0].get());
 }
 
 void PreBattleState::cleanup()
@@ -70,27 +70,37 @@ void PreBattleState::pause() {}
 void PreBattleState::resume() {}
 
 void PreBattleState::handleEvents() {
-    if (game->im.keyJustPressed(GLFW_KEY_TAB)) {
-        showInfoScreen = !showInfoScreen;
-    }
+    // No debugging for now
+    
+    //if (game->im.keyJustPressed(GLFW_KEY_TAB)) {
+    //    showInfoScreen = !showInfoScreen;
+    //}
+    //if (game->im.keyJustPressed(GLFW_KEY_D) && glfwGetKey(game->getWindow(), GLFW_KEY_LEFT_CONTROL)) {
+    //    game->debugMode = !game->debugMode;
+    //    std::cout << "Debug mode is " << (game->debugMode ? "On" : "Off") << std::endl;
+    //}
+    //if (game->im.keyJustPressed(CtrlD)) {
+    //    game->debugMode = !game->debugMode;
+    //    std::cout << "Debug mode is " << (game->debugMode ? "On" : "Off") << std::endl;
+    //}
 
-    if (game->im.keyJustPressed(GLFW_KEY_D) && glfwGetKey(game->getWindow(), GLFW_KEY_LEFT_CONTROL)) {
-        game->debugMode = !game->debugMode;
-        std::cout << "Debug mode is " << (game->debugMode ? "On" : "Off") << std::endl;
-    }
-
-    if (game->im.keyJustPressed(CtrlD)) {
-        game->debugMode = !game->debugMode;
-        std::cout << "Debug mode is " << (game->debugMode ? "On" : "Off") << std::endl;
-    }
-
+    // Take input first
     for (const auto& [movementKey, action] : movementKeys) {
         if (game->im.keyPressed(movementKey)) {
             game->camera->processKeyboard(action, game->deltaTime);
         }
     }
+
+    // Clamp camera to area bounded by stadium, +y
+    vec3 camPos = game->camera->position;
+    camPos.x = glm::clamp(camPos.x, cameraMin.x, cameraMax.x);
+    camPos.y = glm::clamp(camPos.y, cameraMin.y, cameraMax.y);
+    camPos.z = glm::clamp(camPos.z, cameraMin.z, cameraMax.z);
+    game->camera->position = camPos;
+    
     game->camera->update(game->deltaTime);
 
+    // Custom behavior: Move beyblade bottom to intersection with stadium
     if (game->im.mouseButtonJustPressed(GLFW_MOUSE_BUTTON_LEFT)) {
         float xpos, ypos; double dx, dy;
         glfwGetCursorPos(game->getWindow(), &dx, &dy);
@@ -103,21 +113,22 @@ void PreBattleState::handleEvents() {
             game->projection);
         std::cout << "Left mouse button clicked! Ray: " << ray_world[0] << ", "
             << ray_world[1] << ", " << ray_world[2] << std::endl;
+
+        // TODOTODOTODO
+        //glm::vec3 worldIntersectionPoint = // Fancy math
+        //shared_ptr<Beyblade> currrentBeyblade = get(); // TBD later
+        //currentBeyblade->setBeybladeBotto = worldIntersectionPoint;
+
+        //// Ok so basically the camera is sometimes behind the beyblade with a distance of d, so the player can "Grab" the bey if desired
+        //// In my head this is stored as a deltaPosition but there might be some better way to do this?
+        //// Do I need a separate case for when the user holds the bey?
+
+        //camera->setPosition(currentBeyblade->center() + deltaPosition);
     }
 
     // RIght click + drag to move camera
-    if (game->im.mouseButtonPressed(GLFW_MOUSE_BUTTON_RIGHT)) {
-        auto [xOffset, yOffset] = game->im.getMouseOffsets();
-        if (xOffset != 0.0f || yOffset != 0.0f) {
-            game->camera->processMouseMovement(xOffset, yOffset);
-        }
-    }
-
-    if (game->im.scrollMoved()) {
-        float scrollOffsetY = game->im.getScrollOffsetY();
-        game->camera->processMouseScroll(scrollOffsetY);
-        game->im.resetScrollOffset();
-    }
+    game->camera->handleMouseDrag(game->im);
+    game->camera->handleMouseScroll(game->im);
 }
 
 void PreBattleState::onResize(int width, int height) {}

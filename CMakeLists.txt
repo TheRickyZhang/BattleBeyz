@@ -53,6 +53,7 @@ set(IMGUI_SOURCES
 include_directories(${PROJECT_SOURCE_DIR}/assets)
 include_directories(${PROJECT_SOURCE_DIR}/src)
 include_directories(${PROJECT_SOURCE_DIR}/src/Camera)
+include_directories(${PROJECT_SOURCE_DIR}/src/Camera/CameraBehaviors)
 include_directories(${PROJECT_SOURCE_DIR}/src/GameObjects)
 include_directories(${PROJECT_SOURCE_DIR}/src/MeshObjects)
 include_directories(${PROJECT_SOURCE_DIR}/src/mini)

@@ -49,7 +49,7 @@ public:
 	BoundingBox getBoundingBox() const;
 
 	// Setters  // NEWUI adds several members.
-	void resetPhysics(); // 2024-11-18
+	void resetPhysics(Vec3_M startingPoint);
 	void setInitialLaunch(Vec3_M initialCenter, Vec3_M_S initialVelocity, Vec3_R_S initialAngularVelocity);
 
 	void setMass(Kg _mass) { mass = _mass; }  // Total mass
