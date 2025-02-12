@@ -11,6 +11,7 @@ void InputManager::updateState() {
     prevMouseButtonStates = mouseButtonStates;
 }
 
+// TODO: Do I really need count and at?? 
 void InputManager::setKey(int key, bool isPressed) {
     keyStates[key] = isPressed;
 }
@@ -39,6 +40,11 @@ bool InputManager::mouseButtonJustPressed(int button) const {
     return mouseButtonStates.count(button) && mouseButtonStates.at(button) &&
         (!prevMouseButtonStates.count(button) || !prevMouseButtonStates.at(button));
 }
+bool InputManager::mouseButtonJustReleased(int button) const {
+    return prevMouseButtonStates.count(button) && prevMouseButtonStates.at(button) &&
+        (!mouseButtonStates.count(button) || !mouseButtonStates.at(button));
+}
+
 void InputManager::setMousePosition(double xpos, double ypos) {
     if (mouseButtonPressed(GLFW_MOUSE_BUTTON_RIGHT)) {
         if (firstMouseMove) {

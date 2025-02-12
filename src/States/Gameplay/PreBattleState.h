@@ -44,5 +44,10 @@ private:
     std::vector<std::shared_ptr<Beyblade>> beyblades; // Shared ownership of beyblades
     std::shared_ptr<PhysicsWorld> physicsWorld;       // Shared ownership of physics world
 
+    // FOr interactivity
+    Beyblade* heldBeyblade = nullptr;
+    glm::vec3 dragOffset;
+    const float stadiumY = 0.0f;
+
     void drawInfoScreen();
 };

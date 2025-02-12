@@ -28,6 +28,8 @@ public:
     void setMouseButton(int button, bool isPressed);
     bool mouseButtonPressed(int button) const;
     bool mouseButtonJustPressed(int button) const;
+    bool mouseButtonJustReleased(int button) const;
+
     void setMousePosition(double xpos, double ypos);
     std::pair<float, float> getMouseOffsets();
     void resetMouseState();

@@ -25,11 +25,11 @@ Camera::Camera(const vec3& pos, const vec3& viewPoint, PhysicsWorld* world, floa
 }
 
 void Camera::setBehavior(std::unique_ptr<CameraBehavior> behavior) {
-    currentBehavior = std::move(behavior);
+    behavior = std::move(behavior);
 }
 
 void Camera::clearBehavior() {
-    currentBehavior.reset();
+    behavior.reset();
 }
 
 void Camera::setPanningVariables(Stadium* stadium) {

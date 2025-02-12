@@ -13,6 +13,7 @@
 #include "TextureManager.h"
 #include "MessageLog.h"
 
+#include "InteractiveBehavior.h"
 #include "Utils.h"
 
 using namespace std;
@@ -49,10 +50,6 @@ void PreBattleState::init()
         zmax = std::max(zmax, z + r);
         ymin = std::min(ymin, y);
     }
-    // TODO: Better design to handle these as part of the camera than the state class (use func enforceBoundaries selectively)
-    cameraMin = vec3(xmin, ymin, zmin);
-    cameraMax = vec3(xmax, ymin + 20.0f, zmax);
-
     for (shared_ptr<Beyblade> beyblade : beyblades) {
         beyblade->getBody()->resetPhysics(Vec3_M(0.0f, 1.0f, 0.0f));
         physicsWorld->addBeyblade(beyblade.get());
@@ -61,8 +58,7 @@ void PreBattleState::init()
 
 void PreBattleState::cleanup()
 {
-    glClearColor(imguiColor[0], imguiColor[1], imguiColor[2], 1.00f);
-    delete floor;
+   
 }
 
 void PreBattleState::pause() {}
@@ -70,6 +66,84 @@ void PreBattleState::pause() {}
 void PreBattleState::resume() {}
 
 void PreBattleState::handleEvents() {
+    GLFWwindow* window = game->getWindow();
+    Camera* camera = game->camera;
+
+    // --- Picking Phase: On initial left click, try to select a beyblade ---
+    if (game->im.mouseButtonJustPressed(GLFW_MOUSE_BUTTON_LEFT) && heldBeyblade == nullptr) {
+        double dx, dy;
+        glfwGetCursorPos(window, &dx, &dy);
+        float xpos = static_cast<float>(dx);
+        float ypos = static_cast<float>(dy);
+
+        glm::vec3 rayDir = screenToWorldCoordinates(window, xpos, ypos,
+            camera->getViewMatrix(),
+            game->projection);
+        rayDir = glm::normalize(rayDir);
+        glm::vec3 rayOrigin = camera->position;
+
+        Beyblade* selectedBeyblade = nullptr;
+        glm::vec3 hitIntersection;
+        float closestT = FLT_MAX;
+
+        for (std::shared_ptr<Beyblade> beyblade : beyblades) {
+            float t;
+            if (rayIntersectsAABB(rayOrigin, rayDir, beyblade->getBody()->getBoundingBox(), t)) {
+                if (t < closestT) {
+                    closestT = t;
+                    selectedBeyblade = beyblade.get();
+                    hitIntersection = rayOrigin + t * rayDir;
+                }
+            }
+        }
+
+        if (selectedBeyblade) {
+            heldBeyblade = selectedBeyblade;
+            // Save offset so the object “sticks” relative to the pointer
+            dragOffset = heldBeyblade->getBody()->getCenter().value() - hitIntersection;
+        }
+    }
+
+    // --- Dragging Phase: While left button is held, move the beyblade ---
+    if (game->im.mouseButtonPressed(GLFW_MOUSE_BUTTON_LEFT) && heldBeyblade != nullptr) {
+        double dx, dy;
+        glfwGetCursorPos(window, &dx, &dy);
+        float xpos = static_cast<float>(dx);
+        float ypos = static_cast<float>(dy);
+
+        // Compute a new ray from the camera through the current mouse position.
+        glm::vec3 rayDir = screenToWorldCoordinates(window, xpos, ypos,
+            camera->getViewMatrix(),
+            game->projection);
+        rayDir = glm::normalize(rayDir);
+        glm::vec3 rayOrigin = camera->position;
+
+        // Compute intersection with the stadium floor (a horizontal plane at stadiumY).
+        // Guard against nearly horizontal rays:
+        const float epsilon = 1e-6f;
+        if (std::fabs(rayDir.y) > epsilon) {
+            float t = (stadiumY - rayOrigin.y) / rayDir.y;
+            glm::vec3 currentIntersection = rayOrigin + t * rayDir;
+
+            // New beyblade center preserves the initial drag offset.
+            glm::vec3 newBeybladePos = currentIntersection + dragOffset;
+            heldBeyblade->getBody()->setCenter(newBeybladePos);
+        }
+    }
+
+    // --- Release Phase: When left mouse button is released, stop dragging ---
+    if (game->im.mouseButtonJustReleased(GLFW_MOUSE_BUTTON_LEFT)) {
+        heldBeyblade = nullptr;
+    }
+
+    // ... existing camera movement, UI, etc.
+
+    // Clamp camera to area bounded by stadium, +y
+    //camera->enforceBoundaries();
+    camera->update(game->deltaTime);
+    camera->handleMouseDrag(game->im);
+    camera->handleMouseScroll(game->im);
+
     // No debugging for now
     
     //if (game->im.keyJustPressed(GLFW_KEY_TAB)) {
@@ -84,51 +158,12 @@ void PreBattleState::handleEvents() {
     //    std::cout << "Debug mode is " << (game->debugMode ? "On" : "Off") << std::endl;
     //}
 
-    // Take input first
-    for (const auto& [movementKey, action] : movementKeys) {
-        if (game->im.keyPressed(movementKey)) {
-            game->camera->processKeyboard(action, game->deltaTime);
-        }
-    }
-
-    // Clamp camera to area bounded by stadium, +y
-    vec3 camPos = game->camera->position;
-    camPos.x = glm::clamp(camPos.x, cameraMin.x, cameraMax.x);
-    camPos.y = glm::clamp(camPos.y, cameraMin.y, cameraMax.y);
-    camPos.z = glm::clamp(camPos.z, cameraMin.z, cameraMax.z);
-    game->camera->position = camPos;
-    
-    game->camera->update(game->deltaTime);
-
-    // Custom behavior: Move beyblade bottom to intersection with stadium
-    if (game->im.mouseButtonJustPressed(GLFW_MOUSE_BUTTON_LEFT)) {
-        float xpos, ypos; double dx, dy;
-        glfwGetCursorPos(game->getWindow(), &dx, &dy);
-        xpos = static_cast<float>(dx);
-        ypos = static_cast<float>(dy);
-
-        // Calculate world ray and perform intersection check
-        vec3 ray_world = screenToWorldCoordinates(game->getWindow(), xpos, ypos,
-            game->camera->getViewMatrix(),
-            game->projection);
-        std::cout << "Left mouse button clicked! Ray: " << ray_world[0] << ", "
-            << ray_world[1] << ", " << ray_world[2] << std::endl;
-
-        // TODOTODOTODO
-        //glm::vec3 worldIntersectionPoint = // Fancy math
-        //shared_ptr<Beyblade> currrentBeyblade = get(); // TBD later
-        //currentBeyblade->setBeybladeBotto = worldIntersectionPoint;
-
-        //// Ok so basically the camera is sometimes behind the beyblade with a distance of d, so the player can "Grab" the bey if desired
-        //// In my head this is stored as a deltaPosition but there might be some better way to do this?
-        //// Do I need a separate case for when the user holds the bey?
-
-        //camera->setPosition(currentBeyblade->center() + deltaPosition);
-    }
-
-    // RIght click + drag to move camera
-    game->camera->handleMouseDrag(game->im);
-    game->camera->handleMouseScroll(game->im);
+    // Take input first, custom?
+    //for (const auto& [movementKey, action] : movementKeys) {
+    //    if (game->im.keyPressed(movementKey)) {
+    //        game->camera->processKeyboard(action, game->deltaTime);
+    //    }
+    //}
 }
 
 void PreBattleState::onResize(int width, int height) {}

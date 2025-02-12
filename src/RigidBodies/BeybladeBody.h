@@ -66,6 +66,7 @@ public:
 		center.addZ(z);
 	}
 	void setCenterY(M y) { center.setY(y); }
+	void setCenter(Vec3_M pos) { center = pos; }
 	void setVelocity(Vec3_M_S newVelocity) { velocity = newVelocity; }
 	void setVelocityY(M_S newY) { velocity.setY(newY); }
 

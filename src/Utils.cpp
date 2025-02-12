@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <cmath>
 #include <functional>
+#include "BoundingBox.h"
 
 #include <glm/gtc/matrix_access.hpp>
 
@@ -42,6 +43,79 @@ glm::vec3 screenToWorldCoordinates(GLFWwindow* window, float xpos, float ypos, c
     ray_wor = glm::normalize(ray_wor);
 
     return ray_wor;
+}
+
+
+/**
+ * Returns true if the ray intersects the axis aligned bounding box.
+ *
+ * @param rayOrigin  [in]  The vec3 point the viewing ray originates from.
+ * @param rayDir     [in]  A non-zero vector representing the ray's direction.
+ * @param box        [in]  The bounding box with public 'min' and 'max' attributes.
+ * @param tNear      [out] The distance along the ray to the intersection point.
+ * @return           True if an intersection occurs, false otherwise.
+ */
+bool rayIntersectsAABB(const glm::vec3& rayOrigin, const glm::vec3& rayDir,
+    const BoundingBox& box, float& tNear)
+{
+    const float epsilon = 1e-6f;
+    float tmin, tmax, tymin, tymax, tzmin, tzmax;
+
+    // X-axis slab
+    if (std::fabs(rayDir.x) < epsilon) {
+        if (rayOrigin.x < box.min.x || rayOrigin.x > box.max.x)
+            return false;
+        tmin = -FLT_MAX;
+        tmax = FLT_MAX;
+    }
+    else {
+        tmin = (box.min.x - rayOrigin.x) / rayDir.x;
+        tmax = (box.max.x - rayOrigin.x) / rayDir.x;
+        if (tmin > tmax) std::swap(tmin, tmax);
+    }
+
+    // Y-axis slab
+    if (std::fabs(rayDir.y) < epsilon) {
+        if (rayOrigin.y < box.min.y || rayOrigin.y > box.max.y)
+            return false;
+        tymin = -FLT_MAX;
+        tymax = FLT_MAX;
+    }
+    else {
+        tymin = (box.min.y - rayOrigin.y) / rayDir.y;
+        tymax = (box.max.y - rayOrigin.y) / rayDir.y;
+        if (tymin > tymax) std::swap(tymin, tymax);
+    }
+
+    if ((tmin > tymax) || (tymin > tmax))
+        return false;
+    if (tymin > tmin)
+        tmin = tymin;
+    if (tymax < tmax)
+        tmax = tymax;
+
+    // Z-axis slab
+    if (std::fabs(rayDir.z) < epsilon) {
+        if (rayOrigin.z < box.min.z || rayOrigin.z > box.max.z)
+            return false;
+        tzmin = -FLT_MAX;
+        tzmax = FLT_MAX;
+    }
+    else {
+        tzmin = (box.min.z - rayOrigin.z) / rayDir.z;
+        tzmax = (box.max.z - rayOrigin.z) / rayDir.z;
+        if (tzmin > tzmax) std::swap(tzmin, tzmax);
+    }
+
+    if ((tmin > tzmax) || (tzmin > tmax))
+        return false;
+    if (tzmin > tmin)
+        tmin = tzmin;
+    if (tzmax < tmax)
+        tmax = tzmax;
+
+    tNear = tmin;
+    return true;
 }
 
 /**

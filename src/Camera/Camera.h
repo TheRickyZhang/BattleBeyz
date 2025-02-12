@@ -7,7 +7,7 @@
 
 #include <glm/glm.hpp>
 #include "BoundingBox.h"
-#include "CameraBehaviorManager.h"
+#include "CameraBehavior.h"
 
 enum Action;
 class PhysicsWorld;
@@ -72,7 +72,7 @@ public:
 
     void update(float deltaTime);
     void focus(const glm::vec3& viewPoint, bool teleport = false);
-    void setPositionSmooth(const glm::vec3& targetPosition, float alpha);
+    void setPositionSmooth(const glm::vec3& targetPosition, float alpha = 0.1f);
 
     // Camera matrices
     glm::mat4 getViewMatrix() const;

@@ -37,7 +37,7 @@ void ActiveState::init()
         physicsWorld->addBeyblade(beyblade.get());
     }
     for (shared_ptr<Beyblade> beyblade : beyblades) {
-        beyblade->getBody()->resetPhysics();
+        beyblade->getBody()->resetPhysics(Vec3_M(0.0f));
     }
 
     //// 2024-11-18. Reset various things before [re]starting the game.
