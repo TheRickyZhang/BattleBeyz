@@ -4,6 +4,9 @@ docs/
 logs/
 out/
 
+# Since most things should be handled by vcpkg, don't need most of these
+libs/
+
 # General
 **/build/
 **/.vs/
