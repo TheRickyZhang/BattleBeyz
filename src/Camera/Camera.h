@@ -8,8 +8,7 @@
 #include <glm/glm.hpp>
 #include "BoundingBox.h"
 #include "CameraBehavior.h"
-
-enum Action;
+#include "InputUtils.h"
 class PhysicsWorld;
 class BeybladeBody;
 class Stadium;

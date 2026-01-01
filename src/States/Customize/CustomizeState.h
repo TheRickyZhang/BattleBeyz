@@ -5,6 +5,8 @@
 #include <string>
 #include <functional>
 
+#include <imgui.h>
+
 #include "DefaultValues.h"
 
 #include "GameState.h"
@@ -57,7 +59,7 @@ private:
         const std::vector<std::shared_ptr<Profile>>& profiles, const std::shared_ptr<Profile>& activeProfile
     );
 
-    std::shared_ptr<Beyblade> CustomizeState::drawBeybladeSection(
+    std::shared_ptr<Beyblade> drawBeybladeSection(
         const std::vector<std::shared_ptr<Beyblade>>& beyblades, const std::shared_ptr<Beyblade>& activeBeyblade,
         const std::shared_ptr<Profile>& profile
     );
@@ -106,37 +108,37 @@ private:
         std::shared_ptr<T> updatedItem = activeItem;
 
         // Text label for the section
-        Text(sectionName.c_str());
-        SameLine();
-        SetCursorPosX(dropdownLeftX);    // Use class member
-        SetNextItemWidth(dropdownWidth); // Use class member
+        ImGui::Text("%s", sectionName.c_str());
+        ImGui::SameLine();
+        ImGui::SetCursorPosX(dropdownLeftX);    // Use class member
+        ImGui::SetNextItemWidth(dropdownWidth); // Use class member
 
-        if (BeginCombo(comboId.c_str(), activeItem ? getItemName(activeItem).c_str() : "None")) {
+        if (ImGui::BeginCombo(comboId.c_str(), activeItem ? getItemName(activeItem).c_str() : "None")) {
             for (const auto& item : items) {
                 bool isSelected = (item == activeItem);
-                if (Selectable(getItemName(item).c_str(), isSelected)) {
+                if (ImGui::Selectable(getItemName(item).c_str(), isSelected)) {
                     updatedItem = item;
                     setActiveItem(item);
                 }
                 if (isSelected) {
-                    SetItemDefaultFocus();
+                    ImGui::SetItemDefaultFocus();
                 }
             }
-            EndCombo();
+            ImGui::EndCombo();
         }
 
         // Create New Button
-        SameLine();
-        SetCursorPosX(rightButton1X); // Use class member
-        if (Button(("Create New##" + sectionName).c_str())) {
+        ImGui::SameLine();
+        ImGui::SetCursorPosX(rightButton1X); // Use class member
+        if (ImGui::Button(("Create New##" + sectionName).c_str())) {
             onCreateNew();
         }
 
         // Delete Button
         if (updatedItem) {
-            SameLine();
-            SetCursorPosX(rightButton2X); // Use class member
-            if (Button(("Delete##" + sectionName).c_str())) {
+            ImGui::SameLine();
+            ImGui::SetCursorPosX(rightButton2X); // Use class member
+            if (ImGui::Button(("Delete##" + sectionName).c_str())) {
                 onDelete();
             }
         }

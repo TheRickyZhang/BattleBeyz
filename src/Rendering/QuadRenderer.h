@@ -15,7 +15,7 @@
 class QuadRenderer {
 public:
     // Only needs a model matrix now. Projection is handled globally.
-    QuadRenderer::QuadRenderer();
+    QuadRenderer();
     ~QuadRenderer();
 
     void render(BackgroundShader& shader, std::shared_ptr<Texture> texture) const;

@@ -1,5 +1,5 @@
 #include "MessageLog.h"
-#include "json.hpp"
+#include <nlohmann/json.hpp>
 
 struct Settings {
     float volume = 0.5f;
@@ -21,19 +21,19 @@ struct Settings {
 
         // Validate and log issues; set defaults if necessary
         volume = (json.contains("volume") && json["volume"].is_number())
-            ? json["volume"]
+            ? json["volume"].get<float>()
             : (ml.addMessage("'volume' is missing or not a valid number. Using default value: 1.0", MessageType::WARNING), 1.0f);
 
         isMuted = (json.contains("isMuted") && json["isMuted"].is_boolean())
-            ? json["isMuted"]
+            ? json["isMuted"].get<bool>()
             : (ml.addMessage("'isMuted' is missing or not a valid boolean. Using default value: false", MessageType::WARNING), false);
 
         resolutionIndex = (json.contains("resolutionIndex") && json["resolutionIndex"].is_number_integer())
-            ? json["resolutionIndex"]
+            ? json["resolutionIndex"].get<int>()
             : (ml.addMessage("'resolutionIndex' is missing or not a valid integer. Using default value: 0", MessageType::WARNING), 0);
 
         isFullscreen = (json.contains("isFullscreen") && json["isFullscreen"].is_boolean())
-            ? json["isFullscreen"]
+            ? json["isFullscreen"].get<bool>()
             : (ml.addMessage("'isFullscreen' is missing or not a valid boolean. Using default value: false", MessageType::WARNING), false);
     }
 };

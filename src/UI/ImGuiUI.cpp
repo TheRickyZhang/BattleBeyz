@@ -5,10 +5,14 @@
 
 // NEWUI Huge changes in this file.
 
-#define WIN32_LEAN_AND_MEAN
-#define NOMINMAX
-#include <windows.h>
-#include <shellapi.h>
+#ifdef _WIN32
+    #define WIN32_LEAN_AND_MEAN
+    #define NOMINMAX
+    #include <windows.h>
+    #include <shellapi.h>
+#else
+    #include <cstdlib>
+#endif
 #include <filesystem>
 #include <iostream>
 
@@ -78,7 +82,12 @@ void textWithLink(const char* text, const char* url) {
     if (IsItemHovered()) {
         SetMouseCursor(ImGuiMouseCursor_Hand);
         if (IsMouseClicked(0)) {
+#ifdef _WIN32
             ShellExecute(nullptr, nullptr, url, nullptr, nullptr, SW_SHOW);
+#else
+            std::string command = std::string("xdg-open ") + url;
+            std::system(command.c_str());
+#endif
         }
 
         // Underline the text to indicate a hyperlink

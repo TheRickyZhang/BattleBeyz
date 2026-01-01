@@ -10,7 +10,7 @@
 #include <unordered_map>
 #include <stdexcept>
 
-#include "json.hpp"
+#include <nlohmann/json.hpp>
 
 #include "BeybladeMesh.h"
 #include "BeybladeBody.h"

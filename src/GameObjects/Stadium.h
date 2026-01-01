@@ -24,7 +24,7 @@
 #include <iostream>
 
 #include <glm/glm.hpp>
-#include <json.hpp>
+#include <nlohmann/json.hpp>
 
 #include "DefaultValues.h"
 #include "MeshObject.h"
@@ -52,7 +52,7 @@ public:
         std::shared_ptr<Texture> texture = DefaultTexture(),
         float textureScale = StadiumDefaults::textureScale
     );
-    Stadium& Stadium::operator=(const Stadium& other) {
+    Stadium& operator=(const Stadium& other) {
         if (this != &other) {
             this->id = -1; // Set to temporary. MUST set ID for no global conflicts
             this->name = other.name;

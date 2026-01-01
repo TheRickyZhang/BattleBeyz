@@ -3,7 +3,7 @@
 #include "GameEngine.h"
 #include "FontManager.h"
 #include "StateIdentifiers.h"
-#include "ImGUiUI.h"
+#include "ImGuiUI.h"
 
 using namespace ImGui;
 using namespace std;

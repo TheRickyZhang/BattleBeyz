@@ -415,6 +415,11 @@ void GameEngine::drawDebugScreen()
 
 bool GameEngine::initializeGLFW()
 {
+#ifdef __linux__
+    // Force X11 backend on Linux for GLEW compatibility
+    glfwInitHint(GLFW_PLATFORM, GLFW_PLATFORM_X11);
+#endif
+
     if (!glfwInit()) {
         cerr << "Failed to initialize GLFW" << endl;
         return false;

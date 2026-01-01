@@ -6,8 +6,8 @@
 #include "Stadium.h"
 #include "ProfileManager.h"
 #include "ImGuiUI.h"
-#include "../lib/ImGuiFileDialog/ImGuiFileDialog.h"
-#include "../lib/ImGuiFileDialog/ImGuiFileDialogConfig.h"
+#include <ImGuiFileDialog.h>
+#include <ImGuiFileDialogConfig.h>
 #include <glm/gtc/type_ptr.hpp>
 
 using namespace std;

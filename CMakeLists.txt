@@ -1,11 +1,11 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.14)
+
+# Allow older CMake syntax in fetched dependencies
+set(CMAKE_POLICY_VERSION_MINIMUM 3.5 CACHE STRING "Minimum CMake policy version")
+
 project(BattleBeyz)
 
-# Toolchain and Prefix Path
-set(CMAKE_VERBOSE_MAKEFILE ON)
-
-set(CMAKE_TOOLCHAIN_FILE "C:/vcpkg/scripts/buildsystems/vcpkg.cmake" CACHE STRING "Vcpkg toolchain file")
-set(CMAKE_PREFIX_PATH "C:/vcpkg/installed/x64-windows-static" CACHE PATH "Path to vcpkg installed packages")
+include(FetchContent)
 
 # C++ Standard
 set(CMAKE_CXX_STANDARD 17)
@@ -16,41 +16,132 @@ if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Debug CACHE STRING "Choose the build type: Debug or Release" FORCE)
 endif()
 
-# Libraries (non-vcpkg)
-include_directories(${PROJECT_SOURCE_DIR}/lib)      
-include_directories(${PROJECT_SOURCE_DIR}/lib/headers)                 # For tinyobjloader, stb_image, json
-include_directories(${PROJECT_SOURCE_DIR}/lib/imgui)                  # Local ImGui
-include_directories(${PROJECT_SOURCE_DIR}/lib/imgui/backends)
+# ============================================================================
+# Fetch External Dependencies
+# ============================================================================
 
-# Libraries (vcpkg)
-include_directories("C:/vcpkg/installed/x64-windows/include")
-link_directories("C:/vcpkg/installed/x64-windows/lib")
+# GLFW
+set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(GLFW_INSTALL OFF CACHE BOOL "" FORCE)
+FetchContent_Declare(
+    glfw
+    GIT_REPOSITORY https://github.com/glfw/glfw.git
+    GIT_TAG 3.4
+    GIT_SHALLOW TRUE
+)
+FetchContent_MakeAvailable(glfw)
 
-# Find Packages
+# GLM (header-only math library)
+FetchContent_Declare(
+    glm
+    GIT_REPOSITORY https://github.com/g-truc/glm.git
+    GIT_TAG 1.0.1
+    GIT_SHALLOW TRUE
+)
+FetchContent_MakeAvailable(glm)
+
+# Dear ImGui
+FetchContent_Declare(
+    imgui
+    GIT_REPOSITORY https://github.com/ocornut/imgui.git
+    GIT_TAG v1.90.8
+    GIT_SHALLOW TRUE
+)
+FetchContent_MakeAvailable(imgui)
+
+# ImGuiFileDialog (just fetch, don't use its CMakeLists.txt)
+FetchContent_Declare(
+    imguifiledialog
+    GIT_REPOSITORY https://github.com/aiekick/ImGuiFileDialog.git
+    GIT_TAG v0.6.7
+    GIT_SHALLOW TRUE
+)
+FetchContent_Populate(imguifiledialog)
+
+# nlohmann/json
+FetchContent_Declare(
+    json
+    GIT_REPOSITORY https://github.com/nlohmann/json.git
+    GIT_TAG v3.11.3
+    GIT_SHALLOW TRUE
+)
+FetchContent_MakeAvailable(json)
+
+# stb (header-only)
+FetchContent_Declare(
+    stb
+    GIT_REPOSITORY https://github.com/nothings/stb.git
+    GIT_TAG master
+    GIT_SHALLOW TRUE
+)
+FetchContent_MakeAvailable(stb)
+
+# tinyobjloader (header-only)
+FetchContent_Declare(
+    tinyobjloader
+    GIT_REPOSITORY https://github.com/tinyobjloader/tinyobjloader.git
+    GIT_TAG release
+    GIT_SHALLOW TRUE
+)
+FetchContent_MakeAvailable(tinyobjloader)
+
+# GLEW - Build from source (using Perlmint/glew-cmake which has pre-generated sources)
+FetchContent_Declare(
+    glew
+    GIT_REPOSITORY https://github.com/Perlmint/glew-cmake.git
+    GIT_TAG glew-cmake-2.2.0
+    GIT_SHALLOW TRUE
+)
+set(glew-cmake_BUILD_SHARED OFF CACHE BOOL "" FORCE)
+set(glew-cmake_BUILD_STATIC ON CACHE BOOL "" FORCE)
+set(ONLY_LIBS ON CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(glew)
+
+# ============================================================================
+# System Dependencies
+# ============================================================================
+
 find_package(OpenGL REQUIRED)
-find_package(glfw3 CONFIG REQUIRED)
-find_package(GLEW CONFIG REQUIRED)
-find_package(freetype CONFIG REQUIRED)
+find_package(Freetype REQUIRED)
 find_package(ZLIB REQUIRED)
 
+# ============================================================================
+# ImGui Library (compiled from fetched sources)
+# ============================================================================
 
-# Include directories
-include_directories(${PROJECT_SOURCE_DIR}/lib)
-include_directories(${PROJECT_SOURCE_DIR}/lib/imgui-1.90.8)
-include_directories(${PROJECT_SOURCE_DIR}/lib/imgui-1.90.8/backends)
-# ImGui Sources
-set(IMGUI_SOURCES
-        ${PROJECT_SOURCE_DIR}/lib/imgui-1.90.8/imgui.cpp
-        ${PROJECT_SOURCE_DIR}/lib/imgui-1.90.8/imgui_draw.cpp
-        ${PROJECT_SOURCE_DIR}/lib/imgui-1.90.8/imgui_tables.cpp
-        ${PROJECT_SOURCE_DIR}/lib/imgui-1.90.8/imgui_widgets.cpp
-        ${PROJECT_SOURCE_DIR}/lib/imgui-1.90.8/backends/imgui_impl_opengl3.cpp
-        ${PROJECT_SOURCE_DIR}/lib/imgui-1.90.8/backends/imgui_impl_glfw.cpp
-        ${PROJECT_SOURCE_DIR}/lib/ImGuiFileDialog/ImGuiFileDialog.cpp
+add_library(imgui_lib STATIC
+    ${imgui_SOURCE_DIR}/imgui.cpp
+    ${imgui_SOURCE_DIR}/imgui_draw.cpp
+    ${imgui_SOURCE_DIR}/imgui_tables.cpp
+    ${imgui_SOURCE_DIR}/imgui_widgets.cpp
+    ${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp
+    ${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp
 )
+target_include_directories(imgui_lib PUBLIC
+    ${imgui_SOURCE_DIR}
+    ${imgui_SOURCE_DIR}/backends
+)
+target_link_libraries(imgui_lib PUBLIC glfw OpenGL::GL)
 
-# Include the src/ directory and all its subdirectories
-include_directories(${PROJECT_SOURCE_DIR}/assets)
+# ============================================================================
+# ImGuiFileDialog Library (compiled from fetched sources)
+# ============================================================================
+
+add_library(imguifiledialog_lib STATIC
+    ${imguifiledialog_SOURCE_DIR}/ImGuiFileDialog.cpp
+)
+target_include_directories(imguifiledialog_lib PUBLIC
+    ${imguifiledialog_SOURCE_DIR}
+)
+target_link_libraries(imguifiledialog_lib PUBLIC imgui_lib)
+
+# ============================================================================
+# Project Source Files
+# ============================================================================
+
+# Include directories for project source
 include_directories(${PROJECT_SOURCE_DIR}/src)
 include_directories(${PROJECT_SOURCE_DIR}/src/Camera)
 include_directories(${PROJECT_SOURCE_DIR}/src/Camera/CameraBehaviors)
@@ -69,30 +160,49 @@ include_directories(${PROJECT_SOURCE_DIR}/src/States/Intermediate)
 include_directories(${PROJECT_SOURCE_DIR}/src/Config)
 include_directories(${PROJECT_SOURCE_DIR}/src/UI)
 
-
-
 # Add Source and Header Files
 file(GLOB_RECURSE HEADER_FILES "src/*.h" "assets/*.h")
-file(GLOB_RECURSE SOURCE_FILES "src/*.cpp" "assets/*.cpp" ${IMGUI_SOURCES})
+file(GLOB_RECURSE SOURCE_FILES "src/*.cpp" "assets/*.cpp")
 set(SOURCES ${SOURCE_FILES} ${HEADER_FILES})
 
-# Libraries
-set(LIBS glfw OpenGL::GL GLEW::GLEW freetype ZLIB::ZLIB)
+# ============================================================================
+# Main Executable
+# ============================================================================
+
+add_executable(BattleBeyz ${SOURCES})
+
+# Include directories for fetched header-only libraries
+target_include_directories(BattleBeyz PRIVATE
+    ${stb_SOURCE_DIR}
+    ${tinyobjloader_SOURCE_DIR}
+)
+
+# Link libraries
+target_link_libraries(BattleBeyz PRIVATE
+    imgui_lib
+    imguifiledialog_lib
+    nlohmann_json::nlohmann_json
+    glfw
+    OpenGL::GL
+    libglew_static
+    Freetype::Freetype
+    ZLIB::ZLIB
+    glm::glm
+)
+
+# Preprocessor Definitions
+target_compile_definitions(BattleBeyz PRIVATE
+    _USE_MATH_DEFINES
+    GLM_ENABLE_EXPERIMENTAL
+    GLEW_STATIC
+)
 
 # Add Assets to Build Directory
 file(COPY ${PROJECT_SOURCE_DIR}/assets DESTINATION ${CMAKE_BINARY_DIR}/assets)
 
-# Setup
-add_executable(BattleBeyz ${SOURCES})
-target_link_libraries(BattleBeyz PRIVATE ${LIBS})
-
-# Debugging Settings (must come after the target is created)
+# Debugging Settings (Visual Studio specific)
 set_property(TARGET BattleBeyz PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}")
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT BattleBeyz)
-
-# Preprocessor Definitions
-add_compile_definitions(_USE_MATH_DEFINES)
-add_compile_definitions(GLM_ENABLE_EXPERIMENTAL)
 
 # Organize Files for Visual Studio
 foreach(_source IN ITEMS ${SOURCES})
@@ -103,7 +213,8 @@ foreach(_source IN ITEMS ${SOURCES})
 endforeach()
 
 # Status Messages
-message(STATUS "Using CMAKE_TOOLCHAIN_FILE: ${CMAKE_TOOLCHAIN_FILE}")
 message(STATUS "CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
-# message(STATUS "CMAKE_PREFIX_PATH: ${CMAKE_PREFIX_PATH}")
-# message(STATUS "Linked Libraries: ${LIBS}")
+message(STATUS "ImGui source: ${imgui_SOURCE_DIR}")
+message(STATUS "ImGuiFileDialog source: ${imguifiledialog_SOURCE_DIR}")
+message(STATUS "stb source: ${stb_SOURCE_DIR}")
+message(STATUS "tinyobjloader source: ${tinyobjloader_SOURCE_DIR}")
