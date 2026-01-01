@@ -92,6 +92,17 @@ BattleBeyz/
 └── CMakeLists.txt           # CMake build configuration
 ```
 
+## Generating Documentation
+
+To generate API documentation using Doxygen:
+
+```bash
+# Install doxygen if needed (Arch: pacman -S doxygen, Ubuntu: apt install doxygen)
+doxygen Doxyfile
+
+# Open docs/html/index.html in your browser
+```
+
 ## Dependencies (Automatically Downloaded)
 
 The following libraries are automatically fetched by CMake during configuration:
