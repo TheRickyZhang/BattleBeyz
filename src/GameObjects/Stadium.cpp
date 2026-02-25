@@ -6,6 +6,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include "Buffers.h"
 #include "Stadium.h"
+#include "TextureManager.h"
 #include "ObjectShader.h"
 
 using namespace std;
@@ -90,13 +91,17 @@ Stadium Stadium::fromJson(const json& j) {
             vec3(j["ringColor"][0], j["ringColor"][1], j["ringColor"][2]),
             vec3(j["crossColor"][0], j["crossColor"][1], j["crossColor"][2]),
             vec3(1.0f),
-            nullptr,
+            DefaultStadiumTexture(),
             j["textureScale"]
         );
 
+        // Saves written before the stadium had a real default recorded the magenta
+        // placeholder; treat that as "unset" so old profiles pick up the default.
         if (j.contains("texture")) {
             string texturePath = j["texture"];
-            stadium.setTexture(make_shared<Texture>(texturePath.c_str()));
+            if (!texturePath.empty() && texturePath != MISSING_TEXTURE_PATH) {
+                stadium.setTexture(TextureManager::getInstance().loadTexture(texturePath, texturePath));
+            }
         }
 
         return stadium;
@@ -167,7 +172,7 @@ void Stadium::updateMesh() {
     normals.clear();
     texCoords.clear();
     indices.clear();
-    //tangents.clear();
+    colors.clear();
 
     // Add center vertex first
     vertices.emplace_back(0, 0, 0);
@@ -327,15 +332,11 @@ void Stadium::updateMesh() {
     //}
 
     // Calculate bounding boxes for each triangle
+    boundingBoxes.clear();
+    boundingBoxes.reserve(indices.size() / 3);
     for (size_t i = 0; i < indices.size(); i += 3) {
-        vec3 v1 = vertices[indices[i]];
-        vec3 v2 = vertices[indices[i + 1]];
-        vec3 v3 = vertices[indices[i + 2]];
-
-        auto bbox = new BoundingBox();
-        bbox->update(v1, v2, v3);
-
-        // Add the bounding box to the immovable rigid body
+        BoundingBox bbox;
+        bbox.update(vertices[indices[i]], vertices[indices[i + 1]], vertices[indices[i + 2]]);
         boundingBoxes.push_back(bbox);
     }
 
@@ -366,6 +367,8 @@ void Stadium::updateMesh() {
         vertexData.push_back(colors[i].y);
         vertexData.push_back(colors[i].z);
     }
+    // Everything above is pure CPU geometry; this is the only GL call in updateMesh
+    // and the seam a worker thread would stop at.
     setupBuffers(VAO, VBO, EBO, vertexData.data(), vertexData.size() * sizeof(float), indices.data(),
         indices.size() * sizeof(unsigned int), { 3, 3, 2, 3 });
 }

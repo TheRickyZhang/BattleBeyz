@@ -12,12 +12,31 @@
 #include <glm/glm.hpp>
 
 
+/*
+* Shader source read from disk. No OpenGL, so readShaderSource() is safe from any thread;
+* only the ShaderProgram constructor needs the GL context.
+*/
+struct ShaderSource {
+    std::string vertex;
+    std::string fragment;
+    std::string vertexPath;    // Kept for error messages
+    std::string fragmentPath;
+
+    bool valid() const { return !vertex.empty() && !fragment.empty(); }
+};
+
+ShaderSource readShaderSource(const char* vertexPath, const char* fragmentPath);
+
 class ShaderProgram {
 public:
     GLuint ID;
 
-    ShaderProgram(const char* vertexPath, const char* fragmentPath);
+    explicit ShaderProgram(const ShaderSource& source);
     virtual ~ShaderProgram();
+
+    // Owns a GL program that the destructor deletes
+    ShaderProgram(const ShaderProgram&) = delete;
+    ShaderProgram& operator=(const ShaderProgram&) = delete;
 
     void use() const;
 
@@ -36,5 +55,4 @@ protected:
 
     GLint getCachedUniformLocation(const std::string& name) const;
     GLuint compileShader(GLenum type, const char* source);
-    static std::string readFile(const char* filePath);
 };

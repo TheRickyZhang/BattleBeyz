@@ -7,6 +7,8 @@
 #include <imgui_impl_opengl3.h>
 #include <glm/gtc/matrix_transform.hpp>
 
+#include <algorithm>
+#include <fstream>
 #include "GameEngine.h"
 
 #include "BeybladeConstants.h"
@@ -36,16 +38,12 @@ GameEngine::GameEngine()
     : window(nullptr),
     isRunning(false),
     // Need to initialize these as references from constructor, as opposed to init()
-    io(ImGui::GetIO()),
     tm(TextureManager::getInstance()),
     pm(ProfileManager::getInstance()),
     ml(MessageLog::getInstance()),
     im(InputManager::getInstance()),
     fm(FontManager::getInstance())
 {
-    (void)io;
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-    ImGui::StyleColorsDark();
 }
 
 GameEngine::~GameEngine() {
@@ -81,24 +79,8 @@ bool GameEngine::init(const char* title, int width, int height) {
 
     setupImGuiAndCallbacks();
 
-    // Largest change of crashing on json save data import
-    if (!attemptSaveDataLoad()) {
-        while (!glfwWindowShouldClose(window)) {
-            glfwPollEvents();
-            ImGui_ImplOpenGL3_NewFrame();
-            ImGui_ImplGlfw_NewFrame();
-            ImGui::NewFrame();
-
-            ml.render();
-
-            ImGui::Render();
-            ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-            glfwSwapBuffers(window);
-        }
-    }
-
     // Physics/space related
-    physicsWorld = new PhysicsWorld();
+    physicsWorld = std::make_unique<PhysicsWorld>();
     initCamera();
     initShaders();
     initRenderers();
@@ -130,47 +112,76 @@ GameState* GameEngine::getGameState()
 }
 
 void GameEngine::changeState(std::unique_ptr<GameState> newState) {
-    // Clear the entire stack
-    while (!stateStack.empty()) {
-        stateStack.back()->cleanup();
-        stateStack.pop_back();
+    // Keep the current state rather than emptying the stack into a dead app
+    if (!newState) {
+        ml.addMessage("Ignoring state change to a state that could not be created.", MessageType::ERROR);
+        return;
     }
-
-    // Initialize and push the new state
-    if (newState) {
-        newState->init();
-        stateStack.push_back(std::move(newState));
-    }
+    pendingTransitions.push_back({ TransitionKind::Change, std::move(newState) });
 }
 
 /**
 * Adds a customizable GameState with more detail than the generic factory function
 */
 void GameEngine::pushState(std::unique_ptr<GameState> state) {
-    if (!stateStack.empty()) {
-        stateStack.back()->pause();
+    if (!state) {
+        ml.addMessage("Ignoring push of a state that could not be created.", MessageType::ERROR);
+        return;
     }
-    stateStack.push_back(std::move(state));
-    if (!stateStack.empty()) stateStack.back()->init();
+    pendingTransitions.push_back({ TransitionKind::Push, std::move(state) });
 }
 
 /**
-* Performs cleanup on the current state, then pops it
-* 
-* Resumes the next state if it exists.
+* Requests removal of the current state. Quits if it was the last one.
 */
 void GameEngine::popState() {
-    if (!stateStack.empty()) {
-        stateStack.back()->cleanup();
-        stateStack.pop_back();
-    }
+    pendingTransitions.push_back({ TransitionKind::Pop, nullptr });
+}
 
-    if (!stateStack.empty()) {
-        stateStack.back()->resume();
-    }
-    else {
-        cout << "No states left in stack. Quitting." << endl;
-        quit();
+/**
+* Mutates the state stack. Called once per frame from the main loop, outside of any
+* state's own update()/draw(), so a state may request its own destruction safely.
+*/
+void GameEngine::applyPendingTransitions() {
+    if (pendingTransitions.empty()) return;
+
+    // init() may enqueue further transitions; those are applied on the next frame
+    std::vector<PendingTransition> transitions;
+    transitions.swap(pendingTransitions);
+
+    for (PendingTransition& transition : transitions) {
+        switch (transition.kind) {
+        case TransitionKind::Change:
+            while (!stateStack.empty()) {
+                stateStack.back()->cleanup();
+                stateStack.pop_back();
+            }
+            transition.state->init();
+            stateStack.push_back(std::move(transition.state));
+            break;
+
+        case TransitionKind::Push:
+            if (!stateStack.empty()) {
+                stateStack.back()->pause();
+            }
+            stateStack.push_back(std::move(transition.state));
+            stateStack.back()->init();
+            break;
+
+        case TransitionKind::Pop:
+            if (!stateStack.empty()) {
+                stateStack.back()->cleanup();
+                stateStack.pop_back();
+            }
+            if (!stateStack.empty()) {
+                stateStack.back()->resume();
+            }
+            else {
+                cout << "No states left in stack. Quitting." << endl;
+                quit();
+            }
+            break;
+        }
     }
 }
 
@@ -203,14 +214,15 @@ void GameEngine::handleEvents() {
 * Updates timers correspondingly and calls update() with the deltaTime
 */
 void GameEngine::update() {
-    // Update the time
-#if 1
+    // Frame delta drives cameras, timers and UI. Physics does not consume it directly:
+    // PhysicsWorld::advance() converts it into fixed steps.
     currTime = static_cast<float>(glfwGetTime());
     deltaTime = currTime - prevTime;
     prevTime = currTime;
-# else
-    deltaTime = 0.0052f; // fixed frame rate, lower = slower
-#endif
+
+    // Hand finished worker output to OpenGL before states run, under a budget so a
+    // burst of large meshes spreads across frames rather than stalling one
+    glUploads.drain(4.0);
 
     updateTimers(currTime);
 
@@ -253,6 +265,11 @@ void GameEngine::draw() {
 */
 
 void GameEngine::cleanup() {
+    // Retire workers before anything they might reference goes away, then run whatever
+    // GL work they already handed over while the context is still alive.
+    jobs.shutdown();
+    glUploads.drain(0.0);
+
     // Save current state
     try {
         ImGui::SaveIniSettingsToDisk(IMGUI_SAVE_PATH);
@@ -280,7 +297,6 @@ void GameEngine::cleanup() {
     delete objectShader;
     delete backgroundShader;
     delete textRenderer;
-    delete physicsWorld;
     delete camera;
 
     // Shutdown ImGui properly
@@ -374,12 +390,14 @@ void GameEngine::drawDebugScreen()
             }
         }
 
-        ImGui::Text("Beyblade Information");
-        std::ostringstream oss;
-        oss.precision(2);
-        oss << std::fixed << activeBeyblade->getBody()->layer->radius.value() << ", "
-            << activeBeyblade->getBody()->layer->mass.value();
-        ImGui::Text(oss.str().c_str());
+        if (activeBeyblade) {
+            ImGui::Text("Beyblade Information");
+            std::ostringstream oss;
+            oss.precision(2);
+            oss << std::fixed << activeBeyblade->getBody()->layer->radius.value() << ", "
+                << activeBeyblade->getBody()->layer->mass.value();
+            ImGui::Text(oss.str().c_str());
+        }
 
         auto activeStadium = activeProfile->getActiveStadium();
         for (auto& stadium : activeProfile->getAllStadiums()) {
@@ -391,13 +409,15 @@ void GameEngine::drawDebugScreen()
             }
         }
 
-        ImGui::Text("Stadium Information");
-        std::ostringstream stadiumOss;
-        stadiumOss.precision(2);
-        stadiumOss << std::fixed
-            << "Radius: " << activeStadium->getRadius().value() << " m, "
-            << "Vertices Per Ring: " << activeStadium->getVerticesPerRing();
-        ImGui::Text(stadiumOss.str().c_str());
+        if (activeStadium) {
+            ImGui::Text("Stadium Information");
+            std::ostringstream stadiumOss;
+            stadiumOss.precision(2);
+            stadiumOss << std::fixed
+                << "Radius: " << activeStadium->getRadius().value() << " m, "
+                << "Vertices Per Ring: " << activeStadium->getVerticesPerRing();
+            ImGui::Text(stadiumOss.str().c_str());
+        }
     }
     else {
         ImGui::Text("No active profile selected");
@@ -444,6 +464,7 @@ bool GameEngine::createWindow(const char* title, int width, int height)
     }
 
     glfwMakeContextCurrent(window);
+    glfwSwapInterval(1);  // Vsync; without it the loop spins and deltaTime is tiny and jittery
     glfwSetWindowAspectRatio(window, static_cast<int>(aspectRatio * 100), 100);
 
     // Center window on the primary monitor
@@ -489,16 +510,50 @@ void GameEngine::setupImGuiAndCallbacks()
     glfwSetScrollCallback(window, scrollCallback);
 }
 
+std::vector<std::string> GameEngine::collectSaveModelPaths() const
+{
+    std::vector<std::string> paths;
+    std::ifstream file(PROFILE_SAVE_PATH);
+    if (!file.is_open()) return paths;
+
+    nlohmann::json js;
+    try {
+        file >> js;
+    }
+    catch (const nlohmann::json::exception&) {
+        return paths;
+    }
+    if (!js.is_object() || !js.contains("profiles") || !js["profiles"].is_array()) return paths;
+
+    for (const auto& profile : js["profiles"]) {
+        if (!profile.contains("beyblades")) continue;
+        for (const auto& beyblade : profile["beyblades"]) {
+            if (beyblade.contains("mesh") && beyblade["mesh"].contains("modelPath")) {
+                paths.push_back(beyblade["mesh"]["modelPath"].get<std::string>());
+            }
+        }
+    }
+
+    // The default is always needed, and duplicates would just be cache hits anyway
+    paths.push_back(DEFAULT_MODEL_PATH);
+    std::sort(paths.begin(), paths.end());
+    paths.erase(std::unique(paths.begin(), paths.end()), paths.end());
+    return paths;
+}
+
 bool GameEngine::attemptSaveDataLoad()
 {
     // Catch any errors from file importing, returning a blue screen of informational death if failing
     try {
-        // TODO: Add default profiles instead of crashing if json not parsed correctly
         pm.loadProfilesFromFile(PROFILE_SAVE_PATH);
+        if (pm.getAllProfiles().empty()) {
+            ml.addMessage("No saved profiles found; creating defaults.", MessageType::WARNING);
+            pm.addDefaultProfiles();
+        }
         return true;
     }
     catch (const nlohmann::json::exception& e) {
-        //pm.addDefaultProfiles();
+        pm.addDefaultProfiles();
 
         // Add critical error messages to the message log
         ml.addMessage("Critical error during initialization: " + string(e.what()), MessageType::ERROR);
@@ -527,15 +582,15 @@ void GameEngine::initCamera()
     backgroundView = mat4(1.0f);
     orthoProjection = ortho(0.0f, float(windowWidth), 0.0f, float(windowHeight), 0.0f, 1.0f);
 
-    camera = new Camera(initialCameraPos, lookAtPoint, physicsWorld, windowWidth / 2.0f, windowHeight / 2.0f);
+    camera = new Camera(initialCameraPos, lookAtPoint, physicsWorld.get(), windowWidth / 2.0f, windowHeight / 2.0f);
 }
 
 void GameEngine::initShaders()
 {
-    backgroundShader = new BackgroundShader(BACKGROUND_VERTEX_SHADER_PATH, BACKGROUND_FRAGMENT_SHADER_PATH);
+    backgroundShader = new BackgroundShader(readShaderSource(BACKGROUND_VERTEX_SHADER_PATH, BACKGROUND_FRAGMENT_SHADER_PATH));
     backgroundShader->setBackgroundGlobalParams(projection, 4.0, float(glfwGetTime()));
 
-    objectShader = new ObjectShader(OBJECT_VERTEX_SHADER_PATH, OBJECT_FRAGMENT_SHADER_PATH);
+    objectShader = new ObjectShader(readShaderSource(OBJECT_VERTEX_SHADER_PATH, OBJECT_FRAGMENT_SHADER_PATH));
     objectShader->setGlobalRenderParams(view, projection, camera->position);
     // TODO: Remove this? 
     objectShader->setObjectRenderParams(model, glm::vec3(1.0f));
@@ -545,11 +600,11 @@ void GameEngine::initShaders()
 void GameEngine::initRenderers() {
     quadRenderer = new QuadRenderer();
 
-    textRenderer = new TextRenderer("./assets/fonts/OpenSans-Regular.ttf", 800, 600);
-    tm.loadTexture("defaultBackground", "./assets/textures/Brickbeyz.jpg");
-    tm.loadTexture("sceneBackground", "./assets/textures/HexagonSmall.jpg");
-    tm.loadTexture("stadium", "./assets/textures/Hexagon.jpg");
-    tm.loadTexture("floor", "./assets/textures/Wood1.jpg");
+    textRenderer = new TextRenderer(TEXT_FONT_PATH, 0, 0);
+    tm.loadTexture("defaultBackground", DEFAULT_BACKGROUND_TEXTURE_PATH);
+    tm.loadTexture("sceneBackground", SCENE_BACKGROUND_TEXTURE_PATH);
+    tm.loadTexture("stadium", STADIUM_TEXTURE_PATH);
+    tm.loadTexture("floor", FLOOR_TEXTURE_PATH);
     fm.loadDefaultFonts();
 }
 

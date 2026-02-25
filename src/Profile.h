@@ -49,7 +49,7 @@ public:
     bool setActiveBeyblade(int beybladeId);
 
     const std::vector<std::shared_ptr<Beyblade>>& getAllBeyblades() const;
-    std::shared_ptr<Beyblade> getActiveBeyblade() const;  // Thread-safe for retrieval process, but the returned pointer is not thread-safe
+    std::shared_ptr<Beyblade> getActiveBeyblade() const;  // Main thread only; mtx below is not taken
 
     // STADIUM
     bool createStadium(const std::string& name);
@@ -58,11 +58,11 @@ public:
     bool setActiveStadium(int stadiumId);
 
     const std::vector<std::shared_ptr<Stadium>>& getAllStadiums() const;
-    std::shared_ptr<Stadium> getActiveStadium() const;  // Thread-safe for retrieval process, but the returned pointer is not thread-safe
+    std::shared_ptr<Stadium> getActiveStadium() const;  // Main thread only; mtx below is not taken
 
     std::optional<int> activeStadiumId;
 private:
-    mutable std::mutex mtx;
+    mutable std::mutex mtx;  // Declared but never locked -- see the accessors above
 
     // TODO: Set up basic server sync
     int id; // This is PROFILE ID! NOT any of the ids it generates.

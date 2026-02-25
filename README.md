@@ -15,10 +15,13 @@ I also wanted to learn from the process of creating a game from scratch, so ever
 - 3D Camera Control and Rendering
 - Texture, Mesh, Lighting/Shading
 - Logging and Debug Mode
+- Mesh import (.obj), loaded off the main thread
+- Pre-match screen: drag beyblades into place, set spin, launch
+- Fixed-timestep physics with interpolated rendering
 
 ## Coming Soon
-- Mesh import
-- Pre-match selection screen and reset
+- Round-end logic and rematch
+- Opposite-spin collision modelling
 
 # Installation
 

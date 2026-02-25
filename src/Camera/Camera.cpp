@@ -6,6 +6,7 @@
 #include "Camera.h"
 
 #include "InputUtils.h"
+#include "Beyblade.h"
 #include "PhysicsWorld.h"
 #include "InputManager.h"
 
@@ -81,12 +82,11 @@ vec3 Camera::applyCollisions(const vec3& currPos, vec3& nextPos) const {
 void Camera::update(float deltaTime) {
     if (activeMode == CameraMode::FREE) return;
     else if (activeMode == CameraMode::ATTACHED) {
-        // Update position
-        if (followingBey == nullptr) {
-            std::cout << "Uninitialized Bey" << std::endl;
-        }
-        else {
-            position = followingBey->getCenter().value();
+        // Track the same interpolated position the beyblade is drawn at, or the camera
+        // lags it by up to one fixed step and visibly jitters.
+        if (std::shared_ptr<Beyblade> bey = followingBey.lock()) {
+            float alpha = physicsWorld ? physicsWorld->getInterpolationAlpha() : 1.0f;
+            position = bey->getBody()->getInterpolatedCenter(alpha);
             position.y += heightAbove;
         }
     }

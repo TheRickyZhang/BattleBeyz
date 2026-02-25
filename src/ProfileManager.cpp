@@ -23,6 +23,9 @@ void ProfileManager::addDefaultProfiles() {
     if (!getActiveProfile()->createBeyblade("DefaultBeyblade2")) {
         cout << "Cannot create 2" << endl;
     }
+    if (!getActiveProfile()->createStadium("DefaultStadium")) {
+        cout << "Cannot create stadium" << endl;
+    }
 }
 
 
@@ -122,6 +125,7 @@ bool ProfileManager::saveProfilesToFile(const string& filePath) {
     json js;
 
     try {
+        js["profiles"] = json::array();  // Must exist even when empty, or dump() emits bare null
         for (const auto& profile : profiles) {
             js["profiles"].push_back(profile->toJson()); // Save all relevant profile details
         }
@@ -167,6 +171,11 @@ bool ProfileManager::loadProfilesFromFile(const string& filePath) {
     }
     catch (const json::exception& e) {
         ml.addMessage("Error: Failed to parse JSON. " + string(e.what()), MessageType::ERROR);
+        return false;
+    }
+
+    if (!js.is_object() || !js.contains("profiles") || !js["profiles"].is_array()) {
+        ml.addMessage("Error: No profiles array in " + filePath, MessageType::ERROR);
         return false;
     }
 

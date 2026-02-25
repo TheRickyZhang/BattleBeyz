@@ -38,7 +38,12 @@ void setupBuffers(
     size_t indicesSize,
     const std::vector<int>& attributeSizes
 ) {
-    // ERRORS
+    // Callers re-upload in place (stadium regeneration runs at ~6.7 Hz while a slider
+    // is dragged), so release the previous handles instead of orphaning them.
+    if (VAO) glDeleteVertexArrays(1, &VAO);
+    if (VBO) glDeleteBuffers(1, &VBO);
+    if (EBO) glDeleteBuffers(1, &EBO);
+
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
     glGenBuffers(1, &EBO);

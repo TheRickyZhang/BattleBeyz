@@ -8,9 +8,44 @@ using namespace std;
 MeshObject::MeshObject() : VAO(0), VBO(0), EBO(0) {}
 
 MeshObject::~MeshObject() noexcept {
-    glDeleteVertexArrays(1, &VAO);
-    glDeleteBuffers(1, &VBO);
-    glDeleteBuffers(1, &EBO);
+    if (VAO) glDeleteVertexArrays(1, &VAO);
+    if (VBO) glDeleteBuffers(1, &VBO);
+    if (EBO) glDeleteBuffers(1, &EBO);
+}
+
+MeshObject::MeshObject(MeshObject&& other) noexcept
+    : VAO(other.VAO), VBO(other.VBO), EBO(other.EBO),
+    vertices(std::move(other.vertices)),
+    normals(std::move(other.normals)),
+    texCoords(std::move(other.texCoords)),
+    colors(std::move(other.colors)),
+    indices(std::move(other.indices)),
+    modelMatrix(other.modelMatrix),
+    tint(other.tint)
+{
+    other.VAO = other.VBO = other.EBO = 0;
+}
+
+MeshObject& MeshObject::operator=(MeshObject&& other) noexcept {
+    if (this == &other) return *this;
+
+    if (VAO) glDeleteVertexArrays(1, &VAO);
+    if (VBO) glDeleteBuffers(1, &VBO);
+    if (EBO) glDeleteBuffers(1, &EBO);
+
+    VAO = other.VAO;
+    VBO = other.VBO;
+    EBO = other.EBO;
+    vertices = std::move(other.vertices);
+    normals = std::move(other.normals);
+    texCoords = std::move(other.texCoords);
+    colors = std::move(other.colors);
+    indices = std::move(other.indices);
+    modelMatrix = other.modelMatrix;
+    tint = other.tint;
+
+    other.VAO = other.VBO = other.EBO = 0;
+    return *this;
 }
 
 

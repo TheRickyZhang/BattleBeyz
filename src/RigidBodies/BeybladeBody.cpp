@@ -55,6 +55,7 @@ Vec3_M BeybladeBody::getBottomPosition() const {
 void BeybladeBody::resetPhysics(Vec3_M startingPoint)
 {
     center = startingPoint;
+    previousCenter = startingPoint;
     velocity = Vec3_M_S(0.0, 0.0, 0.0);
     angularVelocity = Vec3_R_S(0.0, 0.0, 0.0);
 
@@ -68,6 +69,7 @@ void BeybladeBody::resetPhysics(Vec3_M startingPoint)
 void BeybladeBody::setInitialLaunch(Vec3_M initialCenter, Vec3_M_S initialVelocity, Vec3_R_S initialAngularVelocity)
 {
     center = initialCenter;
+    previousCenter = initialCenter;
     velocity = initialVelocity;
     angularVelocity = initialAngularVelocity;
 
@@ -185,6 +187,7 @@ void BeybladeBody::applyAccumulatedChanges(float deltaTime)
 
 void BeybladeBody::update(float deltaTime)
 {
+    previousCenter = center;
     center += velocity * S(deltaTime);
 #if 0
     cout << "Base center: " << center.x << ", " << center.y << ", " << center.z << endl;

@@ -10,12 +10,10 @@ class ActiveState : public GameState {
 public:
     ActiveState(GameEngine* game,
         std::vector<std::shared_ptr<Stadium>> stadiums,
-        std::vector<std::shared_ptr<Beyblade>> beyblades,
-        std::shared_ptr<PhysicsWorld> physicsWorld)
+        std::vector<std::shared_ptr<Beyblade>> beyblades)
         : GameState(game),
         stadiums(std::move(stadiums)),
-        beyblades(std::move(beyblades)),
-        physicsWorld(std::move(physicsWorld)) {
+        beyblades(std::move(beyblades)) {
     }
 
     void init() override;
@@ -42,7 +40,6 @@ private:
     // NOTE that these raw pointers are only valid as long as the original unique ptrs are not deleted
     std::vector<std::shared_ptr<Stadium>> stadiums;  // Shared ownership of stadiums
     std::vector<std::shared_ptr<Beyblade>> beyblades; // Shared ownership of beyblades
-    std::shared_ptr<PhysicsWorld> physicsWorld;       // Shared ownership of physics world
 
     void drawInfoScreen();
 };

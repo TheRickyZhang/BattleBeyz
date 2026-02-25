@@ -18,6 +18,13 @@ public:
     MeshObject();
     virtual ~MeshObject() noexcept;
 
+    // Owns raw GL handles, so copying would double-delete them. Move transfers
+    // ownership and zeroes the source. Needed because Stadium::fromJson returns by value.
+    MeshObject(const MeshObject&) = delete;
+    MeshObject& operator=(const MeshObject&) = delete;
+    MeshObject(MeshObject&& other) noexcept;
+    MeshObject& operator=(MeshObject&& other) noexcept;
+
     virtual void updateMesh() = 0;
     virtual void render(ObjectShader& shader, Texture* texture = nullptr);
 

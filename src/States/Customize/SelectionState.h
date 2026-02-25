@@ -59,7 +59,6 @@ private:
 
     std::vector<std::shared_ptr<Stadium>> stadiums; // TODO: Make profile default stadium?
     std::vector<std::shared_ptr<Beyblade>> players; // TODO: Modify this to support differnt profiles in the future?
-    std::shared_ptr<PhysicsWorld> physicsWorld;
 
     std::unique_ptr<StadiumPreview> stadiumPreview; // Our new unified preview
 

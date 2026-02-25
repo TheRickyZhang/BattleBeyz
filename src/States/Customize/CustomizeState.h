@@ -4,6 +4,7 @@
 #include <memory>
 #include <string>
 #include <functional>
+#include <future>
 
 #include <imgui.h>
 
@@ -11,6 +12,7 @@
 
 #include "GameState.h"
 #include "BeybladeBody.h"
+#include "MeshData.h"
 #include "StadiumPreview.h"
 
 class Profile;
@@ -36,6 +38,12 @@ public:
     GameStateType getStateType() const override { return GameStateType::CUSTOMIZE; }
 
 private:
+    // A multi-MB .obj takes tens of milliseconds to parse, so it runs on the job system
+    // and the resulting geometry is uploaded here on the main thread once it lands.
+    std::future<MeshData> pendingMesh;
+    std::shared_ptr<Beyblade> meshImportTarget;
+    std::string meshImportPath;
+
     float leftTextWidth, rightButton1Width, rightButton2Width;  // Static, initialized in init()
     float rightButton1X, rightButton2X, dropdownLeftX, dropdownWidth; // Change during onResize();
 

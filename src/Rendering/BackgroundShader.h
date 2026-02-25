@@ -10,7 +10,7 @@
 
 class BackgroundShader : public ShaderProgram {
 public:
-    BackgroundShader(const char* vertexPath, const char* fragmentPath);
+    explicit BackgroundShader(const ShaderSource& source);
 
     // Global parameters - set once per frame
     void setBackgroundGlobalParams(const glm::mat4& projection, float wrapFactor, float time) const;

@@ -33,26 +33,3 @@ int floatToDiscreteInt(float val, float mn, float mx);
 float discreteIntToFloat(int val, float mn, float mx);
 
 std::ostream& operator<<(std::ostream & os, const glm::mat4 & mat);
-
-class MockLoading {
-public:
-    static MockLoading& getInstance() {
-        static MockLoading instance;
-        return instance;
-    }
-
-    void mock(){
-        for (long long  i = 0; i < 5e8; ++i) {
-            cnt++;
-        }
-    }
-
-    long long cnt = 0;
-
-    MockLoading() = default;
-    ~MockLoading() = default;
-    MockLoading(const MockLoading&) = delete;
-    MockLoading& operator=(const MockLoading&) = delete;
-};
-
-

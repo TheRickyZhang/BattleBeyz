@@ -17,7 +17,7 @@ enum LightType {
 
 class ObjectShader : public ShaderProgram {
 public:
-    ObjectShader(const char* vertexPath, const char* fragmentPath);
+    explicit ObjectShader(const ShaderSource& source);
 
     // Global parameters - set once per frame
     void setGlobalRenderParams(const glm::mat4& view, const glm::mat4& projection, const glm::vec3& viewPos) const;

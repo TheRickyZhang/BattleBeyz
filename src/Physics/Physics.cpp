@@ -3,9 +3,13 @@
 // Copyright (c) 2024, Ricky Zhang.
 ////////////////////////////////////////////////////////////////////////////////
 
+#include <iomanip>
+#include <sstream>
+
 #include "Physics.h"
 
 #include "BeybladeBody.h"
+#include "MessageLog.h"
 #include "Stadium.h"
 
 using namespace std;
@@ -138,10 +142,6 @@ void Physics::accumulateImpact(BeybladeBody* beyblade1, BeybladeBody* beyblade2,
     beyblade1->addCenterXZ(-displacement.xTyped(), -displacement.zTyped());
     beyblade2->addCenterXZ(displacement.xTyped(), displacement.zTyped());
 
-    auto d = BeybladeBody::distanceOverlap(beyblade1, beyblade2);
-    if (d.has_value())  cout << "The distance between the beys is " << d.value() << endl;
-    else cout << "The beys are not intersecting afterwards" << endl;
-
     Vec3_M_S velocity1 = beyblade1->getVelocity();
     Vec3_M_S velocity2 = beyblade2->getVelocity();
     Vec3_M_S vDiff = velocity2 - velocity1;
@@ -151,8 +151,6 @@ void Physics::accumulateImpact(BeybladeBody* beyblade1, BeybladeBody* beyblade2,
     Kg mass2 = beyblade2->getMass();
 
     M_S relativeSpeed = proj(vDiff, unitSeparation);
-    cout << "projecting " << vDiff << " onto " << unitSeparation << "gives";
-    cout << "relative speed " << relativeSpeed << endl;
 
     // Trust this known linear collison model works correctly
     KgM_S impulseMagnitude = averageCOR * relativeSpeed / (1.0__ / mass1 + 1.0__ / mass2);
@@ -164,12 +162,13 @@ void Physics::accumulateImpact(BeybladeBody* beyblade1, BeybladeBody* beyblade2,
     // Need to set velocities directly, NOT accumulate them, since collision changes it instantaneously
     beyblade1->setVelocity(deltaVelocity1);
     beyblade2->setVelocity(deltaVelocity2);
-    cout << "Bey1 velocity set to " << deltaVelocity1 << " when it was "<< velocity1<< endl;
-    cout << "Bey2 velocity set to " << deltaVelocity2 << " when it was " << velocity2 << endl;
 
-    cout << fixed << setprecision(5);
-    cout << "v1: " << glm::length(velocity1.value()) << " | v2: " << glm::length(velocity2.value()) << endl;
-    cout << "dv1: " << glm::length(deltaVelocity1.value()) << " | dv2: " << glm::length(deltaVelocity2.value()) << endl;
+    ostringstream collision;
+    collision << fixed << setprecision(5)
+        << "Impact: relative speed " << relativeSpeed.value()
+        << " | v1 " << glm::length(velocity1.value()) << " -> " << glm::length(deltaVelocity1.value())
+        << " | v2 " << glm::length(velocity2.value()) << " -> " << glm::length(deltaVelocity2.value());
+    MessageLog::getInstance().addMessage(collision.str(), MessageType::NORMAL);
 
     // Random effect with inherent attack power of beyblades built in
     Scalar randomMagnitude = (beyblade1->sampleRecoil() + beyblade2->sampleRecoil()) / 2.0__;
@@ -186,7 +185,6 @@ void Physics::accumulateImpact(BeybladeBody* beyblade1, BeybladeBody* beyblade2,
     bool sameSpinDirection = beyblade1->isSpinningClockwise() == beyblade2->isSpinningClockwise();
     if (sameSpinDirection) {
         Scalar angularSpeedDiff = beyblade1->getAngularVelocity().length() + beyblade2->getAngularVelocity().length();
-        cerr << fixed << setprecision(5) << "Angular speed diff " << endl;
 
         // TODO: More accurate predictive modeling, use sqrt() for now
         // NOTE we assume magnitude bounded by MIN and MAX spin threshold
@@ -199,14 +197,12 @@ void Physics::accumulateImpact(BeybladeBody* beyblade1, BeybladeBody* beyblade2,
         // Just simply multiply by COR since moment of inertia vs mass already accounts for?
 
         Scalar recoilAngularImpulseMagnitude(randomMagnitude * angularScalingFactor);  // Since we can't simulate directly fudge up units
-        cerr << fixed << setprecision(5) << "Angular implulse magnitude (< 0.001): " << recoilAngularImpulseMagnitude.value() << endl;
         assert(recoilAngularImpulseMagnitude.value() > 0.0);
 
         beyblade1->accumulateAngularImpulseMagnitude(-1.0__/1.0_s * recoilAngularImpulseMagnitude * averageMOI);
         beyblade2->accumulateAngularImpulseMagnitude(-1.0__/1.0_s * recoilAngularImpulseMagnitude * averageMOI);
 
         M_S recoilLinearImpulseMagnitude(randomMagnitude * linearScalingFactor * averageCOR);
-        cerr << fixed << setprecision(5) << "Linear implulse magnitude (< 0.02): " << recoilLinearImpulseMagnitude.value() << endl;
         assert(recoilLinearImpulseMagnitude.value() > 0.0);
 
         beyblade1->accumulateImpulseMagnitude(-recoilLinearImpulseMagnitude * averageMass);
@@ -214,8 +210,7 @@ void Physics::accumulateImpact(BeybladeBody* beyblade1, BeybladeBody* beyblade2,
     }
     else {
         // TODO: Different case for opposite spin interactions
-        auto angularSpeedDiff = beyblade1->getAngularVelocity().length() + beyblade2->getAngularVelocity().length();
-        cerr << "Opposite spin collisions have not been implemented yet";
+        MessageLog::getInstance().addMessage("Opposite spin collisions have not been implemented yet", MessageType::WARNING);
     }
 }
 

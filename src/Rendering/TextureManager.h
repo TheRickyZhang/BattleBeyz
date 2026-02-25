@@ -28,4 +28,7 @@ private:
   TextureManager() = default;
   mutable std::mutex mutex;
   std::unordered_map<std::string, std::shared_ptr<Texture>> textures;
+  // A file may be requested under several logical names ("stadium" and its path,
+  // say). Identity is the file, so dedupe on it to avoid uploading twice.
+  std::unordered_map<std::string, std::shared_ptr<Texture>> texturesByPath;
 };

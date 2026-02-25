@@ -3,26 +3,23 @@
 // Copyright (c) 2024, Ricky Zhang.
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "PhysicsWorld.h"
-#include "GameEngine.h"
-#include "ProfileManager.h"
-#include "StateFactory.h"
+#include <functional>
+#include <string>
+#include <vector>
 
+#include "GameEngine.h"
+#include "MeshCache.h"
+#include "StateFactory.h"
 #include "Utils.h"
 
 int main() {
     GL_CHECK("begin");
 
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
     GameEngine* game = new GameEngine();
 
     if (!game->init("Battlebeyz", 1600, 900)) {
         return -1;
     }
-
-    // Declare physics world with default parameters
-    auto physicsWorld = new PhysicsWorld();
 
     /* ----------------------OBJECT SETUP-------------------------- */
 
@@ -37,20 +34,30 @@ int main() {
 
     /* ----------------------MAIN RENDERING LOOP-------------------------- */
 
-    //std::function<bool()> wait = { [&]() -> bool { MockLoading::getInstance().mock(); return true; } };
-    //game->pushState(StateFactory::createLoadingState(
-    //    game,
-    //    {wait, wait, wait},
-    //    [&]() {
-    //        game->changeState(StateFactory::createState(game, GameStateType::HOME));
-    //    }
-    //));
-    game->changeState(StateFactory::createState(game, GameStateType::HOME));
+    // Parsing every model the save file references is the slow part of startup, and the
+    // models are independent, so the loading screen fans them across the job system.
+    std::vector<std::function<bool()>> loadTasks;
+    for (const std::string& modelPath : game->collectSaveModelPaths()) {
+        loadTasks.push_back([modelPath]() { return MeshCache::getInstance().prewarm(modelPath); });
+    }
+
+    game->pushState(StateFactory::createLoadingState(
+        game,
+        loadTasks,
+        [game]() {
+            // Meshes are cached now, so building the profiles is just JSON plus uploads
+            game->attemptSaveDataLoad();
+
+            game->changeState(StateFactory::createState(game, GameStateType::HOME));
+        }
+    ));
+    game->applyPendingTransitions();
 
     while (game->running()) {
         game->update();        // Time-based state updates
         if (!game->paused) game->handleEvents();  // External inputs: user/system
         game->draw();          // Render the current state
+        game->applyPendingTransitions();  // Swap states only at the frame boundary
     }
     delete game;
 

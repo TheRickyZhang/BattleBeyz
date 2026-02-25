@@ -5,26 +5,22 @@
 
 #pragma once
 
-#include <GL/glew.h>
 #include <glm/glm.hpp>
+#include <glm/gtc/quaternion.hpp>
 
-class ObjectShader;
-
-// Currently unused.
+/*
+* Axis-aligned bounding box. Pure CPU geometry: holding GL buffers here meant every
+* getBoundingBox() call allocated and freed a VAO. Drawing lives in BoundingBoxRenderer.
+*/
 class BoundingBox {
 public:
     glm::vec3 min;
     glm::vec3 max;
 
-    unsigned int VAO{}, VBO{}, EBO{};
-
     BoundingBox();
     BoundingBox(const glm::vec3& min, const glm::vec3& max);
-    ~BoundingBox();
 
-    // These ones are actually used
     static bool intersect(const BoundingBox& a, const BoundingBox& b);
-    void renderDebug(ObjectShader& shader, const glm::vec3& bodyPosition);
 
     // Naive implementaiton that clamps limits
     glm::vec3 closestPointOutside(const glm::vec3& point) const;
@@ -36,6 +32,4 @@ public:
     void update(const glm::vec3& position, const glm::quat& orientation);
     void expandToInclude(const BoundingBox& other);
     void expandToInclude(const glm::vec3& point);
-private:
-    void setupBoundingBoxBuffers();
 };

@@ -26,6 +26,16 @@ namespace StateFactory {
             case GameStateType::PAUSE: return make_unique<PauseState>(game); 
             case GameStateType::SELECTION: return make_unique<SelectionState>(game);
             case GameStateType::SETTINGS: return make_unique<SettingsState>(game);
+
+            // These need constructor arguments this overload cannot supply. PreBattleState is
+            // built by SelectionState, ActiveState by PreBattleState, LoadingState by createLoadingState.
+            case GameStateType::ACTIVE:
+            case GameStateType::PREBATTLE:
+            case GameStateType::LOADING:
+                cout << "State " << static_cast<int>(stateType)
+                     << " requires parameterized construction" << endl;
+                return nullptr;
+
             default: {
                 cout << "Unknown game state passed to state factory" << endl;
                 return nullptr;

@@ -5,6 +5,9 @@
 
 #include <iostream>
 
+#include <algorithm>
+#include <cmath>
+
 #include "PhysicsWorld.h"
 
 #include "ObjectShader.h"
@@ -46,6 +49,23 @@ void PhysicsWorld::removeStadium(Stadium* body) {
 * @param deltaTime              [in] Time increment in seconds.
 */
 
+void PhysicsWorld::advance(float frameDelta) {
+    // A long stall (window drag, a slow load) must not turn into hundreds of steps
+    accumulatorNs += std::llround(std::min(frameDelta, MAX_FRAME_DELTA) * 1000000000.0);
+
+    int steps = 0;
+    while (accumulatorNs >= FIXED_DT_NS && steps < MAX_STEPS_PER_FRAME) {
+        update(FIXED_DT);
+        accumulatorNs -= FIXED_DT_NS;
+        ++steps;
+    }
+
+    // Still behind after the cap: drop the debt rather than spiral
+    if (steps == MAX_STEPS_PER_FRAME) accumulatorNs = 0;
+
+    interpolationAlpha = static_cast<float>(accumulatorNs) / static_cast<float>(FIXED_DT_NS);
+}
+
 // TODO: Handle game logic when round is over
 void PhysicsWorld::update(float deltaTime) {
     extern void UISetRunState(bool isError, const std::string & msg);  // Defined in UI.h
@@ -57,9 +77,12 @@ void PhysicsWorld::update(float deltaTime) {
     for (Beyblade* beyblade : beyblades) {
         BeybladeBody* beybladeBody = beyblade->getBody();
         if (beybladeBody->getAngularVelocity().length() < MIN_SPIN_THRESHOLD) {
-            MessageLog::getInstance().addMessage("Beyblade " + beyblade->getName() + " ran out of spin", MessageType::NORMAL);
-            return;
+            if (spinFinishedReported.insert(beybladeBody).second) {
+                MessageLog::getInstance().addMessage("Beyblade " + beyblade->getName() + " ran out of spin", MessageType::NORMAL);
+            }
+            continue;  // This bey is done; the rest of the world keeps stepping
         }
+        spinFinishedReported.erase(beybladeBody);
 
         // Get position of the bottom tip
         Vec3_M beyBottom = beybladeBody->getBottomPosition();
@@ -67,9 +90,12 @@ void PhysicsWorld::update(float deltaTime) {
         // Should usually only be one stadium, but may need to scale to more
         for (Stadium* stadium : stadiums) {
             if(!stadium->isInside(beyBottom.xTyped(), beyBottom.zTyped())) {
-                MessageLog::getInstance().addMessage("Beyblade " + beyblade->getName() + " out of bounds", MessageType::NORMAL);
-                return;
+                if (outOfBoundsReported.insert(beybladeBody).second) {
+                    MessageLog::getInstance().addMessage("Beyblade " + beyblade->getName() + " out of bounds", MessageType::NORMAL);
+                }
+                continue;  // Not in this stadium; check any others
             }
+            outOfBoundsReported.erase(beybladeBody);
 
             // Add air resistance
             physics.accumulateAirResistance(beybladeBody);
@@ -138,17 +164,21 @@ void PhysicsWorld::update(float deltaTime) {
 
 // Limited to 100 per object otherwise FPS tanks
 void PhysicsWorld::renderDebug(ObjectShader& shader) const {
+    boundingBoxRenderer.begin(shader);
+
     // Render all bounding boxes
     for (Beyblade* beyblade : beyblades) {
         BeybladeBody* beybladeBody = beyblade->getBody();
-        for (int i = 0; i < beybladeBody->boundingBoxes.size() && i < 100; i++) {
-            beybladeBody->boundingBoxes[i]->renderDebug(shader, beybladeBody->getCenter().value());
+        for (size_t i = 0; i < beybladeBody->boundingBoxes.size() && i < 100; i++) {
+            boundingBoxRenderer.draw(shader, beybladeBody->boundingBoxes[i], beybladeBody->getCenter().value());
         }
     }
 
     for (Stadium* stadium : stadiums) {
-        for (int i = 0; i < stadium->boundingBoxes.size() && i < 100; i++) {
-            stadium->boundingBoxes[i]->renderDebug(shader, stadium->getCenter().value());
+        for (size_t i = 0; i < stadium->boundingBoxes.size() && i < 100; i++) {
+            boundingBoxRenderer.draw(shader, stadium->boundingBoxes[i], stadium->getCenter().value());
         }
     }
+
+    boundingBoxRenderer.end();
 }

@@ -37,6 +37,12 @@ using namespace Units;
 
 class Stadium : public MeshObject {
 public:
+    // fromJson returns by value, so the move path must exist. Copying is deleted
+    // because it would double-delete the inherited GL handles; the parameter-copying
+    // operator= below is unaffected, as it never touches them.
+    Stadium(const Stadium&) = delete;
+    Stadium(Stadium&&) = default;
+
     Stadium(
         int id = -1,
         const std::string name = StadiumDefaults::name,
@@ -49,7 +55,7 @@ public:
         const glm::vec3& ringColor = StadiumDefaults::ringColor,
         const glm::vec3& crossColor = StadiumDefaults::crossColor,
         const glm::vec3& tint = StadiumDefaults::tint,
-        std::shared_ptr<Texture> texture = DefaultTexture(),
+        std::shared_ptr<Texture> texture = DefaultStadiumTexture(),
         float textureScale = StadiumDefaults::textureScale
     );
     Stadium& operator=(const Stadium& other) {
@@ -151,7 +157,7 @@ public:
         modified = _modified;
     }
 
-    std::vector<BoundingBox*> boundingBoxes;
+    std::vector<BoundingBox> boundingBoxes;
 private:
     // General
     std::string name;

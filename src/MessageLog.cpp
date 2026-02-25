@@ -19,7 +19,7 @@ void MessageLog::close() {
 }
 
 void MessageLog::toggle() {
-    visible = !visible;
+    visible = !visible.load();
 }
 
 bool MessageLog::isOpen() const {
@@ -27,7 +27,13 @@ bool MessageLog::isOpen() const {
 }
 
 void MessageLog::addMessage(const string& text, MessageType type, bool overwrite) {
-    messageLog.emplace_back(text, type);
+    {
+        lock_guard<std::mutex> lock(mutex);
+        messageLog.emplace_back(text, type);
+        while (messageLog.size() > MAX_MESSAGES) {
+            messageLog.pop_front();
+        }
+    }
     // Only show the log on warnings or higher
     if (overwrite || type >= MessageType::WARNING) {
         open();
@@ -41,15 +47,19 @@ void MessageLog::render() {
     ImGui::Begin("Message Log", nullptr, ImGuiWindowFlags_None);
 
     // TODO: Make sure these buttons stay while below messaegs scroll
-    if (ImGui::Button("Clear")) messageLog.clear();
+    bool clearRequested = ImGui::Button("Clear");
     ImGui::SameLine();
     if (ImGui::Button("Close")) visible = false;
     ImGui::Separator();
 
     // Display each message, auto scroll to bottom
     ImGui::BeginChild("ScrollRegion", ImVec2(0, -ImGui::GetFrameHeightWithSpacing()), true);
-    for (const auto& message : messageLog) {
-        ImGui::TextColored(message.color, "%s", message.text.c_str());
+    {
+        lock_guard<std::mutex> lock(mutex);
+        if (clearRequested) messageLog.clear();
+        for (const auto& message : messageLog) {
+            ImGui::TextColored(message.color, "%s", message.text.c_str());
+        }
     }
     if (ImGui::GetScrollY() >= ImGui::GetScrollMaxY())
         ImGui::SetScrollHereY(1.0f);
@@ -68,7 +78,14 @@ void MessageLog::save(const string& path) {
     localtime_r(&now, &timeInfo);
 #endif
 
-    for (const auto& message : messageLog) {
+    // Snapshot so the file write does not hold the lock
+    deque<GameMessage> messages;
+    {
+        lock_guard<std::mutex> lock(mutex);
+        messages = messageLog;
+    }
+
+    for (const auto& message : messages) {
         std::cout << "[" << message.getTypeString() << "] " << message.text << std::endl;
     }
     // Ensure the directory exists
@@ -93,7 +110,7 @@ void MessageLog::save(const string& path) {
         return;
     }
 
-    for (const auto& message : messageLog) {
+    for (const auto& message : messages) {
         outFile << "[" << message.getTypeString() << "] " << message.text << endl;
     }
 

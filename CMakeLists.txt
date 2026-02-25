@@ -8,12 +8,12 @@ project(BattleBeyz)
 include(FetchContent)
 
 # C++ Standard
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 # Build Type
 if(NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE Debug CACHE STRING "Choose the build type: Debug or Release" FORCE)
+    set(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING "Choose the build type: Debug, RelWithDebInfo, or Release" FORCE)
 endif()
 
 # ============================================================================
@@ -106,6 +106,7 @@ FetchContent_MakeAvailable(glew)
 find_package(OpenGL REQUIRED)
 find_package(Freetype REQUIRED)
 find_package(ZLIB REQUIRED)
+find_package(Threads REQUIRED)
 
 # ============================================================================
 # ImGui Library (compiled from fetched sources)
@@ -147,7 +148,6 @@ include_directories(${PROJECT_SOURCE_DIR}/src/Camera)
 include_directories(${PROJECT_SOURCE_DIR}/src/Camera/CameraBehaviors)
 include_directories(${PROJECT_SOURCE_DIR}/src/GameObjects)
 include_directories(${PROJECT_SOURCE_DIR}/src/MeshObjects)
-include_directories(${PROJECT_SOURCE_DIR}/src/mini)
 include_directories(${PROJECT_SOURCE_DIR}/src/Physics)
 include_directories(${PROJECT_SOURCE_DIR}/src/Physics/Units)
 include_directories(${PROJECT_SOURCE_DIR}/src/Rendering)
@@ -188,6 +188,7 @@ target_link_libraries(BattleBeyz PRIVATE
     Freetype::Freetype
     ZLIB::ZLIB
     glm::glm
+    Threads::Threads
 )
 
 # Preprocessor Definitions
@@ -195,10 +196,19 @@ target_compile_definitions(BattleBeyz PRIVATE
     _USE_MATH_DEFINES
     GLM_ENABLE_EXPERIMENTAL
     GLEW_STATIC
+    # Stop GLFW pulling in gl.h, which makes glew's include order matter everywhere
+    GLFW_INCLUDE_NONE
 )
 
+# ThreadSanitizer (opt-in): cmake -B build-tsan -DBATTLEBEYZ_SANITIZE_THREAD=ON
+option(BATTLEBEYZ_SANITIZE_THREAD "Build BattleBeyz with ThreadSanitizer" OFF)
+if(BATTLEBEYZ_SANITIZE_THREAD)
+    target_compile_options(BattleBeyz PRIVATE -fsanitize=thread -g -O1 -fno-omit-frame-pointer)
+    target_link_options(BattleBeyz PRIVATE -fsanitize=thread)
+endif()
+
 # Add Assets to Build Directory
-file(COPY ${PROJECT_SOURCE_DIR}/assets DESTINATION ${CMAKE_BINARY_DIR}/assets)
+file(COPY ${PROJECT_SOURCE_DIR}/assets DESTINATION ${CMAKE_BINARY_DIR})
 
 # Debugging Settings (Visual Studio specific)
 set_property(TARGET BattleBeyz PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}")

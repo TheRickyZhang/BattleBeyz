@@ -9,7 +9,7 @@
 #include "PhysicsWorld.h"
 #include "StateIdentifiers.h"
 #include "ImGuiUI.h"
-#include "ActiveState.h"
+#include "PreBattleState.h"
 
 #include <glm/gtc/type_ptr.hpp>
 
@@ -19,13 +19,11 @@ using namespace glm;
 using namespace ImGui;
 
 void SelectionState::init() {
-    physicsWorld = make_shared<PhysicsWorld>();
-
     auto defaultStadium = make_shared<Stadium>();
     stadiums.push_back(defaultStadium);
 
     // Create our new StadiumPreview
-    stadiumPreview = make_unique<StadiumPreview>(300, 300, physicsWorld.get(), game->objectShader);
+    stadiumPreview = make_unique<StadiumPreview>(300, 300, game->physicsWorld.get(), game->objectShader);
 }
 
 void SelectionState::cleanup() {
@@ -80,7 +78,7 @@ void SelectionState::draw() {
         if (Button("Play")) {
             EndChild();
             End();
-            game->changeState(make_unique<ActiveState>(game, stadiums, players, physicsWorld));
+            game->changeState(make_unique<PreBattleState>(game, stadiums, players));
             return;
         }
     }

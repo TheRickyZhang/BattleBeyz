@@ -1,3 +1,5 @@
+#include <chrono>
+
 #include "CustomizeState.h"
 
 #include "StateIdentifiers.h"
@@ -19,10 +21,9 @@ void CustomizeState::init() {
     rightButton1Width = CalcTextSize("Create New").x + frameSpacingX * 2;
 
     if (game->pm.getActiveProfile()) {
-        auto activeStadium = game->pm.getActiveProfile()->getActiveStadium();
         stadiumPreview = std::make_unique<StadiumPreview>(
             380, 380, // TOLOOK: This should be - 2 buffer
-            game->physicsWorld,
+            game->physicsWorld.get(),
             game->objectShader
         );
     }
@@ -53,7 +54,24 @@ void CustomizeState::onResize(int width, int height) {
 }
 
 void CustomizeState::update(float deltaTime) {
-    stadiumPreview->update(deltaTime, game->currTime);
+    if (stadiumPreview) {
+        stadiumPreview->update(deltaTime, game->currTime);
+    }
+
+    // Poll the import without blocking; the GL upload has to happen on this thread
+    if (pendingMesh.valid() &&
+        pendingMesh.wait_for(std::chrono::seconds(0)) == std::future_status::ready) {
+        MeshData data = pendingMesh.get();
+
+        if (!data.loaded) {
+            game->ml.addMessage("Failed to load mesh. Ensure it is a valid .obj file", MessageType::ERROR, true);
+        }
+        else if (meshImportTarget) {
+            auto newMesh = make_unique<BeybladeMesh>(data);
+            meshImportTarget->setMesh(newMesh);
+        }
+        meshImportTarget.reset();
+    }
 }
 
 // Draw Method
@@ -153,7 +171,7 @@ shared_ptr<Profile> CustomizeState::drawProfileSection(const vector<shared_ptr<P
         }
     );
     if (newProfile != activeProfile) {
-        stadiumPreview->stadium = (newProfile ? newProfile->getActiveStadium().get() : nullptr);
+        stadiumPreview->stadium = (newProfile ? newProfile->getActiveStadium() : nullptr);
     }
     return newProfile;
 }
@@ -207,7 +225,7 @@ shared_ptr<Stadium> CustomizeState::drawStadiumSection(
 
     // Update the stadium preview if the active stadium changes
     if (newStadium != activeStadium) {
-        stadiumPreview->stadium = newStadium.get();
+        stadiumPreview->stadium = newStadium;
     }
 
     return newStadium;
@@ -255,7 +273,10 @@ void CustomizeState::drawManualCustomizeSection(shared_ptr<Beyblade> beyblade) {
 
     // Mesh loading code.
 
-    if (Button("Select Custom Mesh")) {
+    if (pendingMesh.valid()) {
+        Text("Loading mesh: %s", meshImportPath.c_str());
+    }
+    else if (Button("Select Custom Mesh")) {
         IGFD::FileDialogConfig config;
         config.path = ".";
         config.countSelectionMax = 1;
@@ -270,14 +291,9 @@ void CustomizeState::drawManualCustomizeSection(shared_ptr<Beyblade> beyblade) {
     // If the minimum size is not specified you can't see the dialog (seems like a bug).
     if (ImGuiFileDialog::Instance()->Display("Dlg##SelectMesh", ImGuiWindowFlags_None, ImVec2(800, 600))) {
         if (ImGuiFileDialog::Instance()->IsOk()) {
-            string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
-            auto newMesh = make_unique<BeybladeMesh>(filePathName.c_str());  // This loads the mesh.
-            if (newMesh != nullptr && newMesh->modelLoaded) {
-                beyblade->setMesh(newMesh);
-            }
-            else {
-                game->ml.addMessage("Failed to load mesh. Ensure it is a valid .obj file", MessageType::ERROR, true);
-            }
+            meshImportPath = ImGuiFileDialog::Instance()->GetFilePathName();
+            meshImportTarget = beyblade;  // The dropdown may move on before the parse lands
+            pendingMesh = game->jobs.submit([path = meshImportPath]() { return parseObj(path); });
         }
         ImGuiFileDialog::Instance()->Close();  // Close the dialog
         return;
@@ -416,8 +432,8 @@ void CustomizeState::drawStadiumCustomizeSection(shared_ptr<Stadium> stadium) {
     if (ImGui::Button("Save Stadium")) {
         ScalarParameter::assignToStadium(stadiumBody);
         Vec3Parameter::assignToStadium(stadiumBody);
-        ScalarParameter::assignToStadium(stadiumPreview->stadium);
-        Vec3Parameter::assignToStadium(stadiumPreview->stadium);
+        ScalarParameter::assignToStadium(stadiumPreview->stadium.get());
+        Vec3Parameter::assignToStadium(stadiumPreview->stadium.get());
         stadium->setModified(false);
     }
     if (modified) ImGui::PopStyleColor();
@@ -430,7 +446,7 @@ void CustomizeState::drawStadiumCustomizeSection(shared_ptr<Stadium> stadium) {
         cout << "Clicked" << endl;
         ScalarParameter::assignFromStadium(stadiumBody);           Vec3Parameter::assignFromStadium(stadiumBody);
         cout << "ScalarParameter for radius is now" << stadiumParameters[0].currentValue << endl;
-        ScalarParameter::assignToStadium(stadiumPreview->stadium); Vec3Parameter::assignToStadium(stadiumPreview->stadium);
+        ScalarParameter::assignToStadium(stadiumPreview->stadium.get()); Vec3Parameter::assignToStadium(stadiumPreview->stadium.get());
         stadium->setModified(false);
     }
 
@@ -439,7 +455,7 @@ void CustomizeState::drawStadiumCustomizeSection(shared_ptr<Stadium> stadium) {
     // Update temporary variables if stadium changes
     if (stadiumBody != prevStadium) {
         ScalarParameter::assignFromStadium(stadiumBody);           Vec3Parameter::assignFromStadium(stadiumBody);
-        ScalarParameter::assignToStadium(stadiumPreview->stadium); Vec3Parameter::assignToStadium(stadiumPreview->stadium);
+        ScalarParameter::assignToStadium(stadiumPreview->stadium.get()); Vec3Parameter::assignToStadium(stadiumPreview->stadium.get());
         prevStadium = stadium.get();
     }
 
@@ -462,7 +478,7 @@ void CustomizeState::drawStadiumCustomizeSection(shared_ptr<Stadium> stadium) {
             if (DrawDiscreteFloatControl(param.name.c_str(), getMaxStadiumTextSize(), "stadium", param.currentValue,
                 param.minValue, param.maxValue, param.getStepSize(), param.getFastStepSize(),
                 param.getDisplayFormat().c_str(), onModified)) {
-                ScalarParameter::assignToStadium(stadiumPreview->stadium);
+                ScalarParameter::assignToStadium(stadiumPreview->stadium.get());
             }
         }
         SeparatorSpaced();
@@ -474,7 +490,7 @@ void CustomizeState::drawStadiumCustomizeSection(shared_ptr<Stadium> stadium) {
             ImGui::SameLine();
             if (ImGui::ColorEdit3(("##" + vecParam.name).c_str(), glm::value_ptr(vecParam.currentValue))) {
                 onModified();
-                Vec3Parameter::assignToStadium(stadiumPreview->stadium);
+                Vec3Parameter::assignToStadium(stadiumPreview->stadium.get());
             }
         }
     }

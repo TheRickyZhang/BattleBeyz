@@ -86,7 +86,7 @@ void TextRenderer::initRenderData() {
     glBindVertexArray(0);
 
 //    shaderProgram = new ShaderProgram("../assets/shaders/text.vs", "../assets/shaders/text.fs");
-    shaderProgram = new ShaderProgram(TEXT_VERTEX_SHADER_PATH, TEXT_FRAGMENT_SHADER_PATH);
+    shaderProgram = new ShaderProgram(readShaderSource(TEXT_VERTEX_SHADER_PATH, TEXT_FRAGMENT_SHADER_PATH));
 
 
     // Set up projection matrix as default size.

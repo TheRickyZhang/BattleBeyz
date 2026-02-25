@@ -1,5 +1,7 @@
 #include "PreBattleState.h"
 
+#include "ActiveState.h"
+
 #include "GameEngine.h"
 #include "PhysicsWorld.h"
 #include "Buffers.h"
@@ -24,7 +26,7 @@ void PreBattleState::init()
 {
     // Set up keyboard and mouse callbacks.
     GLFWwindow* window = game->getWindow();
-    PhysicsWorld* physicsWorld = game->physicsWorld;
+    PhysicsWorld* physicsWorld = game->physicsWorld.get();
 
     this->floor = new Floor(1000.0f, 1000.0f, 0.0f, 0.0f, 0.0f);
     //floor->setTextureScale(vec2(100.0f, 100.0f));
@@ -50,15 +52,30 @@ void PreBattleState::init()
         zmax = std::max(zmax, z + r);
         ymin = std::min(ymin, y);
     }
-    for (shared_ptr<Beyblade> beyblade : beyblades) {
-        beyblade->getBody()->resetPhysics(Vec3_M(0.0f, 1.0f, 0.0f));
-        physicsWorld->addBeyblade(beyblade.get());
+    // Spread the beys evenly around a ring rather than stacking them at one point.
+    // Spin defaults well above MIN_SPIN_THRESHOLD so a launch actually simulates.
+    const float ringRadius = 0.3f;
+    const float startHeight = 1.0f;
+    const float inwardSpeed = 0.1f;
+    const float startSpin = -450.0f;
+
+    launchSettings.clear();
+    for (size_t i = 0; i < beyblades.size(); ++i) {
+        float angle = (2.0f * glm::pi<float>() * i) / beyblades.size();
+        vec3 position(ringRadius * cosf(angle), startHeight, ringRadius * sinf(angle));
+        vec3 inward = -normalize(vec3(position.x, 0.0f, position.z));
+
+        launchSettings.push_back({ position, inwardSpeed * inward, vec3(0.0f, startSpin, 0.0f) });
+
+        beyblades[i]->getBody()->resetPhysics(Vec3_M(position));
+        physicsWorld->addBeyblade(beyblades[i].get());
     }
 }
 
 void PreBattleState::cleanup()
 {
-   
+    delete floor;
+    floor = nullptr;
 }
 
 void PreBattleState::pause() {}
@@ -70,7 +87,7 @@ void PreBattleState::handleEvents() {
     Camera* camera = game->camera;
 
     // --- Picking Phase: On initial left click, try to select a beyblade ---
-    if (game->im.mouseButtonJustPressed(GLFW_MOUSE_BUTTON_LEFT) && heldBeyblade == nullptr) {
+    if (game->im.mouseButtonJustPressed(GLFW_MOUSE_BUTTON_LEFT) && heldBeyblade < 0) {
         double dx, dy;
         glfwGetCursorPos(window, &dx, &dy);
         float xpos = static_cast<float>(dx);
@@ -82,30 +99,30 @@ void PreBattleState::handleEvents() {
         rayDir = glm::normalize(rayDir);
         glm::vec3 rayOrigin = camera->position;
 
-        Beyblade* selectedBeyblade = nullptr;
+        int selectedBeyblade = -1;
         glm::vec3 hitIntersection;
         float closestT = FLT_MAX;
 
-        for (std::shared_ptr<Beyblade> beyblade : beyblades) {
+        for (size_t i = 0; i < beyblades.size(); ++i) {
             float t;
-            if (rayIntersectsAABB(rayOrigin, rayDir, beyblade->getBody()->getBoundingBox(), t)) {
+            if (rayIntersectsAABB(rayOrigin, rayDir, beyblades[i]->getBody()->getBoundingBox(), t)) {
                 if (t < closestT) {
                     closestT = t;
-                    selectedBeyblade = beyblade.get();
+                    selectedBeyblade = static_cast<int>(i);
                     hitIntersection = rayOrigin + t * rayDir;
                 }
             }
         }
 
-        if (selectedBeyblade) {
+        if (selectedBeyblade >= 0) {
             heldBeyblade = selectedBeyblade;
-            // Save offset so the object “sticks” relative to the pointer
-            dragOffset = heldBeyblade->getBody()->getCenter().value() - hitIntersection;
+            // Save offset so the object "sticks" relative to the pointer
+            dragOffset = launchSettings[heldBeyblade].center - hitIntersection;
         }
     }
 
     // --- Dragging Phase: While left button is held, move the beyblade ---
-    if (game->im.mouseButtonPressed(GLFW_MOUSE_BUTTON_LEFT) && heldBeyblade != nullptr) {
+    if (game->im.mouseButtonPressed(GLFW_MOUSE_BUTTON_LEFT) && heldBeyblade >= 0) {
         double dx, dy;
         glfwGetCursorPos(window, &dx, &dy);
         float xpos = static_cast<float>(dx);
@@ -126,14 +143,13 @@ void PreBattleState::handleEvents() {
             glm::vec3 currentIntersection = rayOrigin + t * rayDir;
 
             // New beyblade center preserves the initial drag offset.
-            glm::vec3 newBeybladePos = currentIntersection + dragOffset;
-            heldBeyblade->getBody()->setCenter(newBeybladePos);
+            launchSettings[heldBeyblade].center = currentIntersection + dragOffset;
         }
     }
 
     // --- Release Phase: When left mouse button is released, stop dragging ---
     if (game->im.mouseButtonJustReleased(GLFW_MOUSE_BUTTON_LEFT)) {
-        heldBeyblade = nullptr;
+        heldBeyblade = -1;
     }
 
     // ... existing camera movement, UI, etc.
@@ -169,7 +185,11 @@ void PreBattleState::handleEvents() {
 void PreBattleState::onResize(int width, int height) {}
 
 void PreBattleState::update(float deltaTime) {
-    game->physicsWorld->update(deltaTime);
+    // No physics step here: this screen only positions the beys. Keep the bodies
+    // in sync with the settings so dragging and the sliders both show up on screen.
+    for (size_t i = 0; i < beyblades.size(); ++i) {
+        beyblades[i]->getBody()->setCenter(launchSettings[i].center);
+    }
 }
 
 
@@ -209,7 +229,7 @@ void PreBattleState::draw() {
     for (const std::shared_ptr<Stadium>& stadium : stadiums) {
         stadium->render(*objectShader);
     }
-    for (const shared_ptr<Beyblade> beyblade : beyblades) beyblade->render(*objectShader);
+    for (const shared_ptr<Beyblade>& beyblade : beyblades) beyblade->render(*objectShader);
 
 
     // Render the position
@@ -245,7 +265,7 @@ void PreBattleState::drawInfoScreen() {
     ImGui::SameLine();
     if (ImGui::Button("Pause")) {
         ImGui::End();
-        game->changeState(StateFactory::createState(game, GameStateType::PAUSE));
+        game->pushState(StateFactory::createState(game, GameStateType::PAUSE));
         return;
     }
 
@@ -263,35 +283,43 @@ void PreBattleState::drawInfoScreen() {
 
     ImGui::Separator();
 
-    for (const shared_ptr<Beyblade>& beyblade : beyblades) {
-        BeybladeBody* beybladeBody = beyblade->getBody();
-        if (ImGui::CollapsingHeader(beyblade->getName().data())) {
-            ImGui::Text("Velocity");
-            vec3 initialVelocity = beybladeBody->getVelocity().value();
-            ImGui::SliderFloat("X##V", &initialVelocity.x, -100.0f, 100.0f);
-            ImGui::SliderFloat("Y##V", &initialVelocity.y, -100.0f, 100.0f);
-            ImGui::SliderFloat("Z##V", &initialVelocity.z, -100.0f, 100.0f);
+    // Ranges are sized to the stadium and to MIN/MAX_SPIN_THRESHOLD, not arbitrary.
+    const float centerRange = 1.0f;
+    const float velocityRange = 10.0f;
+    const float spinRange = 1500.0f;
+
+    for (size_t i = 0; i < beyblades.size(); ++i) {
+        ImGui::PushID(static_cast<int>(i));  // Names alone collide across beyblades
+        if (ImGui::CollapsingHeader(beyblades[i]->getName().data())) {
+            LaunchSettings& settings = launchSettings[i];
 
             ImGui::Text("Center");
-            vec3 initialCenter = beybladeBody->getCenter().value();
-            ImGui::SliderFloat("X##CTR", &initialCenter.x, -100.0f, 100.0f);
-            ImGui::SliderFloat("Y##CTR", &initialCenter.y, -100.0f, 100.0f);
-            ImGui::SliderFloat("Z##CTR", &initialCenter.z, -100.0f, 100.0f);
+            ImGui::SliderFloat("X##CTR", &settings.center.x, -centerRange, centerRange);
+            ImGui::SliderFloat("Y##CTR", &settings.center.y, -centerRange, centerRange);
+            ImGui::SliderFloat("Z##CTR", &settings.center.z, -centerRange, centerRange);
+
+            ImGui::Text("Velocity");
+            ImGui::SliderFloat("X##V", &settings.velocity.x, -velocityRange, velocityRange);
+            ImGui::SliderFloat("Y##V", &settings.velocity.y, -velocityRange, velocityRange);
+            ImGui::SliderFloat("Z##V", &settings.velocity.z, -velocityRange, velocityRange);
 
             ImGui::Text("Angular Velocity");
-            vec3 initialAngularVelocity = beybladeBody->getAngularVelocity().value();
-            ImGui::SliderFloat("X##AV", &initialAngularVelocity.x, -100.0f, 100.0f);
-            ImGui::SliderFloat("Y##AV", &initialAngularVelocity.y, -100.0f, 100.0f);
-            ImGui::SliderFloat("Z##AV", &initialAngularVelocity.z, -100.0f, 100.0f);
-
-            if (ImGui::Button("Apply Launch Settings")) {
-                beybladeBody->setInitialLaunch(Vec3_M(initialCenter), initialVelocity, initialAngularVelocity);
-            }
+            ImGui::SliderFloat("X##AV", &settings.angularVelocity.x, -spinRange, spinRange);
+            ImGui::SliderFloat("Y##AV", &settings.angularVelocity.y, -spinRange, spinRange);
+            ImGui::SliderFloat("Z##AV", &settings.angularVelocity.z, -spinRange, spinRange);
         }
+        ImGui::PopID();
     }
 
     if (ImGui::Button("Launch")) {
-
+        for (size_t i = 0; i < beyblades.size(); ++i) {
+            const LaunchSettings& settings = launchSettings[i];
+            beyblades[i]->getBody()->setInitialLaunch(
+                Vec3_M(settings.center), settings.velocity, settings.angularVelocity);
+        }
+        ImGui::End();
+        game->changeState(std::make_unique<ActiveState>(game, stadiums, beyblades));
+        return;
     }
 
     ImGui::Checkbox("Bound Camera", &game->boundCamera);

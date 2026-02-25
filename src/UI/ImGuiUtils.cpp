@@ -39,6 +39,7 @@ void setupImGui(GLFWwindow* window) {
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+    ImGui::StyleColorsDark();
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 330");
 
@@ -57,9 +58,6 @@ void setupImGui(GLFWwindow* window) {
     if (!exists(IMGUI_SAVE_PATH)) {
         ml.addMessage("Warning: Config file " + string(IMGUI_SAVE_PATH) + " not found.Using default settings.", MessageType::ERROR, true);
     }
-
-    //ImGui::StyleColorsDark(); // Replace with a call to your custom style function if needed
-    // setupCustomStyles();  // Example: Call a custom style setup function
 
     ml.addMessage("ImGui setup complete. Config and log files are set.");
 }

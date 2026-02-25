@@ -28,22 +28,40 @@ using namespace glm;
 *
 * This does not do any scaling.  The expected sizes are documented in Units.txt.
 *
-* Once the model is loaded, the radii and heights can be copied to the Beyblade object
-* so they can be more conveniently be accessed by the physics code.
+* The radii and heights derived here are copied to the Beyblade object so the physics
+* code can reach them conveniently.
+*
+* Makes no OpenGL calls, so this is safe on a worker thread; BeybladeMesh uploads the
+* result on the thread holding the context.
 *
 * @param path                       [in] Path to the obj file.
 *
-* @return true on success.  Also sets the modelLoaded field.
+* @return Parsed geometry. Check MeshData::loaded to see whether it succeeded.
 */
 
-bool BeybladeMesh::loadModel(const string& path) {
+MeshData parseObj(const string& path) {
+    MeshData data;
+
+    // Aliases so the parsing body below reads the same as when these were members
+    auto& vertices = data.vertices;
+    auto& normals = data.normals;
+    auto& texCoords = data.texCoords;
+    auto& colors = data.colors;
+    auto& indices = data.indices;
+    auto& materialColors = data.materialColors;
+    auto& boundingBox = data.boundingBox;
+    auto& radiusDisc = data.radiusDisc;
+    auto& radiusLayer = data.radiusLayer;
+    auto& radiusDriver = data.radiusDriver;
+    auto& heightDisc = data.heightDisc;
+    auto& heightLayer = data.heightLayer;
+    auto& heightDriver = data.heightDriver;
+
     // Load the OBJ file...
     tinyobj::attrib_t attrib;
     vector<tinyobj::shape_t> shapes;
     vector<tinyobj::material_t> materials;
     string warn, err;
-
-    modelLoaded = false;
 
     // Extract directory from the path
     string baseDir = path.substr(0, path.find_last_of("/\\"));
@@ -63,12 +81,12 @@ bool BeybladeMesh::loadModel(const string& path) {
 
     if (!ret) {
         cerr << "ERROR::TINYOBJLOADER::Failed to load/parse .obj.\n";
-        return false;
+        return data;
     }
 
     if (shapes.size() == 0) {
         cerr << "ERROR: No shapes found in " << path << endl;
-        return false;
+        return data;
     }
 
     // Clear previous data
@@ -192,7 +210,7 @@ bool BeybladeMesh::loadModel(const string& path) {
         radiusDriver = (shapeBounds[2].max.x - shapeBounds[2].min.x) * 0.5f;
         heightDriver = shapeBounds[2].max.y - shapeBounds[2].min.y;
     }
-    modelPath = path;
+    data.modelPath = path;
 
     std::ostringstream oss;
     oss << "Model bounds ("
@@ -204,42 +222,64 @@ bool BeybladeMesh::loadModel(const string& path) {
     std::string meshInitString = oss.str();
     MessageLog::getInstance().addMessage(meshInitString, MessageType::NORMAL);
 
-    modelLoaded = true;
-    return true;
+    data.loaded = true;
+    return data;
 }
 
 /**
-* Internal routine to initialize the mesh.
+* Constructor. Uploads already-parsed geometry; see parseObj() for the CPU half.
 */
 
-void BeybladeMesh::updateMesh() {
-    loadModel(modelPath);
+BeybladeMesh::BeybladeMesh(const MeshData& data, const glm::vec3& tint)
+    : boundingBox(data.boundingBox),
+    heightDisc(data.heightDisc), heightLayer(data.heightLayer), heightDriver(data.heightDriver),
+    radiusDisc(data.radiusDisc), radiusLayer(data.radiusLayer), radiusDriver(data.radiusDriver),
+    modelLoaded(data.loaded), tint(tint), modelPath(data.modelPath)
+{
+    if (data.loaded) upload(data);
+}
 
-    if (vertices.size() != normals.size() || vertices.size() != texCoords.size()) {
+BeybladeMesh::~BeybladeMesh() {
+    if (VAO) glDeleteVertexArrays(1, &VAO);
+    if (VBO) glDeleteBuffers(1, &VBO);
+    if (EBO) glDeleteBuffers(1, &EBO);
+}
+
+/**
+* Interleaves the parsed vertex streams and hands them to OpenGL.
+*/
+
+void BeybladeMesh::upload(const MeshData& data) {
+    if (data.vertices.size() != data.normals.size() || data.vertices.size() != data.texCoords.size()) {
         cerr << "Mesh data is inconsistent" << endl;
-        cout << "Vertices: " << vertices.size() << ", Normals: " << normals.size() << ", TexCoords: "
-            << texCoords.size() << endl;
+        cout << "Vertices: " << data.vertices.size() << ", Normals: " << data.normals.size()
+            << ", TexCoords: " << data.texCoords.size() << endl;
+        modelLoaded = false;
         return;
     }
 
-    // Ensure colors vector has the same size as vertices if colors are not present
+    vertices = data.vertices;
+    normals = data.normals;
+    texCoords = data.texCoords;
+    indices = data.indices;
+    colors = data.colors;
+
+    // Default to white where the model carried no vertex colors
     if (colors.empty()) {
-        colors.resize(vertices.size(), glm::vec3(1.0f, 1.0f, 1.0f));  // Default color to white
-        cout << "SET TO ALL WHITE" << endl;
+        colors.resize(vertices.size(), glm::vec3(1.0f));
     }
 
+    std::vector<float> vertexData;
+    vertexData.reserve(vertices.size() * 11);
     for (size_t i = 0; i < vertices.size(); ++i) {
-        // Vertex positions
         vertexData.push_back(vertices[i].x);
         vertexData.push_back(vertices[i].y);
         vertexData.push_back(vertices[i].z);
 
-        // Normal data
         vertexData.push_back(normals[i].x);
         vertexData.push_back(normals[i].y);
         vertexData.push_back(normals[i].z);
 
-        // Texture coordinates (if available)
         if (!texCoords.empty()) {
             vertexData.push_back(texCoords[i].x);
             vertexData.push_back(texCoords[i].y);
@@ -249,11 +289,11 @@ void BeybladeMesh::updateMesh() {
             vertexData.push_back(0.0f);
         }
 
-        // Color data
         vertexData.push_back(colors[i].x);
         vertexData.push_back(colors[i].y);
         vertexData.push_back(colors[i].z);
     }
+
     setupBuffers(VAO, VBO, EBO, vertexData.data(), vertexData.size() * sizeof(float), indices.data(),
         indices.size() * sizeof(uint32_t), { 3, 3, 2, 3 });
 }

@@ -5,8 +5,8 @@
 
 #include "ObjectShader.h"
 
-ObjectShader::ObjectShader(const char* vertexPath, const char* fragmentPath)
-    : ShaderProgram(vertexPath, fragmentPath) {
+ObjectShader::ObjectShader(const ShaderSource& source)
+    : ShaderProgram(source) {
 }
 
 void ObjectShader::setGlobalRenderParams(const glm::mat4& view, const glm::mat4& projection, const glm::vec3& viewPos) const {

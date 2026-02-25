@@ -14,7 +14,7 @@ StadiumPreview::StadiumPreview(int width, int height, PhysicsWorld* physicsWorld
         this->physicsWorld,
         static_cast<float>(width),
         static_cast<float>(height));
-    stadium = new Stadium();
+    stadium = std::make_shared<Stadium>();
 
     // Re‐generates the stadium mesh every 0.15 seconds so performance is not severly hindered
     stadiumRenderTimer = std::make_unique<Timer>(0.15f, [this]() {
@@ -46,10 +46,6 @@ void StadiumPreview::handleInput(float deltaTime) {
 }
 
 void StadiumPreview::update(float deltaTime, float currentTime) {
-    //if (!isLoading && tempStadium) {
-    //    std::lock_guard<std::mutex> lock(stadiumMutex);
-    //    stadium = tempStadium; // Safely swap the loaded stadium
-    //}
     camera->update(deltaTime);
     if (stadiumRenderTimer->shouldTrigger(currentTime)) {
         stadiumRenderTimer->trigger(currentTime);

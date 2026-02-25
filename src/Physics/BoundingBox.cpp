@@ -8,8 +8,6 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include "BoundingBox.h"
-#include "ObjectShader.h"
-#include "Buffers.h"
 
 using namespace std;
 using namespace glm;
@@ -19,26 +17,9 @@ using namespace glm;
 /**
 * Constructor.
 */
-BoundingBox::BoundingBox() :
-    min(vec3(1e6)), max(vec3(-1e6)), VAO(0), VBO(0), EBO(0)
-{
-    setupBoundingBoxBuffers();
-}
+BoundingBox::BoundingBox() : min(vec3(1e6)), max(vec3(-1e6)) {}
 
-BoundingBox::BoundingBox(const vec3& min, const vec3& max)
-        : min(min), max(max), VAO(0), VBO(0), EBO(0) {
-    setupBoundingBoxBuffers();
-}
-
-/**
-* Destructor.
-*/
-
-BoundingBox::~BoundingBox() {
-    glDeleteVertexArrays(1, &VAO);
-    glDeleteBuffers(1, &VBO);
-    glDeleteBuffers(1, &EBO);
-}
+BoundingBox::BoundingBox(const vec3& min, const vec3& max) : min(min), max(max) {}
 
 /**
 * Check for collision between this bounding box and another.
@@ -151,64 +132,6 @@ bool BoundingBox::intersectsSphere(const glm::vec3& center, float radius) const 
     else if (center.z > max.z) dist_squared -= (center.z - max.z) * (center.z - max.z);
 
     return dist_squared > 0;
-}
-
-/**
-* Draw bounding boxes for debugging.
-* 
-* @param shader                 [in] The shading program.
-* 
-* @param bodyPosition           [in] Containing object's position.  Used for
-*                               bounding box translaton.
-*/
-
-void BoundingBox::renderDebug(ObjectShader &shader, const glm::vec3& bodyPosition) {
-    shader.use();
-    setupBoundingBoxBuffers();
-
-    glm::mat4 model = glm::translate(glm::mat4(1.0f), bodyPosition);
-    shader.setObjectRenderParams(model, glm::vec3(1.0f));
-
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Switch to wireframe mode
-
-    glBindVertexArray(VAO);
-    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, nullptr); // 36 is the number of indices for 12 triangles
-    glBindVertexArray(0);
-
-    //glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // Switch to shaded mode
-}
-
-/**
-* Set up glfw vertex data.
-*/
-void BoundingBox::setupBoundingBoxBuffers() {
-    float offset = 0.0f;
-
-    // Vertex data
-    float vertices[] = {
-        // Positions                    // Normals          // Texture Coords   // Colors (RGB)
-        min.x, min.y - offset, min.z,   0.0f, 0.0f, -1.0f,  0.0f, 0.0f,         1.0f, 1.0f, 1.0f,
-        max.x, min.y - offset, min.z,   1.0f, 0.0f, 0.0f,   1.0f, 0.0f,         1.0f, 1.0f, 1.0f,
-        max.x, max.y - offset, min.z,   0.0f, 1.0f, 0.0f,   1.0f, 1.0f,         1.0f, 1.0f, 1.0f,
-        min.x, max.y - offset, min.z,   -1.0f, 0.0f, 0.0f,  0.0f, 1.0f,         1.0f, 1.0f, 1.0f,
-        min.x, min.y - offset, max.z,   0.0f, -1.0f, 0.0f,  0.0f, 0.0f,         1.0f, 1.0f, 1.0f,
-        max.x, min.y - offset, max.z,   1.0f, 0.0f, 0.0f,   1.0f, 0.0f,         1.0f, 1.0f, 1.0f,
-        max.x, max.y - offset, max.z,   0.0f, 1.0f, 0.0f,   1.0f, 1.0f,         1.0f, 1.0f, 1.0f,
-        min.x, max.y - offset, max.z,   -1.0f, 0.0f, 0.0f,  0.0f, 1.0f,         1.0f, 1.0f, 1.0f
-    };
-
-    unsigned int indices[] = {
-        0, 1, 2, 2, 3, 0, // Bottom face
-        4, 5, 6, 6, 7, 4, // Top face
-        0, 1, 5, 5, 4, 0, // Front face
-        1, 2, 6, 6, 5, 1, // Right face
-        2, 3, 7, 7, 6, 2, // Back face
-        3, 0, 4, 4, 7, 3  // Left face
-    };
-
-    // TOLOOK: Commenting out this code (224-227) causes a crash (probably occured before, openGL errors)
-    //showGLErrors("BoundingBox::setupBoundingBoxBuffers");
-    setupBuffers(VAO, VBO, EBO, vertices, sizeof(vertices), indices, sizeof(indices), {3, 3, 2, 3});
 }
 
 /**

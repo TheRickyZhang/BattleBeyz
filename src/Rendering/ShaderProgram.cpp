@@ -12,19 +12,42 @@
 #include <sstream>
 
 /**
- * Constructor for loading and linking vertex and fragment shaders.
- * 
- * @param vertexPath        Vertex shader source code
- * @param fragmentPath      Fragment shader source code
+ * Reads both shader files. Pure file I/O; call it wherever you like, then hand the
+ * result to ShaderProgram on the GL thread.
  */
-ShaderProgram::ShaderProgram(const char* vertexPath, const char* fragmentPath) {
-    // Read shader source files
-    std::string vertexCode = readFile(vertexPath);
-    std::string fragmentCode = readFile(fragmentPath);
+ShaderSource readShaderSource(const char* vertexPath, const char* fragmentPath) {
+    auto readFile = [](const char* filePath) -> std::string {
+        std::ifstream file(filePath);
+        if (!file.is_open()) {
+            std::cerr << "ERROR::SHADER::FILE_NOT_FOUND " << filePath << std::endl;
+            return {};
+        }
+        std::stringstream buffer;
+        buffer << file.rdbuf();
+        return buffer.str();
+    };
+
+    ShaderSource source;
+    source.vertexPath = vertexPath;
+    source.fragmentPath = fragmentPath;
+    source.vertex = readFile(vertexPath);
+    source.fragment = readFile(fragmentPath);
+    return source;
+}
+
+/**
+ * Constructor. Compiles and links already-read sources.
+ */
+ShaderProgram::ShaderProgram(const ShaderSource& source) : ID(0) {
+    if (!source.valid()) {
+        std::cerr << "ERROR::SHADER::EMPTY_SOURCE for " << source.vertexPath
+                  << " / " << source.fragmentPath << std::endl;
+        return;
+    }
 
     // Compile and link shaders
-    GLuint vertexShader = compileShader(GL_VERTEX_SHADER, vertexCode.c_str());
-    GLuint fragmentShader = compileShader(GL_FRAGMENT_SHADER, fragmentCode.c_str());
+    GLuint vertexShader = compileShader(GL_VERTEX_SHADER, source.vertex.c_str());
+    GLuint fragmentShader = compileShader(GL_FRAGMENT_SHADER, source.fragment.c_str());
     ID = glCreateProgram();
     glAttachShader(ID, vertexShader);
     glAttachShader(ID, fragmentShader);
@@ -40,8 +63,6 @@ ShaderProgram::ShaderProgram(const char* vertexPath, const char* fragmentPath) {
     }
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
-
-    use(); // Use by default
 }
 
 // Destructor
@@ -74,21 +95,6 @@ GLuint ShaderProgram::compileShader(GLenum type, const char* source) {
     return shader;
 }
 
-
-/**
- * Read the entire contents of a file and return it as a string.
- * Typically used to load shader source code from disk.
- *
- * @param filePath   Path to the file.
- *
- * @return A string containing the file contents.
- */
-std::string ShaderProgram::readFile(const char* filePath) {
-    std::ifstream file(filePath);
-    std::stringstream buffer;
-    buffer << file.rdbuf();
-    return buffer.str();
-}
 
 // Activate the shader program for rendering.
 void ShaderProgram::use() const {
@@ -124,7 +130,7 @@ void ShaderProgram::setMat4(const std::string& name, const glm::mat4& mat) const
 void ShaderProgram::setVec2(const std::string& name, const glm::vec2& vec) const {
     GLint location = getCachedUniformLocation(name);
     if (location != -1) {
-        glUniform3fv(location, 1, glm::value_ptr(vec));
+        glUniform2fv(location, 1, glm::value_ptr(vec));
     }
 }
 

@@ -7,6 +7,7 @@ enum class GameStateType {
     HOME,
     LOADING,
     PAUSE,
+    PREBATTLE,
     SELECTION,
     SETTINGS
 };

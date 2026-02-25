@@ -7,9 +7,11 @@
 
 #include <vector>
 #include <unordered_map>
+#include <unordered_set>
 
 #include <glm/glm.hpp>
 
+#include "BoundingBoxRenderer.h"
 #include "Physics.h"
 #include "Beyblade.h"
 #include "Stadium.h"
@@ -33,13 +35,29 @@ public:
     }
 
     void resetPhysics() {
+        accumulatorNs = 0;
+        interpolationAlpha = 1.0f;
+        for (auto& bey : beyblades) bey->getBody()->prevCollision = 0.0f;
         beyblades.clear();
         stadiums.clear();
         currTime = 0.0f;
-        for (auto& bey : beyblades) bey->getBody()->prevCollision = 0.0f;
+        spinFinishedReported.clear();
+        outOfBoundsReported.clear();
     };
 
+    // Steps the world at a fixed rate regardless of frame rate, so behaviour does not
+    // change with FPS and a hitch cannot produce one enormous dt. Call this per frame;
+    // update() is the single fixed step it drives.
+    void advance(float frameDelta);
     void update(float deltaTime);
+
+    // Fraction of a fixed step elapsed since the last one, for render interpolation
+    float getInterpolationAlpha() const { return interpolationAlpha; }
+
+    static constexpr float FIXED_DT = 1.0f / 240.0f;
+    static constexpr long long FIXED_DT_NS = 1000000000LL / 240;
+    static constexpr float MAX_FRAME_DELTA = 0.25f;   // Ignore stalls beyond this
+    static constexpr int MAX_STEPS_PER_FRAME = 60;    // Never spiral trying to catch up
     void renderDebug(ObjectShader &shader) const;
 
     std::vector<Beyblade*>& getBeyblades() { return beyblades; }
@@ -50,6 +68,18 @@ private:
 
     std::vector<Beyblade*> beyblades;
     std::vector<Stadium*> stadiums;
+
+    // Round-end conditions are logged on transition, not every frame
+    std::unordered_set<BeybladeBody*> spinFinishedReported;
+    std::unordered_set<BeybladeBody*> outOfBoundsReported;
+
+    // Debug drawing only; mutable so renderDebug() can stay const
+    mutable BoundingBoxRenderer boundingBoxRenderer;
+
+    // Nanoseconds, not seconds: floating point accumulation makes the step count depend
+    // on frame size, so the same elapsed time could yield a different number of steps.
+    long long accumulatorNs = 0;
+    float interpolationAlpha = 1.0f;
 
     float currTime = 0.0f;
     const float epsilonTime = 0.2f;                 // Cannot have collisions within 0.3 seconds of a previous one

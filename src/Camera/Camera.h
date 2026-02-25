@@ -5,11 +5,14 @@
 
 #pragma once
 
+#include <memory>
+
 #include <glm/glm.hpp>
 #include "BoundingBox.h"
 #include "CameraBehavior.h"
 #include "InputUtils.h"
 class PhysicsWorld;
+class Beyblade;
 class BeybladeBody;
 class Stadium;
 class InputManager;
@@ -36,7 +39,9 @@ public:
     void clearBehavior();
 
     // Must call these before changing the mode (initial only works in free UNTIL attached to beybalde/stadium)
-    void setFollowingBey(BeybladeBody* bey) { followingBey = bey; }
+    // Held as a weak_ptr to the Beyblade rather than a raw BeybladeBody*: Beyblade::update()
+    // replaces its body wholesale, which left the old raw pointer dangling.
+    void setFollowingBey(std::weak_ptr<Beyblade> bey) { followingBey = std::move(bey); }
     void setPanningVariables(Stadium* stadium);
     void changeCameraMode(CameraMode newMode) { activeMode = newMode; }
 
@@ -104,7 +109,7 @@ private:
     std::unique_ptr<CameraBehavior> behavior;
 
     // For attached
-    BeybladeBody* followingBey{};
+    std::weak_ptr<Beyblade> followingBey;
 
     // For panning
     float radius{};

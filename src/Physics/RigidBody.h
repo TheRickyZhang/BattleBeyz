@@ -9,13 +9,16 @@
 #include <memory>
 #include <string>
 
+#include <GL/glew.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/quaternion.hpp>
 
 #include "BoundingBox.h"
 
-// Currently unused; likely outdated
+class ObjectShader;
+
+// Currently unused; not reachable from any state
 class RigidBody {
 public:
     RigidBody(const std::string& _name, const glm::vec3& pos, const glm::vec3& sz, float mass, std::vector<BoundingBox*> bboxes = {});

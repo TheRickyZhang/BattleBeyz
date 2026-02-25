@@ -5,35 +5,32 @@
 
 #pragma once
 
-#include <vector>
 #include <string>
-#include <unordered_map>
+#include <vector>
 
 #include <GL/glew.h>
 #include <glm/glm.hpp>
 
 #include "BoundingBox.h"
+#include "MeshData.h"
 
 class ObjectShader;
 
-// Need to call loadModel and updateMesh for using the mesh
+/*
+* GPU-side beyblade model. Construction uploads already-parsed geometry; run
+* parseObj() to produce it, which needs no GL context and so can run on a worker.
+*/
 class BeybladeMesh {
 public:
-    BeybladeMesh(const std::string& modelPath, unsigned int vao, unsigned int vbo, unsigned int ebo, const glm::vec3& tint = glm::vec3(1.0f))
-        : modelPath(modelPath), VAO(vao), VBO(vbo), EBO(ebo), tint(tint) {
-        updateMesh();
-    }
-    BeybladeMesh(const char* path = "./assets/models/default.obj") : modelPath(path), VAO(0), VBO(0), EBO(0), tint(glm::vec3(1.0f)) {
-        updateMesh();
-    }
+    explicit BeybladeMesh(const MeshData& data, const glm::vec3& tint = glm::vec3(1.0f));
+    ~BeybladeMesh();
 
-    bool loadModel(const std::string& path);
+    // Owns GL handles that the destructor deletes
+    BeybladeMesh(const BeybladeMesh&) = delete;
+    BeybladeMesh& operator=(const BeybladeMesh&) = delete;
+
     const std::string& getModelPath() const { return modelPath; }
     void printDebugInfo();
-
-    //unsigned int getVAO() const { return VAO; }
-    //int getIndicesSize() { return static_cast<int>(indices.size()); }
-    //std::unordered_map<std::string, glm::vec3>& getMaterialColors() { return materialColors; }
 
     void render(ObjectShader& shader);
 
@@ -41,24 +38,20 @@ public:
     float heightDisc{}, heightLayer{}, heightDriver{};  // Heights of subparts
     float radiusDisc{}, radiusLayer{}, radiusDriver{};  // Radii of subparts
 
-    bool modelLoaded = false;                           // True if loadModel succeeded.
+    bool modelLoaded = false;                           // True if the source parse succeeded.
 
     glm::vec3 tint;   // Apply tint to entire beyblade, where white = no affect.
                       // Could be useful for special move / low health / team battle indicator
 private:
+    void upload(const MeshData& data);
+
     std::vector<glm::vec3> vertices;
     std::vector<glm::vec3> normals;
     std::vector<glm::vec2> texCoords;
     std::vector<unsigned int> indices;
-    std::vector<glm::vec3> tangents;
+    std::vector<glm::vec3> colors;
 
-    std::unordered_map<std::string, glm::vec3> materialColors;
     std::string modelPath;
 
-    std::vector<glm::vec3> colors;
-    std::vector<float> vertexData;
-
     unsigned int VAO{}, VBO{}, EBO{};
-
-    void updateMesh();
 };

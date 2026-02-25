@@ -30,6 +30,12 @@ public:
 
 	// Simple getters. Only applies to beyblade-specific parts
 	Vec3_M getCenter() const { return center; }
+
+	// Physics runs at a fixed rate and rendering does not, so draw between the last two
+	// steps. alpha is the fraction of a step elapsed since the most recent one.
+	glm::vec3 getInterpolatedCenter(float alpha) const {
+		return glm::mix(previousCenter.value(), center.value(), alpha);
+	}
 	Vec3_M_S getVelocity() const { return velocity; }
 	Vec3_R_S getAngularVelocity() const { return angularVelocity; }
 
@@ -86,7 +92,7 @@ public:
 	// Updators: these are the ones that significantly change the values of the body!
 	void applyAccumulatedChanges(float deltaTime);
 	void update(float deltaTime);
-	std::vector<BoundingBox*> boundingBoxes{};
+	std::vector<BoundingBox> boundingBoxes{};
 
 	bool getModified() const {  // 2024-12-03 for UI interactions
 		return modified;
@@ -105,6 +111,7 @@ private:
 
 	// Global Position
 	Vec3_M center {};
+	Vec3_M previousCenter {};   // Position at the previous fixed step
 	Vec3_M _initialCenter{};  // 2024-11-18 Saved for use by restart
 
 	// Linear Physics

@@ -6,6 +6,7 @@
 
 #include "ShaderPath.h"
 #include "Texture.h"
+#include "TextureManager.h"
 
 namespace Colors {
     inline const glm::vec3 red = glm::vec3(1.0f, 0.0f, 0.0f);
@@ -37,7 +38,11 @@ namespace StadiumDefaults {
     constexpr float textureScale  = 1.0f;         constexpr float textureScaleMin = 0.1f;      constexpr float textureScaleMax = 10.0f;
 }
 
-inline std::shared_ptr<Texture> DefaultTexture() {
-    static std::shared_ptr<Texture> texture = std::make_shared<Texture>(MISSING_TEXTURE_PATH);
-    return texture;
+// Magenta checkerboard, for marking a genuinely absent texture
+inline std::shared_ptr<Texture> MissingTexture() {
+    return TextureManager::getInstance().loadTexture("missing", MISSING_TEXTURE_PATH);
+}
+
+inline std::shared_ptr<Texture> DefaultStadiumTexture() {
+    return TextureManager::getInstance().loadTexture("stadium", STADIUM_TEXTURE_PATH);
 }

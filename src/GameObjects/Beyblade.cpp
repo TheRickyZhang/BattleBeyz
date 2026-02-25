@@ -6,6 +6,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include "Beyblade.h"
+#include "MeshCache.h"
 #include "BeybladeParts.h"
 #include "Buffers.h"
 #include "MeshObject.h"
@@ -32,19 +33,18 @@ void Beyblade::setTemplateIndices(int layerIndex, int discIndex, int driverIndex
 /**
 * Constructor.
 */
-Beyblade::Beyblade(int id, const string& name, bool isTemplate) :
+Beyblade::Beyblade(int id, const string& name, bool isTemplate, const string& modelPath) :
     id(id), name(name), isTemplate(isTemplate) {
     if (isTemplate) {
         setTemplateIndices(0, 0, 0);
         body = make_unique<BeybladeBody>(templateLayers[0].part, templateDiscs[0].part, templateDrivers[0].part);
         // TODO: Implement a combineMesh function. Requires all obj files to be standardized, centered and aligned correctly. Then combine them
-        mesh = make_unique<BeybladeMesh>();
         //mesh = combineMesh(templateLayers[0].modelPath, templateDiscs[0].modelPath, templateDrivers[0].modelPath);
     }
     else {
         body = make_unique<BeybladeBody>();
-        mesh = make_unique<BeybladeMesh>();
     }
+    mesh = make_unique<BeybladeMesh>(*MeshCache::getInstance().getOrParse(modelPath));
 }
 
 int Beyblade::getId() const {
@@ -67,11 +67,11 @@ void Beyblade::setName(const std::string& newName) {
 }
 
 
-void Beyblade::render(ObjectShader& shader)
+void Beyblade::render(ObjectShader& shader, float alpha)
 {
     shader.use();
 
-    glm::mat4 model = glm::translate(glm::mat4(1.0f), body->getCenter().value());
+    glm::mat4 model = glm::translate(glm::mat4(1.0f), body->getInterpolatedCenter(alpha));
 
     shader.setObjectRenderParams(model, glm::vec3(1.0f));
 
@@ -151,7 +151,14 @@ Beyblade Beyblade::fromJson(const nlohmann::json& j) {
     std::string name = j.at("name").get<std::string>();
     bool isTemplate = j.at("isTemplate").get<bool>();
 
-    Beyblade beyblade(id, name, isTemplate);
+    // Read the model path up front so the constructor parses it once, rather than
+    // parsing the default and immediately discarding it
+    std::string modelPath = DEFAULT_MODEL_PATH;
+    if (j.contains("mesh") && j.at("mesh").contains("modelPath")) {
+        modelPath = j.at("mesh").at("modelPath").get<std::string>();
+    }
+
+    Beyblade beyblade(id, name, isTemplate, modelPath);
 
     // Deserialize body
     if (j.contains("body")) {
@@ -196,12 +203,6 @@ Beyblade Beyblade::fromJson(const nlohmann::json& j) {
         }
 
         beyblade.body = std::move(body);
-    }
-
-    // Deserialize mesh (init() upon instantiation shoul handle most)
-    if (j.contains("mesh")) {
-        std::string modelPath = j.at("mesh").at("modelPath").get<std::string>();
-        beyblade.mesh = std::make_unique<BeybladeMesh>(modelPath, 0, 0, 0, glm::vec3(1.0f)); // TOLOOK: Inspect what is really needed do be stored in this call. Not tested.
     }
 
     return beyblade;

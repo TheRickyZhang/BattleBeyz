@@ -5,8 +5,8 @@
 
 #include "BackgroundShader.h"
 
-BackgroundShader::BackgroundShader(const char* vertexPath, const char* fragmentPath)
-    : ShaderProgram(vertexPath, fragmentPath) {
+BackgroundShader::BackgroundShader(const ShaderSource& source)
+    : ShaderProgram(source) {
 }
 
 void BackgroundShader::setBackgroundGlobalParams(const glm::mat4& projection, float wrapFactor, float time) const {

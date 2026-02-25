@@ -1,6 +1,8 @@
 #pragma once
 
 #include <memory>
+#include <string>
+#include <vector>
 #include <iostream>
 #include <functional>
 #include <queue>
@@ -10,11 +12,10 @@
 #include <glm/glm.hpp>
 #include <imgui.h>
 
+#include "Concurrency/GLUploadQueue.h"
+#include "Concurrency/JobSystem.h"
 #include "StateIdentifiers.h"
 #include "Timer.h"
-
-#define MINI_CASE_SENSITIVE
-#include <mini/ini.h>
 
 class GameState;
 class ObjectShader;
@@ -38,9 +39,17 @@ public:
     bool init(const char* title, int width, int height);
 
     GameState* getGameState();
+
+    // These only enqueue; the stack is mutated by applyPendingTransitions() at the
+    // frame boundary, so a state can safely request a transition from its own draw().
     void changeState(std::unique_ptr<GameState> newState);
     void pushState(std::unique_ptr<GameState> state);
     void popState();
+    void applyPendingTransitions();
+
+    // Driven from main() so startup asset work can run behind a loading screen
+    std::vector<std::string> collectSaveModelPaths() const;
+    bool attemptSaveDataLoad();
 
     void handleEvents();
     void update();
@@ -77,7 +86,6 @@ public:
     MessageLog& ml;         // Message Logging
     ProfileManager& pm;     // Profiles (and corresponding data)
     TextureManager& tm;     // Textures
-    ImGuiIO& io;
 
     glm::mat4 model{};
     glm::mat4 view{};
@@ -86,7 +94,12 @@ public:
     glm::mat4 backgroundView{};
     glm::mat4 orthoProjection{};
 
-    PhysicsWorld* physicsWorld{};
+    std::unique_ptr<PhysicsWorld> physicsWorld;
+
+    // CPU work off the main thread; the GL half of that work comes back through
+    // glUploads, which is drained on this thread once per frame.
+    JobSystem jobs;
+    GLUploadQueue glUploads;
 
     Camera* camera = nullptr;
 
@@ -114,6 +127,13 @@ private:
     void cleanup();
     std::vector<std::unique_ptr<GameState>> stateStack;
 
+    enum class TransitionKind { Change, Push, Pop };
+    struct PendingTransition {
+        TransitionKind kind;
+        std::unique_ptr<GameState> state;  // null for Pop
+    };
+    std::vector<PendingTransition> pendingTransitions;
+
     GLFWwindow* window;
     bool isRunning;
     bool debugScreenActive = false;
@@ -128,7 +148,6 @@ private:
     bool createWindow(const char* title, int width, int height);
     bool initializeGLEW();
     void setupImGuiAndCallbacks();
-    bool attemptSaveDataLoad();
     void initCamera();
     void initShaders();
     void initRenderers();

@@ -9,11 +9,7 @@ void PauseState::pause() {}
 
 void PauseState::resume() {}
 
-void PauseState::handleEvents() {
-    if (ImGui::Button("Resume")) {
-        game->popState();
-    }
-}
+void PauseState::handleEvents() {}
 
 void PauseState::onResize(int width, int height) {}
 

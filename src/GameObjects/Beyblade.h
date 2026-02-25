@@ -13,6 +13,7 @@
 #include <nlohmann/json.hpp>
 
 #include "BeybladeMesh.h"
+#include "MeshData.h"
 #include "BeybladeBody.h"
 #include "BeybladeTemplate.h"
 
@@ -23,11 +24,12 @@ class Beyblade {
     friend class BeybladeBody;
 public:
     // Note this beyblade id is GLOBALLY UNIQUE
-    Beyblade(int id, const std::string& name, bool isTemplate = false);
+    Beyblade(int id, const std::string& name, bool isTemplate = false,
+             const std::string& modelPath = DEFAULT_MODEL_PATH);
 
     static Beyblade fromJson(const nlohmann::json& j);
 
-    void render(ObjectShader& shader);
+    void render(ObjectShader& shader, float alpha = 1.0f);
 
     int getId() const;
     std::string getName() const;

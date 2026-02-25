@@ -23,7 +23,7 @@ void ActiveState::init()
 {
     // Set up keyboard and mouse callbacks.
     GLFWwindow* window = game->getWindow();
-    PhysicsWorld* physicsWorld = game->physicsWorld;
+    PhysicsWorld* physicsWorld = game->physicsWorld.get();
 
     this->floor = new Floor(1000.0f, 1000.0f, 0.0f, 0.0f, 0.0f);
     //floor->setTextureScale(vec2(100.0f, 100.0f));
@@ -35,9 +35,6 @@ void ActiveState::init()
     }
     for (shared_ptr<Beyblade> beyblade : beyblades) {
         physicsWorld->addBeyblade(beyblade.get());
-    }
-    for (shared_ptr<Beyblade> beyblade : beyblades) {
-        beyblade->getBody()->resetPhysics(Vec3_M(0.0f));
     }
 
     //// 2024-11-18. Reset various things before [re]starting the game.
@@ -55,7 +52,7 @@ void ActiveState::init()
     //}
     //for (Beyblade* beyblade : beyblades) physicsWorld->addBeyblade(beyblade);
 
-    if(!beyblades.empty()) game->camera->setFollowingBey(beyblades[0]->getBody());
+    if(!beyblades.empty()) game->camera->setFollowingBey(beyblades[0]);
     if(!stadiums.empty()) game->camera->setPanningVariables(stadiums[0].get());
 }
 
@@ -199,7 +196,7 @@ void ActiveState::drawInfoScreen() {
     ImGui::SameLine();
     if (ImGui::Button("Pause")) {
         ImGui::End();
-        game->changeState(StateFactory::createState(game, GameStateType::PAUSE));
+        game->pushState(StateFactory::createState(game, GameStateType::PAUSE));
         return;
     }
 
@@ -217,35 +214,18 @@ void ActiveState::drawInfoScreen() {
 
     ImGui::Separator();
 
-    for (const shared_ptr<Beyblade>& beyblade : beyblades) {
-        BeybladeBody* beybladeBody = beyblade->getBody();
-        if (ImGui::CollapsingHeader(beyblade->getName().data())) {
-            ImGui::Text("Velocity");
-            vec3 initialVelocity = beybladeBody->getVelocity().value();
-            ImGui::SliderFloat("X##V", &initialVelocity.x, -100.0f, 100.0f);
-            ImGui::SliderFloat("Y##V", &initialVelocity.y, -100.0f, 100.0f);
-            ImGui::SliderFloat("Z##V", &initialVelocity.z, -100.0f, 100.0f);
-
-            ImGui::Text("Center");
-            vec3 initialCenter = beybladeBody->getCenter().value();
-            ImGui::SliderFloat("X##CTR", &initialCenter.x, -100.0f, 100.0f);
-            ImGui::SliderFloat("Y##CTR", &initialCenter.y, -100.0f, 100.0f);
-            ImGui::SliderFloat("Z##CTR", &initialCenter.z, -100.0f, 100.0f);
-
-            ImGui::Text("Angular Velocity");
-            vec3 initialAngularVelocity = beybladeBody->getAngularVelocity().value();
-            ImGui::SliderFloat("X##AV", &initialAngularVelocity.x, -100.0f, 100.0f);
-            ImGui::SliderFloat("Y##AV", &initialAngularVelocity.y, -100.0f, 100.0f);
-            ImGui::SliderFloat("Z##AV", &initialAngularVelocity.z, -100.0f, 100.0f);
-
-            if (ImGui::Button("Apply Launch Settings")) {
-                beybladeBody->setInitialLaunch(Vec3_M(initialCenter), initialVelocity, initialAngularVelocity);
-            }
+    for (size_t i = 0; i < beyblades.size(); ++i) {
+        BeybladeBody* beybladeBody = beyblades[i]->getBody();
+        ImGui::PushID(static_cast<int>(i));  // Names alone collide across beyblades
+        if (ImGui::CollapsingHeader(beyblades[i]->getName().data())) {
+            vec3 center = beybladeBody->getCenter().value();
+            vec3 velocity = beybladeBody->getVelocity().value();
+            vec3 angularVelocity = beybladeBody->getAngularVelocity().value();
+            ImGui::Text("Center:   %.3f, %.3f, %.3f", center.x, center.y, center.z);
+            ImGui::Text("Velocity: %.3f, %.3f, %.3f", velocity.x, velocity.y, velocity.z);
+            ImGui::Text("Spin:     %.1f, %.1f, %.1f", angularVelocity.x, angularVelocity.y, angularVelocity.z);
         }
-    }
-
-    if (ImGui::Button("Launch")) {
-
+        ImGui::PopID();
     }
 
     ImGui::Checkbox("Bound Camera", &game->boundCamera);
