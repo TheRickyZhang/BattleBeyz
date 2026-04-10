@@ -150,8 +150,6 @@ void BoundingBox::update(const glm::vec3& v1, const glm::vec3& v2, const glm::ve
 void BoundingBox::update(const glm::vec3& position, const glm::quat& orientation) {
 
     glm::vec3 halfSize = (max - min) * 0.5f;
-    glm::vec3 center = min + halfSize;
-
     glm::vec3 newCenter = position;
 
     min = newCenter - halfSize;

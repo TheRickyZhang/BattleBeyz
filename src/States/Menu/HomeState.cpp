@@ -12,8 +12,6 @@ using namespace glm;
 
 void HomeState::init() {
     // Set the quadrenderer to prevent glitch where does
-    int width = game->windowWidth;
-    int height = game->windowHeight;
     //game->quadRenderer->setModelMatrix(scale(mat4(1.0f), vec3(width, height, 1.0f)));
 }
 
@@ -35,8 +33,6 @@ void HomeState::update(float deltaTime) {}
 void HomeState::draw() {
     // Note: ButtonStateMap is defined in GameState.h.
     static std::vector<std::string> buttonText = { "Start Game", "Profiles & Beyblades", "Settings", "About" };
-    int windowWidth = game->windowWidth;
-    int windowHeight = game->windowHeight;
 
     renderBackground(game, "defaultBackground");
 

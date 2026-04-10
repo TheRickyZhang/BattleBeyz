@@ -21,8 +21,6 @@ using namespace glm;
 
 void ActiveState::init()
 {
-    // Set up keyboard and mouse callbacks.
-    GLFWwindow* window = game->getWindow();
     PhysicsWorld* physicsWorld = game->physicsWorld.get();
 
     this->floor = new Floor(1000.0f, 1000.0f, 0.0f, 0.0f, 0.0f);
@@ -120,7 +118,7 @@ void ActiveState::handleEvents() {
 void ActiveState::onResize(int width, int height) {}
 
 void ActiveState::update(float deltaTime) {
-    game->physicsWorld->update(deltaTime);
+    game->physicsWorld->advance(deltaTime);
 }
 
 
@@ -160,7 +158,8 @@ void ActiveState::draw() {
     for (const std::shared_ptr<Stadium>& stadium : stadiums) {
         stadium->render(*objectShader);
     }
-    for (const shared_ptr<Beyblade> beyblade : beyblades) beyblade->render(*objectShader);
+    float alpha = game->physicsWorld->getInterpolationAlpha();
+    for (const shared_ptr<Beyblade>& beyblade : beyblades) beyblade->render(*objectShader, alpha);
 
 
     // Render the position
@@ -182,7 +181,7 @@ void ActiveState::draw() {
     ImGui::Text("WASDQE: camera movement");
     ImGui::Text("Right Click + Drag: camera rotation");
     ImGui::Text("Scroll wheel: movement speed");
-    ImGui::Text((positionText).c_str());
+    ImGui::Text("%s", positionText.c_str());
     ImGui::End();
 }
 

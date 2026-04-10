@@ -19,14 +19,14 @@ const vec3 Camera::worldUp = vec3(0.0f, 1.0f, 0.0f);
 
 Camera::Camera(const vec3& pos, const vec3& viewPoint, PhysicsWorld* world, float x, float y,
     BoundingBox box)
-    : position(pos), physicsWorld(world), lastX(x), lastY(y), movementRange(box)
+    : position(pos), movementRange(box), lastX(x), lastY(y), physicsWorld(world)
 {
     focus(viewPoint);  // Initializes pitch, yaw, roll
     updateCameraVectors();
 }
 
-void Camera::setBehavior(std::unique_ptr<CameraBehavior> behavior) {
-    behavior = std::move(behavior);
+void Camera::setBehavior(std::unique_ptr<CameraBehavior> newBehavior) {
+    behavior = std::move(newBehavior);
 }
 
 void Camera::clearBehavior() {

@@ -76,7 +76,7 @@ bool centerButton(float windowCenterX, const char* label, float padding, float h
 
 void textWithLink(const char* text, const char* url) {
     ImVec4 linkColor = ImVec4(0.2f, 0.2f, 1.0f, 1.0f);
-    TextColored(linkColor, text);
+    TextColored(linkColor, "%s", text);
 
     // Check if the item is hovered and clicked
     if (IsItemHovered()) {
@@ -86,7 +86,9 @@ void textWithLink(const char* text, const char* url) {
             ShellExecute(nullptr, nullptr, url, nullptr, nullptr, SW_SHOW);
 #else
             std::string command = std::string("xdg-open ") + url;
-            std::system(command.c_str());
+            if (std::system(command.c_str()) != 0) {
+                std::cerr << "Failed to open " << url << std::endl;
+            }
 #endif
         }
 
@@ -159,7 +161,7 @@ bool DrawDiscreteFloatControl(const char* parameterText, float maxTextSize, cons
     // [--Label--|------Slider------|--Input--]
     BeginGroup();
 
-    Text(parameterText);
+    Text("%s", parameterText);
     SameLine();
     SetCursorPosX(maxTextSize + padding + spacing);
 
@@ -190,7 +192,7 @@ bool DrawDiscreteFloatControl(const char* parameterText, float maxTextSize, cons
 
 float getMaxWidth(const vector<string>& text) {
     float maxWidth = 0.0f;
-    for (int i = 0; i < text.size(); i++) {
+    for (size_t i = 0; i < text.size(); i++) {
         ImVec2 textSize = CalcTextSize(text[i].c_str());
         if (textSize.x > maxWidth) {
             maxWidth = textSize.x;

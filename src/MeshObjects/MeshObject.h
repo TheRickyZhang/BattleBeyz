@@ -26,7 +26,10 @@ public:
     MeshObject& operator=(MeshObject&& other) noexcept;
 
     virtual void updateMesh() = 0;
-    virtual void render(ObjectShader& shader, Texture* texture = nullptr);
+
+    // Not virtual: nothing holds a MeshObject base pointer, and Stadium deliberately
+    // hides this behind a one-argument form that supplies its own texture.
+    void render(ObjectShader& shader, Texture* texture = nullptr);
 
     // Getters and setters
     void setModelMatrix(const glm::mat4& newModel);

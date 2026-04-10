@@ -30,7 +30,7 @@ public:
 
     // This id is ALSO globally unique, should be handled by profileManager
     Profile() : id(-1), name("") {}
-    Profile(int id, const std::string& name) : id(id), name(name), activeBeybladeId(std::nullopt) {}
+    Profile(int id, const std::string& name) : id(id), activeBeybladeId(std::nullopt), name(name) {}
 
     int getId() const { return id; }
     std::string getName() const { return name; }

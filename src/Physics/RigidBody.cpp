@@ -13,9 +13,9 @@
 
 
 RigidBody::RigidBody(const  std::string& _name, const glm::vec3& pos, const glm::vec3& sz, float mass, std::vector<BoundingBox*> bboxes)
-        : name(_name), position(pos), mass(mass), velocity(0.0f), acceleration(0.0f),
-          angularVelocity(0.0f), orientation(glm::quat(1.0f, 0.0f, 0.0f, 0.0f)),
-          boundingBoxes(bboxes), VAO(0), VBO(0), EBO(0) {
+        : position(pos), velocity(0.0f), acceleration(0.0f), boundingBoxes(bboxes),
+          mass(mass), angularVelocity(0.0f), orientation(glm::quat(1.0f, 0.0f, 0.0f, 0.0f)),
+          name(_name), VAO(0), VBO(0), EBO(0) {
     float x2 = sz.x * sz.x;
     float y2 = sz.y * sz.y;
     float z2 = sz.z * sz.z;
@@ -92,8 +92,6 @@ void RigidBody::setupRigidBodyBuffers() {
 
 
 void RigidBody::renderDebug(ObjectShader &shader, const glm::vec3 &viewPos) {
-    glm::vec3 &min = aggregateBoundingBox.min;
-    glm::vec3 &max = aggregateBoundingBox.max;
     shader.use();
     shader.setObjectRenderParams(glm::mat4(1.0f), glm::vec3(1.0f));
 

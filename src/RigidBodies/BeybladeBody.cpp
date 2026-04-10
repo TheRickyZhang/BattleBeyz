@@ -5,7 +5,7 @@ using namespace std;
 using namespace glm;
 
 BeybladeBody::BeybladeBody(shared_ptr<Layer> layer, shared_ptr<Disc> disc, shared_ptr<Driver> driver) :
-    layer(layer), disc(disc), driver(driver),
+    driver(driver), disc(disc), layer(layer),
     mass(layer->mass + disc->mass + driver->mass),
     momentOfInertia(layer->momentOfInertia + disc->momentOfInertia + driver->momentOfInertia)
 {   

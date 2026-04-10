@@ -28,7 +28,7 @@ Stadium::Stadium(
     shared_ptr<Texture> texture,
     float textureScale
 )
-    : id(id), name(name),
+    : name(name), id(id),
     center(Vec3_M(center)),
     radius(M(radius)),
     curvature(Scalar(curvature)),
@@ -38,8 +38,8 @@ Stadium::Stadium(
     numRings(numRings),
     ringColor(ringColor),
     crossColor(crossColor),
-    texture(move(texture)),
-    textureScale(textureScale)
+    textureScale(textureScale),
+    texture(move(texture))
 {
     setTint(tint);
     updateMesh();
@@ -240,17 +240,6 @@ void Stadium::updateMesh() {
         normals[origin] += normal;
         normals[curr] += normal;
         normals[next] += normal;
-        // Calculate tangent for the triangle
-        vec2 uv0 = texCoords[origin];
-        vec2 uv1 = texCoords[curr];
-        vec2 uv2 = texCoords[next];
-        vec2 deltaUV1 = uv1 - uv0;
-        vec2 deltaUV2 = uv2 - uv0;
-        float f = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y);
-        vec3 tangent = f * (deltaUV2.y * edge1 - deltaUV1.y * edge2);
-        //tangents[origin] += tangent;
-        //tangents[curr] += tangent;
-        //tangents[next] += tangent;
     }
 
     // Do pairs starting from (1, 2) to (n-1, n)
@@ -281,18 +270,6 @@ void Stadium::updateMesh() {
             normals[curr2] += normal;
             normals[next1] += normal;
 
-            // Calculate tangent for Triangle 1
-            vec2 uv0 = texCoords[curr1];
-            vec2 uv1 = texCoords[curr2];
-            vec2 uv2 = texCoords[next1];
-            vec2 deltaUV1 = uv1 - uv0;
-            vec2 deltaUV2 = uv2 - uv0;
-            //float f = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y);
-            //vec3 tangent = f * (deltaUV2.y * edge1 - deltaUV1.y * edge2);
-            //tangents[curr1] += tangent;
-            //tangents[curr2] += tangent;
-            //tangents[next1] += tangent;
-
             // Triangle 2: (next1, curr2, next2)
             indices.push_back(next1);
             indices.push_back(curr2);
@@ -309,18 +286,6 @@ void Stadium::updateMesh() {
             normals[next1] += normal;
             normals[curr2] += normal;
             normals[next2] += normal;
-
-            // Calculate tangent for Triangle 2
-            uv0 = texCoords[next1];
-            uv1 = texCoords[curr2];
-            uv2 = texCoords[next2];
-            deltaUV1 = uv1 - uv0;
-            deltaUV2 = uv2 - uv0;
-            //f = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y);
-            //tangent = f * (deltaUV2.y * edge1 - deltaUV1.y * edge2);
-            //tangents[next1] += tangent;
-            //tangents[curr2] += tangent;
-            //tangents[next2] += tangent;
         }
     }
 

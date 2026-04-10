@@ -24,7 +24,7 @@ namespace Colors {
 namespace StadiumDefaults {
     using namespace glm;
 
-    constexpr char* name = "Default Stadium";
+    constexpr const char* name = "Default Stadium";
 
     inline vec3 center             = vec3(0.0f);   inline vec3 centerMin = vec3(-10.0f);         inline vec3 centerMax = vec3(10.0f);
       constexpr float radius      = 1.2f;           constexpr float radiusMin = radius / 4;      constexpr float radiusMax = radius * 4;

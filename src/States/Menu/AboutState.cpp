@@ -38,7 +38,7 @@ void AboutState::draw() {
         const char* linkText = "here";
         float totalWidth = CalcTextSize(part1).x + CalcTextSize(linkText).x;
         SetCursorPosX(centerX - totalWidth / 2.0f);
-        Text(part1);
+        Text("%s", part1);
         SameLine(); textWithLink(linkText, "https://github.com/TheRickyZhang/BattleBeyz");
     }
 
@@ -49,7 +49,7 @@ void AboutState::draw() {
         const char* linkText = "my website";
         float totalWidth = CalcTextSize(part1).x + CalcTextSize(linkText).x;
         SetCursorPosX(centerX - totalWidth / 2.0f);
-        Text(part1);
+        Text("%s", part1);
         SameLine(); textWithLink(linkText, "https://www.brickbeyz.com/shop");
     }
     centerWrappedText(centerX, wrapWidth, "For any inquiries, please contact me at rickyzhang196@outlook.com.");

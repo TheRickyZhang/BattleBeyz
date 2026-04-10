@@ -21,8 +21,8 @@ class ObjectShader;
 
 class PhysicsWorld {
 public:
-    PhysicsWorld(Scalar minSpin = 30.0__, Scalar maxSpin = 1500.0__, const Physics& physics = Physics())
-        : MIN_SPIN_THRESHOLD(minSpin), MAX_SPIN_THRESHOLD(maxSpin), physics(physics) {
+    PhysicsWorld(R_S minSpin = 30.0_rad_s, R_S maxSpin = 1500.0_rad_s, const Physics& physics = Physics())
+        : physics(physics), MIN_SPIN_THRESHOLD(minSpin), MAX_SPIN_THRESHOLD(maxSpin) {
     }
 
     void addBeyblade(Beyblade* body);
@@ -46,10 +46,11 @@ public:
     };
 
     // Steps the world at a fixed rate regardless of frame rate, so behaviour does not
-    // change with FPS and a hitch cannot produce one enormous dt. Call this per frame;
-    // update() is the single fixed step it drives.
-    void advance(float frameDelta);
-    void update(float deltaTime);
+    // change with FPS and a hitch cannot produce one enormous dt. This is the only entry
+    // point; the single fixed step it drives is private so no caller can bypass the clock.
+    // Returns the number of fixed steps taken, which saturates at MAX_STEPS_PER_FRAME
+    // when the simulation is falling behind real time.
+    int advance(float frameDelta);
 
     // Fraction of a fixed step elapsed since the last one, for render interpolation
     float getInterpolationAlpha() const { return interpolationAlpha; }
@@ -64,6 +65,8 @@ public:
     std::vector<Stadium*>& getStadiums() { return stadiums; }
 
 private:
+    void update(float deltaTime);
+
     Physics physics;
 
     std::vector<Beyblade*> beyblades;
@@ -82,7 +85,7 @@ private:
     float interpolationAlpha = 1.0f;
 
     float currTime = 0.0f;
-    const float epsilonTime = 0.2f;                 // Cannot have collisions within 0.3 seconds of a previous one
-    const Scalar MIN_SPIN_THRESHOLD = 30.0__;       // If a beyblade's |w| is less, the game ends due to spin finish
-    const Scalar MAX_SPIN_THRESHOLD = 1500.0__;     // Cannot launch higher than this speed
+    const float epsilonTime = 0.2f;                 // Cannot have collisions within this many seconds of a previous one
+    const R_S MIN_SPIN_THRESHOLD = 30.0_rad_s;      // If a beyblade's |w| is less, the game ends due to spin finish
+    const R_S MAX_SPIN_THRESHOLD = 1500.0_rad_s;    // Cannot launch higher than this speed
 };

@@ -24,8 +24,6 @@ using namespace glm;
 
 void PreBattleState::init()
 {
-    // Set up keyboard and mouse callbacks.
-    GLFWwindow* window = game->getWindow();
     PhysicsWorld* physicsWorld = game->physicsWorld.get();
 
     this->floor = new Floor(1000.0f, 1000.0f, 0.0f, 0.0f, 0.0f);
@@ -251,7 +249,7 @@ void PreBattleState::draw() {
     ImGui::Text("WASDQE: camera movement");
     ImGui::Text("Right Click + Drag: camera rotation");
     ImGui::Text("Scroll wheel: movement speed");
-    ImGui::Text((positionText).c_str());
+    ImGui::Text("%s", positionText.c_str());
     ImGui::End();
 }
 

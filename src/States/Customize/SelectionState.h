@@ -76,5 +76,5 @@ private:
     float tempGravity = 0.0f;
 
 
-    const int MAX_PLAYERS = 8;
+    static constexpr size_t MAX_PLAYERS = 8;
 };

@@ -35,7 +35,7 @@ public:
     Camera(const glm::vec3& position, const glm::vec3& viewPoint, PhysicsWorld* world, float x, float y, BoundingBox box = BoundingBox(glm::vec3(-1e6), glm::vec3(1e6)));
 
     // TODO: Manage these better with function objects / strategy patterns (composition of inheritance)
-    void setBehavior(std::unique_ptr<CameraBehavior> behavior);
+    void setBehavior(std::unique_ptr<CameraBehavior> newBehavior);
     void clearBehavior();
 
     // Must call these before changing the mode (initial only works in free UNTIL attached to beybalde/stadium)

@@ -7,6 +7,9 @@ project(BattleBeyz)
 
 include(FetchContent)
 
+# Lets clangd and other tooling resolve the project's many include directories
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 # C++ Standard
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
@@ -73,8 +76,8 @@ FetchContent_MakeAvailable(json)
 FetchContent_Declare(
     stb
     GIT_REPOSITORY https://github.com/nothings/stb.git
-    GIT_TAG master
-    GIT_SHALLOW TRUE
+    # stb publishes no releases, so pin the commit; "master" moves under us
+    GIT_TAG 2c980bb59875b0d32144a71867fbdebb2f77cd20
 )
 FetchContent_MakeAvailable(stb)
 
@@ -82,10 +85,25 @@ FetchContent_MakeAvailable(stb)
 FetchContent_Declare(
     tinyobjloader
     GIT_REPOSITORY https://github.com/tinyobjloader/tinyobjloader.git
-    GIT_TAG release
-    GIT_SHALLOW TRUE
+    # Head of the "release" branch at time of pinning; that branch keeps the 1.x API
+    GIT_TAG 45636bdcef1a4fec140346b90c0b50bf0bc3e23b
 )
 FetchContent_MakeAvailable(tinyobjloader)
+
+# Freetype - fetched so no platform needs a system package.
+# These flags stop it searching for optional dependencies it will not find here.
+set(FT_DISABLE_ZLIB     ON CACHE BOOL "" FORCE)
+set(FT_DISABLE_BZIP2    ON CACHE BOOL "" FORCE)
+set(FT_DISABLE_PNG      ON CACHE BOOL "" FORCE)
+set(FT_DISABLE_HARFBUZZ ON CACHE BOOL "" FORCE)
+set(FT_DISABLE_BROTLI   ON CACHE BOOL "" FORCE)
+FetchContent_Declare(
+    freetype
+    GIT_REPOSITORY https://github.com/freetype/freetype.git
+    GIT_TAG VER-2-13-3
+    GIT_SHALLOW TRUE
+)
+FetchContent_MakeAvailable(freetype)
 
 # GLEW - Build from source (using Perlmint/glew-cmake which has pre-generated sources)
 FetchContent_Declare(
@@ -104,8 +122,6 @@ FetchContent_MakeAvailable(glew)
 # ============================================================================
 
 find_package(OpenGL REQUIRED)
-find_package(Freetype REQUIRED)
-find_package(ZLIB REQUIRED)
 find_package(Threads REQUIRED)
 
 # ============================================================================
@@ -139,60 +155,80 @@ target_include_directories(imguifiledialog_lib PUBLIC
 target_link_libraries(imguifiledialog_lib PUBLIC imgui_lib)
 
 # ============================================================================
+# doctest (unit test framework)
+# ============================================================================
+
+option(BATTLEBEYZ_BUILD_TESTS "Build the unit tests" ON)
+
+if(BATTLEBEYZ_BUILD_TESTS)
+    FetchContent_Declare(
+        doctest
+        GIT_REPOSITORY https://github.com/doctest/doctest.git
+        GIT_TAG v2.4.11
+        GIT_SHALLOW TRUE
+    )
+    FetchContent_MakeAvailable(doctest)
+endif()
+
+# ============================================================================
 # Project Source Files
 # ============================================================================
 
-# Include directories for project source
-include_directories(${PROJECT_SOURCE_DIR}/src)
-include_directories(${PROJECT_SOURCE_DIR}/src/Camera)
-include_directories(${PROJECT_SOURCE_DIR}/src/Camera/CameraBehaviors)
-include_directories(${PROJECT_SOURCE_DIR}/src/GameObjects)
-include_directories(${PROJECT_SOURCE_DIR}/src/MeshObjects)
-include_directories(${PROJECT_SOURCE_DIR}/src/Physics)
-include_directories(${PROJECT_SOURCE_DIR}/src/Physics/Units)
-include_directories(${PROJECT_SOURCE_DIR}/src/Rendering)
-include_directories(${PROJECT_SOURCE_DIR}/src/RigidBodies)
-include_directories(${PROJECT_SOURCE_DIR}/src/States)
-include_directories(${PROJECT_SOURCE_DIR}/src/States/Menu)
-include_directories(${PROJECT_SOURCE_DIR}/src/States/Customize)
-include_directories(${PROJECT_SOURCE_DIR}/src/States/Gameplay)
-include_directories(${PROJECT_SOURCE_DIR}/src/States/Intermediate)
-include_directories(${PROJECT_SOURCE_DIR}/src/Config)
-include_directories(${PROJECT_SOURCE_DIR}/src/UI)
+# Warnings are on by default. -Wno-unused-parameter is deliberate: the GameState
+# interface hands every override a width/height/deltaTime it may not need.
+if(MSVC)
+    set(BATTLEBEYZ_WARNINGS /W4)
+else()
+    set(BATTLEBEYZ_WARNINGS -Wall -Wextra -Wformat-security -Wno-unused-parameter)
+endif()
 
-# Add Source and Header Files
-file(GLOB_RECURSE HEADER_FILES "src/*.h" "assets/*.h")
+file(GLOB_RECURSE HEADER_FILES "src/*.h" "src/*.tpp" "assets/*.h")
 file(GLOB_RECURSE SOURCE_FILES "src/*.cpp" "assets/*.cpp")
-set(SOURCES ${SOURCE_FILES} ${HEADER_FILES})
+
+# main() lives outside the library so the test binary can supply its own
+list(REMOVE_ITEM SOURCE_FILES "${PROJECT_SOURCE_DIR}/src/main.cpp")
+set(SOURCES ${SOURCE_FILES} ${HEADER_FILES} ${PROJECT_SOURCE_DIR}/src/main.cpp)
 
 # ============================================================================
-# Main Executable
+# Core Library (everything but main, so both the game and the tests link it)
 # ============================================================================
 
-add_executable(BattleBeyz ${SOURCES})
+add_library(battlebeyz_core STATIC ${SOURCE_FILES} ${HEADER_FILES})
 
-# Include directories for fetched header-only libraries
-target_include_directories(BattleBeyz PRIVATE
+target_include_directories(battlebeyz_core PUBLIC
+    ${PROJECT_SOURCE_DIR}/src
+    ${PROJECT_SOURCE_DIR}/src/Camera
+    ${PROJECT_SOURCE_DIR}/src/Camera/CameraBehaviors
+    ${PROJECT_SOURCE_DIR}/src/GameObjects
+    ${PROJECT_SOURCE_DIR}/src/MeshObjects
+    ${PROJECT_SOURCE_DIR}/src/Physics
+    ${PROJECT_SOURCE_DIR}/src/Physics/Units
+    ${PROJECT_SOURCE_DIR}/src/Rendering
+    ${PROJECT_SOURCE_DIR}/src/RigidBodies
+    ${PROJECT_SOURCE_DIR}/src/States
+    ${PROJECT_SOURCE_DIR}/src/States/Menu
+    ${PROJECT_SOURCE_DIR}/src/States/Customize
+    ${PROJECT_SOURCE_DIR}/src/States/Gameplay
+    ${PROJECT_SOURCE_DIR}/src/States/Intermediate
+    ${PROJECT_SOURCE_DIR}/src/Config
+    ${PROJECT_SOURCE_DIR}/src/UI
     ${stb_SOURCE_DIR}
     ${tinyobjloader_SOURCE_DIR}
 )
 
-# Link libraries
-target_link_libraries(BattleBeyz PRIVATE
+target_link_libraries(battlebeyz_core PUBLIC
     imgui_lib
     imguifiledialog_lib
     nlohmann_json::nlohmann_json
     glfw
     OpenGL::GL
     libglew_static
-    Freetype::Freetype
-    ZLIB::ZLIB
+    freetype
     glm::glm
     Threads::Threads
 )
 
-# Preprocessor Definitions
-target_compile_definitions(BattleBeyz PRIVATE
+target_compile_definitions(battlebeyz_core PUBLIC
     _USE_MATH_DEFINES
     GLM_ENABLE_EXPERIMENTAL
     GLEW_STATIC
@@ -200,11 +236,36 @@ target_compile_definitions(BattleBeyz PRIVATE
     GLFW_INCLUDE_NONE
 )
 
+target_compile_options(battlebeyz_core PRIVATE ${BATTLEBEYZ_WARNINGS})
+
+# ============================================================================
+# Main Executable
+# ============================================================================
+
+add_executable(BattleBeyz ${PROJECT_SOURCE_DIR}/src/main.cpp)
+target_link_libraries(BattleBeyz PRIVATE battlebeyz_core)
+target_compile_options(BattleBeyz PRIVATE ${BATTLEBEYZ_WARNINGS})
+
 # ThreadSanitizer (opt-in): cmake -B build-tsan -DBATTLEBEYZ_SANITIZE_THREAD=ON
 option(BATTLEBEYZ_SANITIZE_THREAD "Build BattleBeyz with ThreadSanitizer" OFF)
 if(BATTLEBEYZ_SANITIZE_THREAD)
-    target_compile_options(BattleBeyz PRIVATE -fsanitize=thread -g -O1 -fno-omit-frame-pointer)
-    target_link_options(BattleBeyz PRIVATE -fsanitize=thread)
+    target_compile_options(battlebeyz_core PUBLIC -fsanitize=thread -g -O1 -fno-omit-frame-pointer)
+    target_link_options(battlebeyz_core PUBLIC -fsanitize=thread)
+endif()
+
+# ============================================================================
+# Tests
+# ============================================================================
+
+if(BATTLEBEYZ_BUILD_TESTS)
+    enable_testing()
+
+    file(GLOB TEST_SOURCES "tests/*.cpp")
+    add_executable(battlebeyz_tests ${TEST_SOURCES})
+    target_link_libraries(battlebeyz_tests PRIVATE battlebeyz_core doctest::doctest)
+    target_compile_options(battlebeyz_tests PRIVATE ${BATTLEBEYZ_WARNINGS})
+
+    add_test(NAME battlebeyz_tests COMMAND battlebeyz_tests)
 endif()
 
 # Add Assets to Build Directory

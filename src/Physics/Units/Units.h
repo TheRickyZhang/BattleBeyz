@@ -78,14 +78,14 @@ using DimTime = Dimension<0, 0, 1, 0>;   // T (Time)
 using DimAngle = Dimension<0, 0, 0, 1>;  // A (Angle, e.g., radians)
 
 // **Derived Dimensions**
-using DimKgM = Dimension<1, 1, 0, 0>;      // kg·m
-using DimKgM2 = Dimension<2, 1, 0, 0>;     // kg·m^2 (Inertia)
-using DimKgM_S = Dimension<1, 1, -1, 0>;   // kg·m/s (Momentum)
-using DimKgM_S2 = Dimension<1, 1, -2, 0>;  // kg·m/s^2 (Force)
-using DimKgM2_S = Dimension<2, 1, -1, 0>;  // kg·m^2/s (Angular Momentum)
-using DimKgM2_S2 = Dimension<2, 1, -2, 0>; // kg·m^2/s^2 (Torque, Energy)
+using DimKgM = Dimension<1, 1, 0, 0>;      // kgÂ·m
+using DimKgM2 = Dimension<2, 1, 0, 0>;     // kgÂ·m^2 (Inertia)
+using DimKgM_S = Dimension<1, 1, -1, 0>;   // kgÂ·m/s (Momentum)
+using DimKgM_S2 = Dimension<1, 1, -2, 0>;  // kgÂ·m/s^2 (Force)
+using DimKgM2_S = Dimension<2, 1, -1, 0>;  // kgÂ·m^2/s (Angular Momentum)
+using DimKgM2_S2 = Dimension<2, 1, -2, 0>; // kgÂ·m^2/s^2 (Torque, Energy)
 using DimKg_M = Dimension<-1, 1, 0, 0>;    // kg/m (Linear mass density)
-using DimKg_M3 = Dimension<-3, 1, 0, 0>;   // kg/m³ (Density)
+using DimKg_M3 = Dimension<-3, 1, 0, 0>;   // kg/mÂ³ (Density)
 using DimM2_S2 = Dimension<2, 0, -2, 0>;   // m^2/s^2
 
 using DimM = DimLength;                 // Reusing DimLength for Length
@@ -109,7 +109,7 @@ using Sc = Scalar;
 
 // Mass and Related
 using Kg = Quantity<DimMass, float>; // Mass
-using KgM = Quantity<DimKgM, float>; // kg·m
+using KgM = Quantity<DimKgM, float>; // kgÂ·m
 using KgM2 = Quantity<DimKgM2, float>;
 using KgM3 = Quantity<DimM3, float>;
 using KgM_S = Quantity<DimKgM_S, float>;
@@ -281,7 +281,7 @@ using Vec3_Scalar = Vector3Quantity<Dimensionless, float>;
 
 // Mass and Related
 using Vec3_Kg = Vector3Quantity<DimMass, float>; // Mass
-using Vec3_KgM = Vector3Quantity<DimKgM, float>; // kg·m
+using Vec3_KgM = Vector3Quantity<DimKgM, float>; // kgÂ·m
 using Vec3_KgM2 = Vector3Quantity<DimKgM2, float>;
 using Vec3_KgM3 = Vector3Quantity<DimM3, float>;
 using Vec3_KgM_S = Vector3Quantity<DimKgM_S, float>;

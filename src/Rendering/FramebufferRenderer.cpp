@@ -1,7 +1,7 @@
 #include "FramebufferRenderer.h"
 
 FramebufferRenderer::FramebufferRenderer(int width, int height)
-    : width(width), height(height), fbo(0), texture(0), rbo(0) {
+    : fbo(0), texture(0), rbo(0), width(width), height(height) {
     setupFramebuffer();
 }
 

@@ -35,14 +35,14 @@ using namespace glm;
 
 // Constructor with default values
 GameEngine::GameEngine()
-    : window(nullptr),
-    isRunning(false),
     // Need to initialize these as references from constructor, as opposed to init()
-    tm(TextureManager::getInstance()),
-    pm(ProfileManager::getInstance()),
-    ml(MessageLog::getInstance()),
+    : fm(FontManager::getInstance()),
     im(InputManager::getInstance()),
-    fm(FontManager::getInstance())
+    ml(MessageLog::getInstance()),
+    pm(ProfileManager::getInstance()),
+    tm(TextureManager::getInstance()),
+    window(nullptr),
+    isRunning(false)
 {
 }
 
@@ -360,22 +360,22 @@ void GameEngine::drawDebugScreen()
     ImGui::Begin("Debug Screen", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize);
 
     ImGui::Text("Exit by pressing F3");
-    ImGui::Text(fpsText.c_str());
+    ImGui::Text("%s", fpsText.c_str());
     ImGui::Text("Window Size: %dx%d", windowWidth, windowHeight);
     double mouseX, mouseY;
     glfwGetCursorPos(window, &mouseX, &mouseY);
     ImGui::Text("Mouse Position: (%.1f, %.1f)", mouseX, mouseY);
-    ImGui::Text(coordsText.c_str());
+    ImGui::Text("%s", coordsText.c_str());
     ImGui::Text("OpenGL Version: %s", glGetString(GL_VERSION));
 
     ImGui::Text("Profiles:");
     auto activeProfile = pm.getActiveProfile();
     for (auto& p : pm.getAllProfiles()) {
         if (p == activeProfile) {
-            ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), p->getName().c_str());
+            ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "%s", p->getName().c_str());
         }
         else {
-            ImGui::Text(p->getName().c_str());
+            ImGui::Text("%s", p->getName().c_str());
         }
     }
 
@@ -383,10 +383,10 @@ void GameEngine::drawDebugScreen()
         auto activeBeyblade = activeProfile->getActiveBeyblade();
         for (auto& beyblade : activeProfile->getAllBeyblades()) {
             if (beyblade == activeBeyblade) {
-                ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), beyblade->getName().c_str());
+                ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "%s", beyblade->getName().c_str());
             }
             else {
-                ImGui::Text(beyblade->getName().c_str());
+                ImGui::Text("%s", beyblade->getName().c_str());
             }
         }
 
@@ -396,16 +396,16 @@ void GameEngine::drawDebugScreen()
             oss.precision(2);
             oss << std::fixed << activeBeyblade->getBody()->layer->radius.value() << ", "
                 << activeBeyblade->getBody()->layer->mass.value();
-            ImGui::Text(oss.str().c_str());
+            ImGui::Text("%s", oss.str().c_str());
         }
 
         auto activeStadium = activeProfile->getActiveStadium();
         for (auto& stadium : activeProfile->getAllStadiums()) {
             if (stadium == activeStadium) {
-                ImGui::TextColored(ImVec4(0.0f, 0.0f, 1.0f, 1.0f), stadium->getName().c_str());
+                ImGui::TextColored(ImVec4(0.0f, 0.0f, 1.0f, 1.0f), "%s", stadium->getName().c_str());
             }
             else {
-                ImGui::Text(stadium->getName().c_str());
+                ImGui::Text("%s", stadium->getName().c_str());
             }
         }
 
@@ -416,7 +416,7 @@ void GameEngine::drawDebugScreen()
             stadiumOss << std::fixed
                 << "Radius: " << activeStadium->getRadius().value() << " m, "
                 << "Vertices Per Ring: " << activeStadium->getVerticesPerRing();
-            ImGui::Text(stadiumOss.str().c_str());
+            ImGui::Text("%s", stadiumOss.str().c_str());
         }
     }
     else {
@@ -448,6 +448,10 @@ bool GameEngine::initializeGLFW()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+#ifdef __APPLE__
+    // macOS grants a core profile only when forward compatibility is also requested
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
+#endif
     glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
     glfwWindowHint(GLFW_DECORATED, GLFW_TRUE);
     glfwWindowHint(GLFW_DEPTH_BITS, 24);

@@ -34,7 +34,7 @@ void Beyblade::setTemplateIndices(int layerIndex, int discIndex, int driverIndex
 * Constructor.
 */
 Beyblade::Beyblade(int id, const string& name, bool isTemplate, const string& modelPath) :
-    id(id), name(name), isTemplate(isTemplate) {
+    isTemplate(isTemplate), id(id), name(name) {
     if (isTemplate) {
         setTemplateIndices(0, 0, 0);
         body = make_unique<BeybladeBody>(templateLayers[0].part, templateDiscs[0].part, templateDrivers[0].part);

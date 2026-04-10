@@ -27,21 +27,21 @@ struct Layer {
         KgM2 momentOfInertia) :
         radius(radius),
         height(height),
-        recoilDistribution(RandomDistribution(recoilMean, recoilStddev)),
-        coefficientOfRestitution(coefficientOfRestitution),
-        rotationalDragCoefficient(rotationalDragCoefficient),
         mass(mass),
-        momentOfInertia(momentOfInertia)
+        momentOfInertia(momentOfInertia),
+        rotationalDragCoefficient(rotationalDragCoefficient),
+        recoilDistribution(RandomDistribution(recoilMean, recoilStddev)),
+        coefficientOfRestitution(coefficientOfRestitution)
     {}
 
     Layer() :
         radius(0.025_m),
         height(0.01_m),
-        coefficientOfRestitution(0.8f),
-        rotationalDragCoefficient(0.7f * 0.005f),
         mass(0.022_kg),
         momentOfInertia(0.5f * 0.022_kg * 0.025_m * 0.025_m),
-        recoilDistribution(RandomDistribution())
+        rotationalDragCoefficient(0.7f * 0.005f),
+        recoilDistribution(RandomDistribution()),
+        coefficientOfRestitution(0.8f)
     {}
 
     M radius;

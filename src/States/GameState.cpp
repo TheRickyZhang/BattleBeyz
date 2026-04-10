@@ -43,8 +43,6 @@ const unordered_map<std::string, GameStateType> GameState::buttonStateMap = {
 void GameState::renderBackground(GameEngine* game, const string& textureName) {
     BackgroundShader* backgroundShader = game->backgroundShader;
     QuadRenderer* quadRenderer = game->quadRenderer;
-    int width = game->windowWidth;
-    int height = game->windowHeight;
     shared_ptr<Texture> backgroundTexture = game->tm.getTexture(textureName);
 
     backgroundShader->setBackgroundGlobalParams(glm::mat4(1.0f), 1.0f, (float)glfwGetTime());

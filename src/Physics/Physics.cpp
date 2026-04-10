@@ -24,9 +24,6 @@ using namespace std;
 void Physics::accumulateAirResistance(BeybladeBody* beyblade) const {
     // c = 1/2 * Cd * A * p
     Kg_M linearDragConstant = beyblade->getLinearDragTerm() * FLUID_DRAG;
-    //Scalar velocityMagnitude = length(beyblade->getVelocity());
-
-    auto res = dot(beyblade->getVelocity(), beyblade->getVelocity());
     // Adrag = (-b * v^2 / mass) * unit v
     Vec3_M_S2 linearAirResistanceAcceleration = -1.0f * linearDragConstant * dot(beyblade->getVelocity(), beyblade->getVelocity())
                                                             / beyblade->getMass() * normalize(beyblade->getVelocity());
@@ -62,17 +59,17 @@ void Physics::accumulateFriction(BeybladeBody* beyblade, Stadium* stadium) const
     Vec3_Scalar stadiumNormal = stadium->getNormal(beyblade->getCenter().xTyped(), beyblade->getCenter().zTyped());
 
     Scalar combinedCOF = (stadium->getCOF() + beyblade->driver->coefficientOfFriction) / 2.0__;
-    Vec3_M beyBottomPosition = beyblade->getBottomPosition();
-    M stadiumY = stadium->getY(beyBottomPosition.xTyped(), beyBottomPosition.zTyped());
     Vec3_Scalar normalizedAngularVelocity = normalize(beyblade->getAngularVelocity());
  
     // sin(theta) * direction.  Patched with units
     Vec3_Scalar frictionDirectionAcceleration = -cross(normalizedAngularVelocity, stadiumNormal);
     Scalar alignment = dot(normalizedAngularVelocity, stadiumNormal);
 
-    // TODO: Represent radius as 1/rad units
     M_S2 linearComponent = GRAVITY * combinedCOF * alignment;
-    M_S2 angularComponent = 1.0__/(1.0_s2) * (beyblade->getAngularVelocity().length() * beyblade->driver->contactRadius) * combinedCOF * (alignment > 0.0__ ? 1.0f : -1.0f);
+    // w*r is a speed (rad cancels); dividing by one radian-second turns it into the
+    // acceleration this model wants, without silently dropping the units on the way.
+    M_S2 angularComponent = (beyblade->getAngularVelocity().lengthTyped() * beyblade->driver->contactRadius)
+        / (1.0_rad * 1.0_s) * combinedCOF * (alignment > 0.0__ ? 1.0f : -1.0f);
 
     // cl * (g * mu * cos(theta)
     M_S2 traditionalAccelerationComponent = FRICTIONAL_ACCELERATION_CONSTANT * linearComponent;
@@ -154,7 +151,6 @@ void Physics::accumulateImpact(BeybladeBody* beyblade1, BeybladeBody* beyblade2,
 
     // Trust this known linear collison model works correctly
     KgM_S impulseMagnitude = averageCOR * relativeSpeed / (1.0__ / mass1 + 1.0__ / mass2);
-    Vec3_KgM_S impulse = impulseMagnitude * unitSeparation;
 
     Vec3_M_S deltaVelocity1 = -impulseMagnitude / mass1 * unitSeparation;
     Vec3_M_S deltaVelocity2 = impulseMagnitude / mass2 * unitSeparation;
@@ -184,13 +180,14 @@ void Physics::accumulateImpact(BeybladeBody* beyblade1, BeybladeBody* beyblade2,
     // Different cases for same-spin vs opposite-spin collisions
     bool sameSpinDirection = beyblade1->isSpinningClockwise() == beyblade2->isSpinningClockwise();
     if (sameSpinDirection) {
-        Scalar angularSpeedDiff = beyblade1->getAngularVelocity().length() + beyblade2->getAngularVelocity().length();
+        // Both spin the same way, so the magnitudes add rather than cancel
+        R_S angularSpeedSum = beyblade1->getAngularVelocity().lengthTyped() + beyblade2->getAngularVelocity().lengthTyped();
 
         // TODO: More accurate predictive modeling, use sqrt() for now
         // NOTE we assume magnitude bounded by MIN and MAX spin threshold
-        Scalar angularScalingFactor = 1.0__ * sqrt(abs(relativeSpeed.value())) * sqrt(angularSpeedDiff.value());
+        Scalar angularScalingFactor = 1.0__ * sqrt(abs(relativeSpeed.value())) * sqrt(angularSpeedSum.value());
         Scalar linearScalingFactor = 0.2__ * sqrt(abs(relativeSpeed.value()))
-            * (1.0f + float((std::clamp(angularSpeedDiff.value(), 30.0f, 1500.0f) - 30.0f)
+            * (1.0f + float((std::clamp(angularSpeedSum.value(), 30.0f, 1500.0f) - 30.0f)
                 * (10.0 - 1.0) / (1500.0f - 30.0f)));
 
         // CHECK whether this conversion from angular to linear is correct.

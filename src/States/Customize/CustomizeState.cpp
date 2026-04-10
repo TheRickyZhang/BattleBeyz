@@ -83,7 +83,7 @@ void CustomizeState::draw() {
     initializeData(profiles, profile, beyblades, beyblade, stadiums, stadium);
 
     // Cover full screen
-    auto [centerX, wrapWidth] = SetWindowPositionAndSize(1, 1, 1, 1);
+    SetWindowPositionAndSize(1, 1, 1, 1);
     Begin("Customize Menu", nullptr, ScrollableWindow);
 
     // Draw "Back to Home" button
@@ -254,7 +254,6 @@ void CustomizeState::drawManualCustomizeSection(shared_ptr<Beyblade> beyblade) {
 
     ImGui::SameLine();
 
-    float updateButtonWidth = CalcTextSize("Update").x + 2 * GetStyle().ItemSpacing.x + 2 * GetStyle().FramePadding.x;
     SetCursorPosX(GetCursorPosX() + 50);
     if (Button("Reset Beyblade")) {
         ScalarParameter::assignFromBeybladeBody(beybladeBody);
@@ -331,7 +330,7 @@ void CustomizeState::drawTemplateCustomizeSection(shared_ptr<Beyblade> beyblade)
     Text("Select Parts");
     // **Layer, Disc, Driver Selection**
     if (CollapsingHeader("Layers")) {
-        for (int i = 0; i < templateLayers.size(); ++i) {
+        for (int i = 0; i < static_cast<int>(templateLayers.size()); ++i) {
             bool isSelected = (tempSelectedLayer == i);
             if (Selectable((templateLayers[i].name + "##layer" + to_string(i)).c_str(), isSelected)) {
                 tempSelectedLayer = i;
@@ -339,7 +338,7 @@ void CustomizeState::drawTemplateCustomizeSection(shared_ptr<Beyblade> beyblade)
         }
     }
     if (CollapsingHeader("Discs")) {
-        for (int i = 0; i < templateDiscs.size(); ++i) {
+        for (int i = 0; i < static_cast<int>(templateDiscs.size()); ++i) {
             bool isSelected = (tempSelectedDisc == i);
             if (Selectable((templateDiscs[i].name + "##disc" + to_string(i)).c_str(), isSelected)) {
                 tempSelectedDisc = i;
@@ -369,21 +368,21 @@ void CustomizeState::drawTemplateCustomizeSection(shared_ptr<Beyblade> beyblade)
         Separator();
         Text("Name: %s", templateLayers[tempSelectedLayer].name.c_str());
         Text("Model Path: %s", templateLayers[tempSelectedLayer].modelPath.c_str());
-        Text("Mass: %.3f kg", layer->mass);
+        Text("Mass: %.3f kg", layer->mass.value());
     }
     if (isDiscSelected) {
         const auto& disc = templateDiscs[tempSelectedDisc].part;
         Separator();
         Text("Name: %s", templateDiscs[tempSelectedDisc].name.c_str());
         Text("Model Path: %s", templateDiscs[tempSelectedDisc].modelPath.c_str());
-        Text("Mass: %.3f kg", disc->mass);
+        Text("Mass: %.3f kg", disc->mass.value());
     }
     if (isDriverSelected) {
         const auto& driver = templateDrivers[tempSelectedDriver].part;
         Separator();
         Text("Name: %s", templateDrivers[tempSelectedDriver].name.c_str());
         Text("Model Path: %s", templateDrivers[tempSelectedDriver].modelPath.c_str());
-        Text("Mass: %.3f kg", driver->mass);
+        Text("Mass: %.3f kg", driver->mass.value());
     }
 
     ImGui::EndChild();
@@ -486,7 +485,7 @@ void CustomizeState::drawStadiumCustomizeSection(shared_ptr<Stadium> stadium) {
         // TODO: These seem to modify the stadium attributes when used, but don't cahnge the view much.
         // But when saving and reloading the game there is a visible difference.
         for (Vec3Parameter& vecParam : stadiumVec3Parameters) {
-            ImGui::Text(vecParam.name.c_str());
+            ImGui::Text("%s", vecParam.name.c_str());
             ImGui::SameLine();
             if (ImGui::ColorEdit3(("##" + vecParam.name).c_str(), glm::value_ptr(vecParam.currentValue))) {
                 onModified();

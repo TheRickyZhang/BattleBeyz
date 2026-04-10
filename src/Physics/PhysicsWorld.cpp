@@ -49,7 +49,7 @@ void PhysicsWorld::removeStadium(Stadium* body) {
 * @param deltaTime              [in] Time increment in seconds.
 */
 
-void PhysicsWorld::advance(float frameDelta) {
+int PhysicsWorld::advance(float frameDelta) {
     // A long stall (window drag, a slow load) must not turn into hundreds of steps
     accumulatorNs += std::llround(std::min(frameDelta, MAX_FRAME_DELTA) * 1000000000.0);
 
@@ -64,6 +64,7 @@ void PhysicsWorld::advance(float frameDelta) {
     if (steps == MAX_STEPS_PER_FRAME) accumulatorNs = 0;
 
     interpolationAlpha = static_cast<float>(accumulatorNs) / static_cast<float>(FIXED_DT_NS);
+    return steps;
 }
 
 // TODO: Handle game logic when round is over
@@ -76,7 +77,7 @@ void PhysicsWorld::update(float deltaTime) {
     */
     for (Beyblade* beyblade : beyblades) {
         BeybladeBody* beybladeBody = beyblade->getBody();
-        if (beybladeBody->getAngularVelocity().length() < MIN_SPIN_THRESHOLD) {
+        if (beybladeBody->getAngularVelocity().lengthTyped() < MIN_SPIN_THRESHOLD) {
             if (spinFinishedReported.insert(beybladeBody).second) {
                 MessageLog::getInstance().addMessage("Beyblade " + beyblade->getName() + " ran out of spin", MessageType::NORMAL);
             }

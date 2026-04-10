@@ -9,11 +9,13 @@
 #include <glm/glm.hpp>
 #include <optional>
 #include <memory>
+#include <vector>
 
 #include "BeybladeParts.h"
+// Held by value in boundingBoxes and returned by value, so a forward declaration
+// is not enough to destroy a BeybladeBody
+#include "BoundingBox.h"
 
-
-class BoundingBox;
 class BeybladeMesh;
 
 /**
