@@ -220,7 +220,7 @@ MeshData parseObj(const string& path) {
         << ").\n";
     oss << "Model loaded successfully with " << vertices.size() << " vertices and " << indices.size() << " indices." << endl;
     std::string meshInitString = oss.str();
-    MessageLog::getInstance().addMessage(meshInitString, MessageType::NORMAL);
+    MessageLog::getInstance().addMessage(meshInitString, MessageType::Normal);
 
     data.loaded = true;
     return data;

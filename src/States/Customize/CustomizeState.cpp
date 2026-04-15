@@ -64,7 +64,7 @@ void CustomizeState::update(float deltaTime) {
         MeshData data = pendingMesh.get();
 
         if (!data.loaded) {
-            game->ml.addMessage("Failed to load mesh. Ensure it is a valid .obj file", MessageType::ERROR, true);
+            game->ml.addMessage("Failed to load mesh. Ensure it is a valid .obj file", MessageType::Error, true);
         }
         else if (meshImportTarget) {
             auto newMesh = make_unique<BeybladeMesh>(data);
@@ -509,7 +509,7 @@ void CustomizeState::drawPopups(const shared_ptr<Profile>& profile, const shared
             Text("Are you sure you want to delete: %s", itemName.c_str());
             if (Button("Yes")) {
                 if (!deleteFunc()) {
-                    game->ml.addMessage("Error Deleting " + itemName, MessageType::ERROR, true);
+                    game->ml.addMessage("Error Deleting " + itemName, MessageType::Error, true);
                 }
                 currentPopup = PopupState::NONE;
                 CloseCurrentPopup();
@@ -530,12 +530,12 @@ void CustomizeState::drawPopups(const shared_ptr<Profile>& profile, const shared
                 InputText(inputLabel, inputBuffer, bufferSize);
                 if (Button("Submit")) {
                     if (strlen(inputBuffer) == 0) {
-                        game->ml.addMessage(popupTitle + " name cannot be empty", MessageType::WARNING, true);
+                        game->ml.addMessage(popupTitle + " name cannot be empty", MessageType::Warning, true);
                     }
                     else {
                         string nameStr(inputBuffer);
                         if (!createFunc(nameStr)) {
-                            game->ml.addMessage("Cannot create new " + popupTitle, MessageType::ERROR, true);
+                            game->ml.addMessage("Cannot create new " + popupTitle, MessageType::Error, true);
                         }
                         inputBuffer[0] = '\0';
                         currentPopup = PopupState::NONE;
@@ -572,13 +572,13 @@ void CustomizeState::drawPopups(const shared_ptr<Profile>& profile, const shared
             InputText("##BeybladeName", newBeybladeName, IM_ARRAYSIZE(newBeybladeName));
             if (Button("Submit")) {
                 if (strlen(newBeybladeName) == 0) {
-                    game->ml.addMessage("Beyblade name cannot be empty", MessageType::WARNING, true);
+                    game->ml.addMessage("Beyblade name cannot be empty", MessageType::Warning, true);
                 }
                 else if (profile) {
                     string name(newBeybladeName);
                     bool created = isTemplate ? profile->createBeyblade(name, true) : profile->createBeyblade(name);
                     if (!created) {
-                        game->ml.addMessage("Cannot create new Beyblade", MessageType::ERROR, true);
+                        game->ml.addMessage("Cannot create new Beyblade", MessageType::Error, true);
                     }
                     else {
                         profile->setActiveBeyblade(profile->getAllBeyblades().back()->getId());

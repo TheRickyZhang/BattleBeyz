@@ -325,15 +325,15 @@ void PreBattleState::drawInfoScreen() {
     CameraMode currentMode = game->camera->activeMode;
     if (ImGui::RadioButton("Free", currentMode == CameraMode::FREE)) {
         game->camera->changeCameraMode(CameraMode::FREE);
-        game->ml.addMessage("Camera changed to free", MessageType::NORMAL, true);
+        game->ml.addMessage("Camera changed to free", MessageType::Normal, true);
     }
     if (ImGui::RadioButton("Attached", currentMode == CameraMode::ATTACHED)) {
         game->camera->changeCameraMode(CameraMode::ATTACHED);
-        game->ml.addMessage("Camera attached to bey" + std::string(game->pm.getActiveProfile()->getName()), MessageType::NORMAL, true);
+        game->ml.addMessage("Camera attached to bey" + std::string(game->pm.getActiveProfile()->getName()), MessageType::Normal, true);
     }
     if (ImGui::RadioButton("Panning", currentMode == CameraMode::PANNING)) {
         game->camera->changeCameraMode(CameraMode::PANNING);
-        game->ml.addMessage("Camera changed to pan", MessageType::NORMAL, true);
+        game->ml.addMessage("Camera changed to pan", MessageType::Normal, true);
     }
 
     ImGui::End();

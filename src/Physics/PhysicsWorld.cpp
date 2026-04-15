@@ -79,7 +79,7 @@ void PhysicsWorld::update(float deltaTime) {
         BeybladeBody* beybladeBody = beyblade->getBody();
         if (beybladeBody->getAngularVelocity().lengthTyped() < MIN_SPIN_THRESHOLD) {
             if (spinFinishedReported.insert(beybladeBody).second) {
-                MessageLog::getInstance().addMessage("Beyblade " + beyblade->getName() + " ran out of spin", MessageType::NORMAL);
+                MessageLog::getInstance().addMessage("Beyblade " + beyblade->getName() + " ran out of spin", MessageType::Normal);
             }
             continue;  // This bey is done; the rest of the world keeps stepping
         }
@@ -92,7 +92,7 @@ void PhysicsWorld::update(float deltaTime) {
         for (Stadium* stadium : stadiums) {
             if(!stadium->isInside(beyBottom.xTyped(), beyBottom.zTyped())) {
                 if (outOfBoundsReported.insert(beybladeBody).second) {
-                    MessageLog::getInstance().addMessage("Beyblade " + beyblade->getName() + " out of bounds", MessageType::NORMAL);
+                    MessageLog::getInstance().addMessage("Beyblade " + beyblade->getName() + " out of bounds", MessageType::Normal);
                 }
                 continue;  // Not in this stadium; check any others
             }

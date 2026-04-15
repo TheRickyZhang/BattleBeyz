@@ -6,11 +6,13 @@
 
 #include <imgui.h>
 
+// Not SCREAMING_CASE: windows.h defines ERROR as a macro, which would rewrite
+// the enumerator out from under this header wherever GL/glew.h is included first.
 enum class MessageType {
-    NORMAL,
-    ERROR,
-    WARNING,
-    SUCCESS
+    Normal,
+    Error,
+    Warning,
+    Success
 };
 
 static const std::array<std::string, 4> typeStrings = {
@@ -37,9 +39,9 @@ struct GameMessage {
 private:
     static ImVec4 getDefaultColor(MessageType messageType) {
         switch (messageType) {
-            case MessageType::ERROR:   return ImVec4(1.0f, 0.0f, 0.0f, 1.0f); // Red for errors
-            case MessageType::WARNING: return ImVec4(1.0f, 1.0f, 0.0f, 1.0f); // Yellow for warnings
-            case MessageType::SUCCESS: return ImVec4(0.0f, 1.0f, 0.0f, 1.0f); // Green for success
+            case MessageType::Error:   return ImVec4(1.0f, 0.0f, 0.0f, 1.0f); // Red for errors
+            case MessageType::Warning: return ImVec4(1.0f, 1.0f, 0.0f, 1.0f); // Yellow for warnings
+            case MessageType::Success: return ImVec4(0.0f, 1.0f, 0.0f, 1.0f); // Green for success
             default:                   return ImVec4(1.0f, 1.0f, 1.0f, 1.0f); // White for normal
         }
     }

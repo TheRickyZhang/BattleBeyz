@@ -114,7 +114,7 @@ GameState* GameEngine::getGameState()
 void GameEngine::changeState(std::unique_ptr<GameState> newState) {
     // Keep the current state rather than emptying the stack into a dead app
     if (!newState) {
-        ml.addMessage("Ignoring state change to a state that could not be created.", MessageType::ERROR);
+        ml.addMessage("Ignoring state change to a state that could not be created.", MessageType::Error);
         return;
     }
     pendingTransitions.push_back({ TransitionKind::Change, std::move(newState) });
@@ -125,7 +125,7 @@ void GameEngine::changeState(std::unique_ptr<GameState> newState) {
 */
 void GameEngine::pushState(std::unique_ptr<GameState> state) {
     if (!state) {
-        ml.addMessage("Ignoring push of a state that could not be created.", MessageType::ERROR);
+        ml.addMessage("Ignoring push of a state that could not be created.", MessageType::Error);
         return;
     }
     pendingTransitions.push_back({ TransitionKind::Push, std::move(state) });
@@ -277,7 +277,7 @@ void GameEngine::cleanup() {
         ml.save(MESSAGE_LOG_SAVE_DIR);
     }
     catch (const nlohmann::json::exception& e) {
-        ml.addMessage("Error saving json: " + string(e.what()), MessageType::ERROR);
+        ml.addMessage("Error saving json: " + string(e.what()), MessageType::Error);
         ml.addMessage("Please investigate the issue, and reach out to the contact email for further support");
     }
     catch (exception& e) {
@@ -551,7 +551,7 @@ bool GameEngine::attemptSaveDataLoad()
     try {
         pm.loadProfilesFromFile(PROFILE_SAVE_PATH);
         if (pm.getAllProfiles().empty()) {
-            ml.addMessage("No saved profiles found; creating defaults.", MessageType::WARNING);
+            ml.addMessage("No saved profiles found; creating defaults.", MessageType::Warning);
             pm.addDefaultProfiles();
         }
         return true;
@@ -560,7 +560,7 @@ bool GameEngine::attemptSaveDataLoad()
         pm.addDefaultProfiles();
 
         // Add critical error messages to the message log
-        ml.addMessage("Critical error during initialization: " + string(e.what()), MessageType::ERROR);
+        ml.addMessage("Critical error during initialization: " + string(e.what()), MessageType::Error);
         ml.addMessage("Please investigate the issue, and reach out to the contact email for further support");
         ml.open();
     }

@@ -136,7 +136,7 @@ bool ProfileManager::saveProfilesToFile(const string& filePath) {
         // Open file and write JSON
         ofstream file(filePath);
         if (!file.is_open()) {
-            ml.addMessage("Error: Unable to open file for writing: " + filePath, MessageType::ERROR);
+            ml.addMessage("Error: Unable to open file for writing: " + filePath, MessageType::Error);
             return false;
         }
 
@@ -146,7 +146,7 @@ bool ProfileManager::saveProfilesToFile(const string& filePath) {
 
     }
     catch (const std::exception& e) {
-        ml.addMessage("Error: Exception occurred while saving profiles: " + string(e.what()), MessageType::ERROR);
+        ml.addMessage("Error: Exception occurred while saving profiles: " + string(e.what()), MessageType::Error);
         return false;
     }
 }
@@ -157,12 +157,12 @@ bool ProfileManager::loadProfilesFromFile(const string& filePath) {
 
     // Return early if fail; these must pass to continue
     if (!filesystem::exists(filePath)) {
-        ml.addMessage("Error: File does not exist: " + filePath, MessageType::ERROR);
+        ml.addMessage("Error: File does not exist: " + filePath, MessageType::Error);
         return false;
     }
     ifstream file(filePath);
     if (!file.is_open()) {
-        ml.addMessage("Error: Unable to open file: " + filePath, MessageType::ERROR);
+        ml.addMessage("Error: Unable to open file: " + filePath, MessageType::Error);
         return false;
     }
     json js;
@@ -170,12 +170,12 @@ bool ProfileManager::loadProfilesFromFile(const string& filePath) {
         file >> js;
     }
     catch (const json::exception& e) {
-        ml.addMessage("Error: Failed to parse JSON. " + string(e.what()), MessageType::ERROR);
+        ml.addMessage("Error: Failed to parse JSON. " + string(e.what()), MessageType::Error);
         return false;
     }
 
     if (!js.is_object() || !js.contains("profiles") || !js["profiles"].is_array()) {
-        ml.addMessage("Error: No profiles array in " + filePath, MessageType::ERROR);
+        ml.addMessage("Error: No profiles array in " + filePath, MessageType::Error);
         return false;
     }
 
@@ -186,17 +186,17 @@ bool ProfileManager::loadProfilesFromFile(const string& filePath) {
         for (const auto& profileJson : js["profiles"]) {
             auto profile = make_shared<Profile>();
             if (!profile->fromJson(profileJson)) {
-                ml.addMessage("Skipping invalid profile entry.", MessageType::WARNING);
+                ml.addMessage("Skipping invalid profile entry.", MessageType::Warning);
                 success = false;
             }
             if (!addProfile(profile)) {
-                ml.addMessage("Failed to add profile: " + profile->getName(), MessageType::ERROR);
+                ml.addMessage("Failed to add profile: " + profile->getName(), MessageType::Error);
                 success = false;
             }
         }
     }
     catch (const json::exception& e) {
-        ml.addMessage("Failed to load profiles array. " + string(e.what()), MessageType::ERROR);
+        ml.addMessage("Failed to load profiles array. " + string(e.what()), MessageType::Error);
         return false;
     }
 
@@ -205,12 +205,12 @@ bool ProfileManager::loadProfilesFromFile(const string& filePath) {
         try {
             int activeId = js["activeProfileId"];
             if (!setActiveProfile(activeId)) {
-                ml.addMessage("Warning: Active profile ID not valid.", MessageType::WARNING);
+                ml.addMessage("Warning: Active profile ID not valid.", MessageType::Warning);
                 success = false;
             }
         }
         catch (const json::exception& e) {
-            ml.addMessage("Error: Invalid activeProfileId in JSON. " + string(e.what()), MessageType::ERROR);
+            ml.addMessage("Error: Invalid activeProfileId in JSON. " + string(e.what()), MessageType::Error);
             success = false;
         }
     }

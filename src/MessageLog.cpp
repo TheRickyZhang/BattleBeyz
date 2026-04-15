@@ -35,7 +35,7 @@ void MessageLog::addMessage(const string& text, MessageType type, bool overwrite
         }
     }
     // Only show the log on warnings or higher
-    if (overwrite || type >= MessageType::WARNING) {
+    if (overwrite || type >= MessageType::Warning) {
         open();
     }
 }

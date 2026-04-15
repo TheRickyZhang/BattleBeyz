@@ -30,7 +30,7 @@ public:
     void toggle();
     bool isOpen() const;
 
-    void addMessage(const std::string& text, MessageType type = MessageType::NORMAL, bool showLog = false);
+    void addMessage(const std::string& text, MessageType type = MessageType::Normal, bool showLog = false);
     void render();
     void save(const std::string& path);
 private:

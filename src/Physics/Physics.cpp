@@ -164,7 +164,7 @@ void Physics::accumulateImpact(BeybladeBody* beyblade1, BeybladeBody* beyblade2,
         << "Impact: relative speed " << relativeSpeed.value()
         << " | v1 " << glm::length(velocity1.value()) << " -> " << glm::length(deltaVelocity1.value())
         << " | v2 " << glm::length(velocity2.value()) << " -> " << glm::length(deltaVelocity2.value());
-    MessageLog::getInstance().addMessage(collision.str(), MessageType::NORMAL);
+    MessageLog::getInstance().addMessage(collision.str(), MessageType::Normal);
 
     // Random effect with inherent attack power of beyblades built in
     Scalar randomMagnitude = (beyblade1->sampleRecoil() + beyblade2->sampleRecoil()) / 2.0__;
@@ -207,7 +207,7 @@ void Physics::accumulateImpact(BeybladeBody* beyblade1, BeybladeBody* beyblade2,
     }
     else {
         // TODO: Different case for opposite spin interactions
-        MessageLog::getInstance().addMessage("Opposite spin collisions have not been implemented yet", MessageType::WARNING);
+        MessageLog::getInstance().addMessage("Opposite spin collisions have not been implemented yet", MessageType::Warning);
     }
 }
 

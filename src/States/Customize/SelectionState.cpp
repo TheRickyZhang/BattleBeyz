@@ -96,7 +96,7 @@ void SelectionState::precomputeLayout(int& leftPanelWidth, int& rightPanelWidth)
 void SelectionState::showPlayerButtons() {
     if (Button("Add player")) {
         if (players.size() >= MAX_PLAYERS) {
-            game->ml.addMessage("Max player count reached!", MessageType::WARNING);
+            game->ml.addMessage("Max player count reached!", MessageType::Warning);
             return;
         }
         // Show available Beyblades from the active profile
@@ -120,7 +120,7 @@ void SelectionState::showPlayerButtons() {
 
     if (Button("Remove a player")) {
         if (players.empty()) {
-            game->ml.addMessage("No players to remove!", MessageType::WARNING);
+            game->ml.addMessage("No players to remove!", MessageType::Warning);
             return;
         }
         OpenPopup("Remove Player");

@@ -56,7 +56,7 @@ void setupImGui(GLFWwindow* window) {
         createDefaultProfile();
     }
     if (!exists(IMGUI_SAVE_PATH)) {
-        ml.addMessage("Warning: Config file " + string(IMGUI_SAVE_PATH) + " not found.Using default settings.", MessageType::ERROR, true);
+        ml.addMessage("Warning: Config file " + string(IMGUI_SAVE_PATH) + " not found.Using default settings.", MessageType::Error, true);
     }
 
     ml.addMessage("ImGui setup complete. Config and log files are set.");

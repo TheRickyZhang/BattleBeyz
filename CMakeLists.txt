@@ -85,8 +85,9 @@ FetchContent_MakeAvailable(stb)
 FetchContent_Declare(
     tinyobjloader
     GIT_REPOSITORY https://github.com/tinyobjloader/tinyobjloader.git
-    # Head of the "release" branch at time of pinning; that branch keeps the 1.x API
-    GIT_TAG 45636bdcef1a4fec140346b90c0b50bf0bc3e23b
+    # Last release-branch commit before the embedded fast_float copy, whose
+    # constexpr helpers call a non-constexpr distance() and fail MSVC with C3615
+    GIT_TAG 71a40e4975939aed3f5237313b7ff55205631e84
 )
 FetchContent_MakeAvailable(tinyobjloader)
 
@@ -177,7 +178,7 @@ endif()
 # Warnings are on by default. -Wno-unused-parameter is deliberate: the GameState
 # interface hands every override a width/height/deltaTime it may not need.
 if(MSVC)
-    set(BATTLEBEYZ_WARNINGS /W4)
+    set(BATTLEBEYZ_WARNINGS /W4 /wd4100)
 else()
     set(BATTLEBEYZ_WARNINGS -Wall -Wextra -Wformat-security -Wno-unused-parameter)
 endif()
@@ -265,7 +266,10 @@ if(BATTLEBEYZ_BUILD_TESTS)
     target_link_libraries(battlebeyz_tests PRIVATE battlebeyz_core doctest::doctest)
     target_compile_options(battlebeyz_tests PRIVATE ${BATTLEBEYZ_WARNINGS})
 
-    add_test(NAME battlebeyz_tests COMMAND battlebeyz_tests)
+    # Runs from the build directory, where the assets copy below lands, so the
+    # mesh tests can open real .obj files by relative path
+    add_test(NAME battlebeyz_tests COMMAND battlebeyz_tests
+             WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 endif()
 
 # Add Assets to Build Directory

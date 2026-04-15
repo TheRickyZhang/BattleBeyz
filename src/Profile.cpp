@@ -46,7 +46,7 @@ bool Profile::fromJson(const json& js) {
             for (const auto& beybladeJson : js["beyblades"]) {
                 auto beyblade = make_shared<Beyblade>(Beyblade::fromJson(beybladeJson));
                 if (!addBeyblade(beyblade)) {
-                    MessageLog::getInstance().addMessage("Failed to add beyblade " + beyblade->getName(), MessageType::ERROR);
+                    MessageLog::getInstance().addMessage("Failed to add beyblade " + beyblade->getName(), MessageType::Error);
                 }
             }
 
@@ -55,14 +55,14 @@ bool Profile::fromJson(const json& js) {
             for (const auto& stadiumJson : js["stadiums"]) {
                 auto stadium = make_shared<Stadium>(Stadium::fromJson(stadiumJson));
                 if (!addStadium(stadium)) {
-                    MessageLog::getInstance().addMessage("Failed to add stadium " + stadium->getName(), MessageType::ERROR);
+                    MessageLog::getInstance().addMessage("Failed to add stadium " + stadium->getName(), MessageType::Error);
                 }
             }
 
         }
     }
     catch (const json::exception& e) {
-        MessageLog::getInstance().addMessage("Error parsing JSON: " + std::string(e.what()), MessageType::ERROR);
+        MessageLog::getInstance().addMessage("Error parsing JSON: " + std::string(e.what()), MessageType::Error);
         return false;
     }
     return true;
@@ -75,14 +75,14 @@ bool Profile::fromJson(const json& js) {
 // SERVER: (need globally unique beybladeIds across multiple different profiles)
 bool Profile::createBeyblade(const string& name, bool isTemplate) {
     if (beybladesOwned.size() >= MAX_BEYBLADES_PER_PROFILE) {
-        MessageLog::getInstance().addMessage("Max beyblade count (" + to_string(MAX_BEYBLADES_PER_PROFILE) + ") reached.", MessageType::ERROR);
+        MessageLog::getInstance().addMessage("Max beyblade count (" + to_string(MAX_BEYBLADES_PER_PROFILE) + ") reached.", MessageType::Error);
         return false;
     }
     while (getBeybladeIterator(nextBeybladeId) != beybladesOwned.end()) {
         nextBeybladeId++;
     }
     if (!beybladesOwned.empty() && getBeybladeIterator(nextBeybladeId) != beybladesOwned.end()) {
-        MessageLog::getInstance().addMessage("Error: Beyblade with ID " + to_string(nextBeybladeId) + " already exists.", MessageType::ERROR);
+        MessageLog::getInstance().addMessage("Error: Beyblade with ID " + to_string(nextBeybladeId) + " already exists.", MessageType::Error);
         return false;
     }
     shared_ptr<Beyblade> beyblade = isTemplate
@@ -160,7 +160,7 @@ bool Profile::createStadium(const string& name) {
         nextStadiumID++;
     }
     if (!stadiumsOwned.empty() && getStadiumIterator(nextStadiumID) != stadiumsOwned.end()) {
-        MessageLog::getInstance().addMessage("Error: Stadium with ID " + to_string(nextBeybladeId) + " already exists.", MessageType::ERROR);
+        MessageLog::getInstance().addMessage("Error: Stadium with ID " + to_string(nextBeybladeId) + " already exists.", MessageType::Error);
         return false;
     }
     auto stadium = make_shared<Stadium>(nextStadiumID, name);
