@@ -13,7 +13,7 @@ class Stadium;
 
 class Physics {
 public:
-    static constexpr Scalar PI = 3.14159265358979__;
+    static constexpr Scalar PI = 3.14159265358979_sc;
 
     // Constructor with default parameters
     Physics(float gravity = 9.81f,

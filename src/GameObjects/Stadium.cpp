@@ -39,7 +39,7 @@ Stadium::Stadium(
     ringColor(ringColor),
     crossColor(crossColor),
     textureScale(textureScale),
-    texture(move(texture))
+    texture(std::move(texture))
 {
     setTint(tint);
     updateMesh();
@@ -153,9 +153,9 @@ const Vec3_Scalar Stadium::getNormal(M x, M z) const {
     M scaledX = x - center.xTyped();
     M scaledZ = z - center.zTyped();
     Vec3_Scalar normal = normalize(Vec3_Scalar(
-        (-2.0__ * scaledCurvature * scaledX).value(),
+        (-2.0_sc * scaledCurvature * scaledX).value(),
         1.0f,
-        (-2.0__ * scaledCurvature * scaledZ).value()));
+        (-2.0_sc * scaledCurvature * scaledZ).value()));
     return normal;
 }
 

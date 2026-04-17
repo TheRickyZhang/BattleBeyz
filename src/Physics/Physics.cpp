@@ -33,7 +33,7 @@ void Physics::accumulateAirResistance(BeybladeBody* beyblade) const {
     //float angularVelocityMagnitude = glm::length(beyblade->getAngularVelocity());
 
     // Adrag = (-b * w^2 / moi) * unit w            (Note: must manually correct radian overcount here)
-    Vec3_R_S2 angularAirResistanceAcceleration = -1.0__/R(1.0) * angularDragConstant * dot(beyblade->getAngularVelocity(), beyblade->getAngularVelocity())
+    Vec3_R_S2 angularAirResistanceAcceleration = -1.0_sc/R(1.0) * angularDragConstant * dot(beyblade->getAngularVelocity(), beyblade->getAngularVelocity())
                                             / beyblade->getMomentOfInertia() * normalize(beyblade->getAngularVelocity());
 
     beyblade->accumulateAngularAcceleration(angularAirResistanceAcceleration);
@@ -58,7 +58,7 @@ void Physics::accumulateFriction(BeybladeBody* beyblade, Stadium* stadium) const
     // Gets the normal of the stadium at the beyblade's position
     Vec3_Scalar stadiumNormal = stadium->getNormal(beyblade->getCenter().xTyped(), beyblade->getCenter().zTyped());
 
-    Scalar combinedCOF = (stadium->getCOF() + beyblade->driver->coefficientOfFriction) / 2.0__;
+    Scalar combinedCOF = (stadium->getCOF() + beyblade->driver->coefficientOfFriction) / 2.0_sc;
     Vec3_Scalar normalizedAngularVelocity = normalize(beyblade->getAngularVelocity());
  
     // sin(theta) * direction.  Patched with units
@@ -69,7 +69,7 @@ void Physics::accumulateFriction(BeybladeBody* beyblade, Stadium* stadium) const
     // w*r is a speed (rad cancels); dividing by one radian-second turns it into the
     // acceleration this model wants, without silently dropping the units on the way.
     M_S2 angularComponent = (beyblade->getAngularVelocity().lengthTyped() * beyblade->driver->contactRadius)
-        / (1.0_rad * 1.0_s) * combinedCOF * (alignment > 0.0__ ? 1.0f : -1.0f);
+        / (1.0_rad * 1.0_s) * combinedCOF * (alignment > 0.0_sc ? 1.0f : -1.0f);
 
     // cl * (g * mu * cos(theta)
     M_S2 traditionalAccelerationComponent = FRICTIONAL_ACCELERATION_CONSTANT * linearComponent;
@@ -81,7 +81,7 @@ void Physics::accumulateFriction(BeybladeBody* beyblade, Stadium* stadium) const
     Vec3_M_S2 linearAcceleration = frictionDirectionAcceleration * (traditionalAccelerationComponent + velocityAccelarationComponent);
 
     // Prevent case where Beyblade and Stadium are perfectly aligned, and nothing moves
-    //if (linearAcceleration.length() < 0.001__) {
+    //if (linearAcceleration.length() < 0.001_sc) {
     //    linearAcceleration = Vec3_M_S2(0.001, 0, 0);
     //}
 
@@ -106,7 +106,7 @@ void Physics::accumulateSlope(BeybladeBody* beyblade, Stadium* stadium) const
     Vec3_M beyBottomPosition = beyblade->getBottomPosition();
     Vec3_Scalar beybladeNormal = beyblade->getNormal();
     Vec3_Scalar stadiumNormal = stadium->getNormal(beyblade->getBottomPosition().xTyped(), beyblade->getBottomPosition().zTyped());
-    Scalar combinedCOF = (stadium->getCOF() + beyblade->driver->coefficientOfFriction) / 2.0__;
+    Scalar combinedCOF = (stadium->getCOF() + beyblade->driver->coefficientOfFriction) / 2.0_sc;
 
     Vec3_Scalar crossProduct = cross(stadiumNormal, beybladeNormal);
     Scalar sinOfAngle = crossProduct.length() / (stadiumNormal.length() * beybladeNormal.length());
@@ -142,7 +142,7 @@ void Physics::accumulateImpact(BeybladeBody* beyblade1, BeybladeBody* beyblade2,
     Vec3_M_S velocity1 = beyblade1->getVelocity();
     Vec3_M_S velocity2 = beyblade2->getVelocity();
     Vec3_M_S vDiff = velocity2 - velocity1;
-    Scalar averageCOR = (beyblade1->layer->coefficientOfRestitution + beyblade2->layer->coefficientOfRestitution) / 2.0__;
+    Scalar averageCOR = (beyblade1->layer->coefficientOfRestitution + beyblade2->layer->coefficientOfRestitution) / 2.0_sc;
 
     Kg mass1 = beyblade1->getMass();
     Kg mass2 = beyblade2->getMass();
@@ -150,7 +150,7 @@ void Physics::accumulateImpact(BeybladeBody* beyblade1, BeybladeBody* beyblade2,
     M_S relativeSpeed = proj(vDiff, unitSeparation);
 
     // Trust this known linear collison model works correctly
-    KgM_S impulseMagnitude = averageCOR * relativeSpeed / (1.0__ / mass1 + 1.0__ / mass2);
+    KgM_S impulseMagnitude = averageCOR * relativeSpeed / (1.0_sc / mass1 + 1.0_sc / mass2);
 
     Vec3_M_S deltaVelocity1 = -impulseMagnitude / mass1 * unitSeparation;
     Vec3_M_S deltaVelocity2 = impulseMagnitude / mass2 * unitSeparation;
@@ -167,16 +167,16 @@ void Physics::accumulateImpact(BeybladeBody* beyblade1, BeybladeBody* beyblade2,
     MessageLog::getInstance().addMessage(collision.str(), MessageType::Normal);
 
     // Random effect with inherent attack power of beyblades built in
-    Scalar randomMagnitude = (beyblade1->sampleRecoil() + beyblade2->sampleRecoil()) / 2.0__;
-    assert(randomMagnitude > 0.0__);
+    Scalar randomMagnitude = (beyblade1->sampleRecoil() + beyblade2->sampleRecoil()) / 2.0_sc;
+    assert(randomMagnitude > 0.0_sc);
 
     // NOTE: I think this is the same as relativeSpeed but with reversed sign.
     
     //float linearCollisionSpeed = glm::dot(unitSeparation, velocity1) + glm::dot(-unitSeparation, velocity2);
     //if (linearCollisionSpeed < 0) cerr << "Linear collision speed is less than 0!" << endl;
 
-    KgM2 averageMOI = (beyblade1->getMomentOfInertia() + beyblade2->getMomentOfInertia()) / 2.0__;
-    Kg averageMass = (mass1 + mass2) / 2.0__;
+    KgM2 averageMOI = (beyblade1->getMomentOfInertia() + beyblade2->getMomentOfInertia()) / 2.0_sc;
+    Kg averageMass = (mass1 + mass2) / 2.0_sc;
     // Different cases for same-spin vs opposite-spin collisions
     bool sameSpinDirection = beyblade1->isSpinningClockwise() == beyblade2->isSpinningClockwise();
     if (sameSpinDirection) {
@@ -185,8 +185,8 @@ void Physics::accumulateImpact(BeybladeBody* beyblade1, BeybladeBody* beyblade2,
 
         // TODO: More accurate predictive modeling, use sqrt() for now
         // NOTE we assume magnitude bounded by MIN and MAX spin threshold
-        Scalar angularScalingFactor = 1.0__ * sqrt(abs(relativeSpeed.value())) * sqrt(angularSpeedSum.value());
-        Scalar linearScalingFactor = 0.2__ * sqrt(abs(relativeSpeed.value()))
+        Scalar angularScalingFactor = 1.0_sc * sqrt(abs(relativeSpeed.value())) * sqrt(angularSpeedSum.value());
+        Scalar linearScalingFactor = 0.2_sc * sqrt(abs(relativeSpeed.value()))
             * (1.0f + float((std::clamp(angularSpeedSum.value(), 30.0f, 1500.0f) - 30.0f)
                 * (10.0 - 1.0) / (1500.0f - 30.0f)));
 
@@ -196,8 +196,8 @@ void Physics::accumulateImpact(BeybladeBody* beyblade1, BeybladeBody* beyblade2,
         Scalar recoilAngularImpulseMagnitude(randomMagnitude * angularScalingFactor);  // Since we can't simulate directly fudge up units
         assert(recoilAngularImpulseMagnitude.value() > 0.0);
 
-        beyblade1->accumulateAngularImpulseMagnitude(-1.0__/1.0_s * recoilAngularImpulseMagnitude * averageMOI);
-        beyblade2->accumulateAngularImpulseMagnitude(-1.0__/1.0_s * recoilAngularImpulseMagnitude * averageMOI);
+        beyblade1->accumulateAngularImpulseMagnitude(-1.0_sc/1.0_s * recoilAngularImpulseMagnitude * averageMOI);
+        beyblade2->accumulateAngularImpulseMagnitude(-1.0_sc/1.0_s * recoilAngularImpulseMagnitude * averageMOI);
 
         M_S recoilLinearImpulseMagnitude(randomMagnitude * linearScalingFactor * averageCOR);
         assert(recoilLinearImpulseMagnitude.value() > 0.0);

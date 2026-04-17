@@ -399,66 +399,73 @@ root(const Vector3Quantity<D, T> &vec);
 template <typename D, typename T>
 std::ostream &operator<<(std::ostream &os, const Vector3Quantity<D, T> &vec);
 
-constexpr Scalar operator"" __(long double value) {
-  return Scalar(static_cast<float>(value));
-}
-constexpr M operator"" _m(long double value) {
-  return M(static_cast<float>(value));
-}
-constexpr M operator"" _km(long double value) {
-  return M(static_cast<float>(value) * 1000.0f);
-}
-constexpr M operator"" _cm(long double value) {
-  return M(static_cast<float>(value) * 0.01f);
-}
-constexpr M2 operator"" _m2(long double value) {
-  return M2(static_cast<float>(value));
-}
-constexpr M3 operator"" _m3(long double value) {
-  return M3(static_cast<float>(value));
-}
-constexpr Kg operator"" _kg(long double value) {
-  return Kg(static_cast<float>(value));
-}
-constexpr Kg operator"" _g(long double value) {
-  return Kg(static_cast<float>(value) * 0.001f);
-}
-constexpr S operator"" _s(long double value) {
-  return S(static_cast<float>(value));
-}
-constexpr S operator"" _ms(long double value) {
-  return S(static_cast<float>(value) * 0.001f);
-}
-constexpr R operator"" _rad(long double value) {
-  return R(static_cast<float>(value));
-}
-constexpr R_S operator"" _rad_s(long double value) {
-  return R_S(static_cast<float>(value));
-}
-constexpr R_S2 operator"" _rad_s2(long double value) {
-  return R_S2(static_cast<float>(value));
-}
-constexpr KgM_S2 operator"" _N(long double value) {
-  return KgM_S2(static_cast<float>(value));
-}
-constexpr KgM2 operator"" _kg_m2(long double value) {
-  return KgM2(static_cast<float>(value));
-}
-constexpr Kg_M3 operator"" _kg_m3(long double value) {
-  return Kg_M3(static_cast<float>(value));
-}
-constexpr M_S operator"" _m_s(long double value) {
-  return M_S(static_cast<float>(value));
-}
-constexpr M_S2 operator"" _m_s2(long double value) {
-  return M_S2(static_cast<float>(value));
-}
-constexpr S2 operator"" _s2(long double value) {
-  return S2(static_cast<float>(value));
-}
-
-const Scalar PI = 3.14159265358979__;
-
 } // namespace Units
 
 #include "Units.tpp"
+
+// These are non-template constexpr functions, so clang checks their bodies where they
+// are defined and needs Quantity's constructor already defined -- which happens in
+// Units.tpp. Declaring them any earlier makes every use a non-constant expression.
+namespace Units {
+
+constexpr Scalar operator""_sc(long double value) {
+  return Scalar(static_cast<float>(value));
+}
+constexpr M operator""_m(long double value) {
+  return M(static_cast<float>(value));
+}
+constexpr M operator""_km(long double value) {
+  return M(static_cast<float>(value) * 1000.0f);
+}
+constexpr M operator""_cm(long double value) {
+  return M(static_cast<float>(value) * 0.01f);
+}
+constexpr M2 operator""_m2(long double value) {
+  return M2(static_cast<float>(value));
+}
+constexpr M3 operator""_m3(long double value) {
+  return M3(static_cast<float>(value));
+}
+constexpr Kg operator""_kg(long double value) {
+  return Kg(static_cast<float>(value));
+}
+constexpr Kg operator""_g(long double value) {
+  return Kg(static_cast<float>(value) * 0.001f);
+}
+constexpr S operator""_s(long double value) {
+  return S(static_cast<float>(value));
+}
+constexpr S operator""_ms(long double value) {
+  return S(static_cast<float>(value) * 0.001f);
+}
+constexpr R operator""_rad(long double value) {
+  return R(static_cast<float>(value));
+}
+constexpr R_S operator""_rad_s(long double value) {
+  return R_S(static_cast<float>(value));
+}
+constexpr R_S2 operator""_rad_s2(long double value) {
+  return R_S2(static_cast<float>(value));
+}
+constexpr KgM_S2 operator""_newton(long double value) {
+  return KgM_S2(static_cast<float>(value));
+}
+constexpr KgM2 operator""_kg_m2(long double value) {
+  return KgM2(static_cast<float>(value));
+}
+constexpr Kg_M3 operator""_kg_m3(long double value) {
+  return Kg_M3(static_cast<float>(value));
+}
+constexpr M_S operator""_m_s(long double value) {
+  return M_S(static_cast<float>(value));
+}
+constexpr M_S2 operator""_m_s2(long double value) {
+  return M_S2(static_cast<float>(value));
+}
+constexpr S2 operator""_s2(long double value) {
+  return S2(static_cast<float>(value));
+}
+
+const Scalar PI = 3.14159265358979_sc;
+
+} // namespace Units
