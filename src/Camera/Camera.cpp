@@ -1,3 +1,5 @@
+#include <algorithm>
+#include <utility>
 ////////////////////////////////////////////////////////////////////////////////
 // Camera.cpp -- Camera handling -- rz -- 2024-08-08
 // Copyright (c) 2024 Ricky Zhang

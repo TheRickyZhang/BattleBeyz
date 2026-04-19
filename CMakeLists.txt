@@ -106,6 +106,14 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(freetype)
 
+# glew-cmake unconditionally links the AGL framework on Apple, which modern macOS
+# SDKs no longer ship, so the link dies with "ld: framework 'AGL' not found".
+# Seeding the cache entry makes its find_library skip the search and append nothing.
+# (Upgrading is not an option: glew-cmake 2.3.x marks that find_library REQUIRED.)
+if(APPLE)
+    set(AGL_LIBRARY "" CACHE FILEPATH "Disabled: AGL is gone from the macOS SDK" FORCE)
+endif()
+
 # GLEW - Build from source (using Perlmint/glew-cmake which has pre-generated sources)
 FetchContent_Declare(
     glew

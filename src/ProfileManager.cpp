@@ -2,6 +2,7 @@
 #include <fstream>
 #include <nlohmann/json.hpp>
 #include <filesystem>
+#include <exception>
 
 #include "ProfileManager.h"
 

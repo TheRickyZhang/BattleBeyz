@@ -10,6 +10,7 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <vector>
 
 /**
  * Reads both shader files. Pure file I/O; call it wherever you like, then hand the

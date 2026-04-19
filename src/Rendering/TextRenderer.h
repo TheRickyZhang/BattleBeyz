@@ -9,6 +9,7 @@
 #include FT_FREETYPE_H
 #include <glm/glm.hpp>
 #include <GL/glew.h>
+#include <string>
 
 class ShaderProgram;
 

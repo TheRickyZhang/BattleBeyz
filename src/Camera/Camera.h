@@ -8,6 +8,7 @@
 #include <memory>
 
 #include <glm/glm.hpp>
+#include <utility>
 #include "BoundingBox.h"
 #include "CameraBehavior.h"
 #include "InputUtils.h"

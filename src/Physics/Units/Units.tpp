@@ -1,4 +1,5 @@
 #include <iomanip>
+#include <cmath>
 
 namespace Units {
     // Quantity Member Function Definitions

@@ -1,6 +1,9 @@
 ﻿#include "StadiumPreview.h"
 #include <imgui.h>
 #include <glm/gtc/matrix_transform.hpp>
+#include <memory>
+#include <mutex>
+#include <thread>
 #include "ObjectShader.h"
 #include "InputUtils.h"
 

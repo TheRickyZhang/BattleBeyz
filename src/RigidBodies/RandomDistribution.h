@@ -7,6 +7,7 @@
 
 #include <glm/glm.hpp>
 #include <random>
+#include <stdexcept>
 
 #include "Units.h"
 using namespace Units;
